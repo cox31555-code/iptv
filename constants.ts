@@ -2,17 +2,20 @@
 import { EventCategory } from './types';
 
 export const COLORS = {
-  background: '#0B0C10',
-  card: '#1F2833',
-  accent: '#04C4FC',
-  text: '#E6E6E6',
-  textDim: '#9BA4B4',
+  background: '#000000',
+  card: '#09090b',
+  accent: '#0ea5e9',
+  accentHover: '#0284c7',
+  text: '#fafafa',
+  textDim: '#a1a1aa',
+  border: 'rgba(255, 255, 255, 0.1)',
 };
 
 export const CATEGORY_ORDER = [
-  EventCategory.SPECIAL,
+  'Special',
   EventCategory.FOOTBALL,
-  EventCategory.NBA
+  EventCategory.NBA,
+  EventCategory.OTHER
 ];
 
 export const MOCK_ADMIN: any = {

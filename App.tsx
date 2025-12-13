@@ -4,6 +4,7 @@ import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider } from './AppContext.tsx';
 import Home from './pages/Public/Home.tsx';
 import Watch from './pages/Public/Watch.tsx';
+import CategoryPage from './pages/Public/CategoryPage.tsx';
 import Login from './pages/Admin/Login.tsx';
 import Dashboard from './pages/Admin/Dashboard.tsx';
 import EventEditor from './pages/Admin/EventEditor.tsx';
@@ -17,6 +18,7 @@ const App: React.FC = () => {
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
             <Route path="/watch/:id" element={<Watch />} />
+            <Route path="/category/:categoryName" element={<CategoryPage />} />
             
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />

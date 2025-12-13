@@ -17,24 +17,24 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [events, setEvents] = useState<SportEvent[]>(() => {
-    const saved = localStorage.getItem('prostream_events');
+    const saved = localStorage.getItem('ajsports_events');
     return saved ? JSON.parse(saved) : INITIAL_EVENTS;
   });
 
   const [admin, setAdmin] = useState<AdminUser | null>(() => {
-    const saved = localStorage.getItem('prostream_admin');
+    const saved = localStorage.getItem('ajsports_admin');
     return saved ? JSON.parse(saved) : null;
   });
 
   useEffect(() => {
-    localStorage.setItem('prostream_events', JSON.stringify(events));
+    localStorage.setItem('ajsports_events', JSON.stringify(events));
   }, [events]);
 
   useEffect(() => {
     if (admin) {
-      localStorage.setItem('prostream_admin', JSON.stringify(admin));
+      localStorage.setItem('ajsports_admin', JSON.stringify(admin));
     } else {
-      localStorage.removeItem('prostream_admin');
+      localStorage.removeItem('ajsports_admin');
     }
   }, [admin]);
 

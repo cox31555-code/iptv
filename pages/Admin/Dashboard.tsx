@@ -4,19 +4,18 @@ import { useApp } from '../../AppContext';
 import { Navigate, Link } from 'react-router-dom';
 import { 
   Plus, 
-  Settings, 
   LogOut, 
   Trash2, 
   Edit3, 
   Activity, 
   Clock, 
-  Calendar as CalendarIcon, 
   Copy,
-  ChevronRight,
   Eye,
-  ArrowLeft
+  ArrowLeft,
+  Star
 } from 'lucide-react';
 import { EventStatus, SportEvent } from '../../types';
+import Logo from '../../components/Logo.tsx';
 
 const Dashboard: React.FC = () => {
   const { admin, events, logout, deleteEvent, addEvent } = useApp();
@@ -48,8 +47,8 @@ const Dashboard: React.FC = () => {
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-[#1F2833] border-r border-white/5 p-6 flex flex-col">
         <div className="mb-10">
-          <Link to="/" className="text-xl font-bold tracking-tight text-[#04C4FC]">
-            PRO<span className="text-white">DASH</span>
+          <Link to="/" className="block">
+            <Logo className="h-12" />
           </Link>
           <div className="mt-4 p-3 bg-[#0B0C10] rounded-xl">
             <p className="text-xs text-white/40 mb-1 uppercase font-bold">Logged in as</p>
@@ -105,7 +104,7 @@ const Dashboard: React.FC = () => {
           <StatCard icon={<Trash2 className="text-red-400" />} label="Pending Deletion" value={stats.deletions} />
         </div>
 
-        {/* Management Table */}
+        {/* Table */}
         <div className="bg-[#1F2833] rounded-2xl border border-white/5 overflow-hidden">
           <div className="p-4 border-b border-white/5 flex items-center justify-between">
             <div className="flex gap-4">
@@ -140,7 +139,12 @@ const Dashboard: React.FC = () => {
                 {filtered.map(event => (
                   <tr key={event.id} className="hover:bg-white/5 transition-colors group">
                     <td className="px-6 py-4">
-                      <div className="font-bold text-white group-hover:text-[#04C4FC] transition-colors">{event.teams}</div>
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-white group-hover:text-[#04C4FC] transition-colors">{event.teams}</div>
+                        {event.isSpecial && (
+                          <Star className="w-3 h-3 text-sky-400 fill-current" title="Special Event" />
+                        )}
+                      </div>
                       <div className="text-[10px] text-white/40">{event.league}</div>
                     </td>
                     <td className="px-6 py-4">
@@ -153,7 +157,7 @@ const Dashboard: React.FC = () => {
                     <td className="px-6 py-4 font-mono text-white/60">
                       {new Date(event.startTime).toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="px-6 py-4 text-white/60">{event.category}</td>
+                    <td className="px-6 py-4 text-white/60 font-bold text-[10px] uppercase tracking-wider">{event.category}</td>
                     <td className="px-6 py-4">
                       <div className="flex -space-x-2">
                         {event.servers.map((s, idx) => (
@@ -178,13 +182,6 @@ const Dashboard: React.FC = () => {
                     </td>
                   </tr>
                 ))}
-                {filtered.length === 0 && (
-                  <tr>
-                    <td colSpan={6} className="px-6 py-20 text-center text-white/20 italic">
-                      No events to display
-                    </td>
-                  </tr>
-                )}
               </tbody>
             </table>
           </div>

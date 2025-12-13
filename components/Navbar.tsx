@@ -1,8 +1,11 @@
 
 import React, { useState } from 'react';
-import { Search, Menu, X, Play, Settings } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Menu, X, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useApp } from '../AppContext';
+import { EventCategory } from '../types';
+import Logo from './Logo.tsx';
+import DonateModal from './DonateModal.tsx';
 
 interface NavbarProps {
   onSearch: (term: string) => void;
@@ -10,92 +13,81 @@ interface NavbarProps {
 
 const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const { admin } = useApp();
-  const navigate = useNavigate();
-
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearchTerm(term);
-    onSearch(term);
-  };
+  const [isDonateOpen, setIsDonateOpen] = useState(false);
 
   return (
-    <nav className="sticky top-0 z-50 bg-[#0B0C10]/95 backdrop-blur-md border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center gap-2 group">
-              <div className="bg-[#04C4FC] p-1.5 rounded-lg group-hover:scale-110 transition-transform">
-                <Play className="w-5 h-5 text-[#0B0C10] fill-current" />
-              </div>
-              <span className="text-xl font-bold tracking-tight text-[#04C4FC]">
-                PRO<span className="text-white">STREAM</span>
-              </span>
+    <>
+      <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-white/5">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center pt-8 pb-4 gap-6">
+            {/* Logo Tier */}
+            <Link to="/" className="flex items-center group">
+              <Logo className="h-12 md:h-16 group-hover:scale-105 transition-transform" />
             </Link>
 
-            <div className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-sm font-medium hover:text-[#04C4FC] transition-colors">Special</Link>
-              <Link to="/" className="text-sm font-medium hover:text-[#04C4FC] transition-colors">Football</Link>
-              <Link to="/" className="text-sm font-medium hover:text-[#04C4FC] transition-colors">NBA</Link>
+            {/* Navigation Tier */}
+            <div className="flex items-center justify-between w-full border-t border-white/5 pt-4">
+              
+              <div className="flex-1">
+                <div className="md:hidden">
+                  <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                    aria-label="Toggle menu"
+                  >
+                    {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
+
+              <div className="hidden md:flex items-center gap-8 px-4">
+                <Link to="/" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Home</Link>
+                <Link to="/category/Special" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Special</Link>
+                <Link to={`/category/${EventCategory.FOOTBALL}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Football</Link>
+                <Link to={`/category/${EventCategory.NBA}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">NBA</Link>
+                <Link to={`/category/${EventCategory.OTHER}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Other Sports</Link>
+              </div>
+
+              <div className="flex-1 flex justify-end">
+                <button 
+                  onClick={() => setIsDonateOpen(true)}
+                  className="group flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-white/20 hover:bg-white/5 rounded-full transition-all"
+                >
+                  <Heart className="w-3 h-3 text-zinc-500 group-hover:text-white transition-colors" />
+                  <span className="text-[9px] font-black text-zinc-500 group-hover:text-white uppercase tracking-[0.2em]">Donate</span>
+                </button>
+              </div>
             </div>
           </div>
+        </div>
 
-          <div className="flex-1 max-w-md mx-8 hidden sm:block">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-              <input
-                type="text"
-                placeholder="Search events, teams, leagues..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                className="w-full bg-[#1F2833] border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#04C4FC] transition-all placeholder:text-white/20"
-              />
+        {/* Mobile Menu */}
+        {isOpen && (
+          <div className="md:hidden bg-zinc-950 border-t border-white/5 py-8 px-6 animate-in fade-in slide-in-from-top-4 duration-300">
+            <div className="flex flex-col gap-6 text-center">
+              <Link to="/" onClick={() => setIsOpen(false)} className="text-xl font-black tracking-tighter text-white">HOME</Link>
+              <div className="h-px bg-white/5 w-12 mx-auto" />
+              <Link to="/category/Special" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Special Events</Link>
+              <Link to={`/category/${EventCategory.FOOTBALL}`} onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Football</Link>
+              <Link to={`/category/${EventCategory.NBA}`} onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">NBA</Link>
+              <Link to={`/category/${EventCategory.OTHER}`} onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Other Sports</Link>
+              <button 
+                onClick={() => { setIsDonateOpen(true); setIsOpen(false); }}
+                className="mt-4 flex items-center justify-center gap-2 py-4 border border-white/10 text-zinc-400 rounded-2xl font-black uppercase text-xs tracking-widest hover:text-white hover:bg-white/5 transition-all"
+              >
+                <Heart className="w-4 h-4" />
+                Donate Now
+              </button>
             </div>
           </div>
+        )}
+      </nav>
 
-          <div className="flex items-center gap-4">
-            {admin ? (
-              <Link to="/admin" className="p-2 text-white/50 hover:text-[#04C4FC] transition-colors">
-                <Settings className="w-5 h-5" />
-              </Link>
-            ) : (
-              <Link to="/admin/login" className="text-sm font-medium text-white/40 hover:text-[#04C4FC]">
-                Admin
-              </Link>
-            )}
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden p-2 text-white/70 hover:text-white"
-            >
-              {isOpen ? <X /> : <Menu />}
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Menu */}
-      {isOpen && (
-        <div className="md:hidden bg-[#0B0C10] border-b border-white/5 py-4 px-4 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={handleSearchChange}
-              className="w-full bg-[#1F2833] border-none rounded-full py-2 pl-10 pr-4 text-sm"
-            />
-          </div>
-          <div className="flex flex-col gap-4">
-            <Link to="/" className="text-lg font-medium">Home</Link>
-            <Link to="/" className="text-lg font-medium">Special Events</Link>
-            <Link to="/" className="text-lg font-medium">Football</Link>
-            <Link to="/" className="text-lg font-medium">NBA</Link>
-          </div>
-        </div>
-      )}
-    </nav>
+      <DonateModal 
+        isOpen={isDonateOpen} 
+        onClose={() => setIsDonateOpen(false)} 
+      />
+    </>
   );
 };
 

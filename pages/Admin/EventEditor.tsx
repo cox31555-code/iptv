@@ -1,7 +1,7 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useApp } from '../../AppContext';
+import { useApp } from '../../AppContext.tsx';
 import { 
   ArrowLeft, 
   Save, 
@@ -12,14 +12,19 @@ import {
   Info,
   Clock,
   Settings,
-  Play
+  Play,
+  Image as ImageIcon,
+  Upload,
+  X,
+  Star
 } from 'lucide-react';
-import { EventCategory, EventStatus, StreamServer, SportEvent } from '../../types';
+import { EventCategory, EventStatus, StreamServer, SportEvent } from '../../types.ts';
 
 const EventEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { events, addEvent, updateEvent } = useApp();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<Partial<SportEvent>>({
     teams: '',
@@ -29,6 +34,7 @@ const EventEditor: React.FC = () => {
     startTime: new Date().toISOString().slice(0, 16),
     endTime: new Date(Date.now() + 7200000).toISOString().slice(0, 16),
     description: '',
+    imageUrl: '',
     isSpecial: false,
     pinPriority: 0,
     deleteAt: null,
@@ -58,6 +64,28 @@ const EventEditor: React.FC = () => {
       }
     }
   }, [id, events]);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Image is too large. Please choose a file smaller than 2MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setFormData({ ...formData, imageUrl: reader.result as string });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const removeImage = () => {
+    setFormData({ ...formData, imageUrl: '' });
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const handleSave = () => {
     const finalData: SportEvent = {
@@ -104,6 +132,8 @@ const EventEditor: React.FC = () => {
       setPreviewServer(updated && updated.length > 0 ? updated[0] : null);
     }
   };
+
+  const sportCategories = Object.values(EventCategory);
 
   return (
     <div className="min-h-screen bg-[#0B0C10] pb-20">
@@ -158,10 +188,45 @@ const EventEditor: React.FC = () => {
                 <select 
                   value={formData.category}
                   onChange={e => setFormData({ ...formData, category: e.target.value as EventCategory })}
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#04C4FC] focus:outline-none text-white"
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#04C4FC] focus:outline-none text-white transition-all"
                 >
-                  {Object.values(EventCategory).map(c => <option key={c} value={c} className="bg-[#1F2833]">{c}</option>)}
+                  {sportCategories.map(c => <option key={c} value={c} className="bg-[#1F2833]">{c}</option>)}
                 </select>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Cover Image</label>
+                <div className="flex gap-4">
+                   <div className="flex-1">
+                      <input 
+                        type="file"
+                        ref={fileInputRef}
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        className="hidden"
+                      />
+                      <button 
+                        onClick={() => fileInputRef.current?.click()}
+                        className="w-full h-[52px] flex items-center justify-center gap-2 bg-[#0B0C10] border border-dashed border-white/20 rounded-xl px-4 hover:border-[#04C4FC]/50 hover:bg-[#04C4FC]/5 transition-all text-sm text-white/40"
+                      >
+                        <Upload className="w-4 h-4" />
+                        {formData.imageUrl ? 'Change Image' : 'Upload Cover Image'}
+                      </button>
+                   </div>
+                   {formData.imageUrl && (
+                     <div className="relative group shrink-0">
+                        <div className="w-16 h-12 bg-[#0B0C10] rounded-lg border border-white/10 overflow-hidden">
+                          <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                        </div>
+                        <button 
+                          onClick={removeImage}
+                          className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                     </div>
+                   )}
+                </div>
               </div>
 
               <div>
@@ -198,11 +263,9 @@ const EventEditor: React.FC = () => {
           </section>
 
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2 text-[#04C4FC]">
-                <Settings className="w-4 h-4" />
-                <h2 className="font-bold uppercase text-xs tracking-widest">Stream Servers</h2>
-              </div>
+            <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
+              <Settings className="w-4 h-4" />
+              <h2 className="font-bold uppercase text-xs tracking-widest">Stream Servers</h2>
             </div>
 
             <div className="space-y-4">
@@ -213,54 +276,33 @@ const EventEditor: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <span className="font-bold text-sm">{server.name}</span>
                       {server.isDefault && <span className="text-[8px] bg-[#04C4FC]/20 text-[#04C4FC] px-1.5 py-0.5 rounded font-bold uppercase">Default</span>}
-                      {!server.isActive && <span className="text-[8px] bg-white/10 text-white/40 px-1.5 py-0.5 rounded font-bold uppercase">Inactive</span>}
                     </div>
                     <div className="text-xs text-white/30 truncate max-w-[200px]">{server.embedUrl}</div>
                   </div>
                   <div className="flex items-center gap-1">
-                    <button 
-                      onClick={() => setPreviewServer(server)} 
-                      title="Preview this server"
-                      className={`p-2 rounded-lg transition-colors ${previewServer?.id === server.id ? 'bg-[#04C4FC] text-[#0B0C10]' : 'bg-white/5 text-white/40 hover:text-white'}`}
-                    >
-                      <Play className="w-4 h-4" />
-                    </button>
-                    <button onClick={() => removeServer(server.id)} className="p-2 hover:bg-red-500/10 text-white/20 hover:text-red-500 rounded-lg">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    <button onClick={() => setPreviewServer(server)} className={`p-2 rounded-lg ${previewServer?.id === server.id ? 'bg-[#04C4FC] text-[#0B0C10]' : 'bg-white/5 text-white/40'}`}><Play className="w-4 h-4" /></button>
+                    <button onClick={() => removeServer(server.id)} className="p-2 hover:bg-red-500/10 text-white/20 hover:text-red-500 rounded-lg"><Trash2 className="w-4 h-4" /></button>
                   </div>
                 </div>
               ))}
 
               <div className="bg-[#0B0C10]/40 p-6 rounded-2xl border border-dashed border-white/10 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <input 
-                    placeholder="Server Name (e.g. HD Link)"
-                    value={newServer.name}
-                    onChange={e => setNewServer({ ...newServer, name: e.target.value })}
-                    className="col-span-2 bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-1 focus:ring-[#04C4FC]"
-                  />
-                  <input 
-                    placeholder="Embed URL (Iframe Source)"
-                    value={newServer.embedUrl}
-                    onChange={e => setNewServer({ ...newServer, embedUrl: e.target.value })}
-                    className="col-span-2 bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-1 focus:ring-[#04C4FC]"
-                  />
-                  <label className="flex items-center gap-2 text-xs text-white/40">
-                    <input 
-                      type="checkbox"
-                      checked={newServer.isDefault}
-                      onChange={e => setNewServer({ ...newServer, isDefault: e.target.checked })}
-                      className="accent-[#04C4FC]"
-                    /> Default Server
-                  </label>
-                </div>
-                <button 
-                  onClick={addServer}
-                  className="w-full flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white rounded-xl text-sm font-bold transition-all"
-                >
-                  <Plus className="w-4 h-4" /> Add Server
-                </button>
+                <input 
+                  placeholder="Server Name"
+                  value={newServer.name}
+                  onChange={e => setNewServer({ ...newServer, name: e.target.value })}
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-1 focus:ring-[#04C4FC]"
+                />
+                <input 
+                  placeholder="Embed URL"
+                  value={newServer.embedUrl}
+                  onChange={e => setNewServer({ ...newServer, embedUrl: e.target.value })}
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm focus:ring-1 focus:ring-[#04C4FC]"
+                />
+                <label className="flex items-center gap-2 text-xs text-white/40">
+                  <input type="checkbox" checked={newServer.isDefault} onChange={e => setNewServer({ ...newServer, isDefault: e.target.checked })} /> Default Server
+                </label>
+                <button onClick={addServer} className="w-full py-2 bg-white/5 hover:bg-white/10 text-white/70 rounded-xl text-sm font-bold"><Plus className="w-4 h-4 inline mr-2" /> Add Server</button>
               </div>
             </div>
           </section>
@@ -271,7 +313,7 @@ const EventEditor: React.FC = () => {
             <h3 className="font-bold text-sm">Control Panel</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Manual Status Override</label>
+                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Status</label>
                 <select 
                   value={formData.status}
                   onChange={e => setFormData({ ...formData, status: e.target.value as EventStatus })}
@@ -290,7 +332,7 @@ const EventEditor: React.FC = () => {
                 />
               </div>
               <div className="flex items-center justify-between p-3 bg-[#0B0C10] rounded-xl border border-white/5">
-                <span className="text-xs font-bold text-white/60">Special Event</span>
+                <span className="text-xs font-bold text-white/60">Mark as Special</span>
                 <input 
                   type="checkbox"
                   checked={formData.isSpecial}
@@ -304,46 +346,30 @@ const EventEditor: React.FC = () => {
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-4">
             <div className="flex items-center gap-2 text-red-400">
               <Clock className="w-4 h-4" />
-              <h3 className="font-bold text-sm">Scheduled Removal</h3>
+              <h3 className="font-bold text-sm">Auto Delete</h3>
             </div>
-            <p className="text-xs text-white/30">Auto-hide event from public listing at a specific time.</p>
             <input 
               type="datetime-local"
               value={formData.deleteAt ? formData.deleteAt.slice(0, 16) : ''}
               onChange={e => setFormData({ ...formData, deleteAt: e.target.value ? new Date(e.target.value).toISOString() : null })}
               className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none text-white"
             />
-            {formData.deleteAt && (
-              <button 
-                onClick={() => setFormData({ ...formData, deleteAt: null })}
-                className="text-xs text-red-500 hover:underline"
-              >
-                Clear scheduled deletion
-              </button>
-            )}
           </section>
 
-          {/* Actual Stream Preview - No Sandbox */}
           <div className="aspect-video bg-[#0B0C10] rounded-2xl border border-white/5 overflow-hidden flex flex-col items-center justify-center relative">
             {previewServer ? (
               <iframe 
                 src={previewServer.embedUrl}
                 className="w-full h-full border-none"
-                style={{ marginLeft: '100px', alignContent: 'center' }}
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 allowFullScreen={true}
-                sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation-by-user-activation allow-presentation"
                 title="Admin Preview"
               />
             ) : (
               <div className="p-6 text-center">
                 <ExternalLink className="w-8 h-8 text-white/10 mb-2 mx-auto" />
-                <p className="text-xs text-white/30 font-medium italic">Add a server to see the stream preview here</p>
+                <p className="text-xs text-white/30 font-medium italic">Add a server to see preview</p>
               </div>
             )}
-            <div className="absolute top-2 left-2 pointer-events-none">
-               <span className="bg-black/60 backdrop-blur text-[8px] uppercase font-bold text-white/40 px-1.5 py-0.5 rounded border border-white/5">Preview Mode</span>
-            </div>
           </div>
         </div>
       </main>

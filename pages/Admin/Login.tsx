@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext';
 import { MOCK_ADMIN } from '../../constants';
-import { Lock, User, Play, ArrowLeft } from 'lucide-react';
+import { Lock, User, ArrowLeft } from 'lucide-react';
+import Logo from '../../components/Logo.tsx';
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -34,10 +35,8 @@ const Login: React.FC = () => {
       </Link>
 
       <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <div className="inline-block bg-[#04C4FC] p-3 rounded-2xl mb-4">
-            <Play className="w-8 h-8 text-[#0B0C10] fill-current" />
-          </div>
+        <div className="text-center mb-10 flex flex-col items-center">
+          <Logo className="h-24 mb-6" />
           <h1 className="text-3xl font-bold tracking-tight">Admin Portal</h1>
           <p className="text-white/40 mt-2">Enter credentials to manage the platform</p>
         </div>

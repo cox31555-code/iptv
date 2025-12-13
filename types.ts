@@ -1,8 +1,8 @@
 
 export enum EventCategory {
-  SPECIAL = 'Special',
   FOOTBALL = 'Football',
-  NBA = 'NBA'
+  NBA = 'NBA',
+  OTHER = 'Other Sports'
 }
 
 export enum EventStatus {
@@ -29,6 +29,7 @@ export interface SportEvent {
   endTime: string;
   status: EventStatus;
   description: string;
+  imageUrl: string;
   isSpecial: boolean;
   pinPriority: number;
   deleteAt: string | null;
