@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Trophy, Play, Target, Waves } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SportEvent, EventStatus, EventCategory } from '../types';
+import { useApp } from '../AppContext';
 import Logo from './Logo.tsx';
 import FootballIcon from './FootballIcon.tsx';
 import NBAIcon from './NBAIcon.tsx';
@@ -19,7 +20,10 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit'
+    });
   };
 
   const renderSportIcon = () => {

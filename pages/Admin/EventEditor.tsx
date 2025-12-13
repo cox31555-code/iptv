@@ -18,7 +18,7 @@ import {
   X,
   Star
 } from 'lucide-react';
-import { EventCategory, EventStatus, StreamServer, SportEvent } from '../../types.ts';
+import { EventCategory, EventStatus, StreamServer, SportEvent, calculateEventStatus } from '../../types.ts';
 
 const EventEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,7 +30,6 @@ const EventEditor: React.FC = () => {
     teams: '',
     league: '',
     category: EventCategory.FOOTBALL,
-    status: EventStatus.UPCOMING,
     startTime: new Date().toISOString().slice(0, 16),
     endTime: new Date(Date.now() + 7200000).toISOString().slice(0, 16),
     description: '',
@@ -88,12 +87,18 @@ const EventEditor: React.FC = () => {
   };
 
   const handleSave = () => {
+    const startTime = formData.startTime ? new Date(formData.startTime).toISOString() : new Date().toISOString();
+    const endTime = formData.endTime ? new Date(formData.endTime).toISOString() : new Date(Date.now() + 7200000).toISOString();
+
     const finalData: SportEvent = {
       id: id && id !== 'new' ? id : Math.random().toString(36).substr(2, 9),
       createdAt: (formData as any).createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isDeleted: (formData as any).isDeleted || false,
       ...formData,
+      startTime,
+      endTime,
+      status: calculateEventStatus(startTime, endTime),
       servers: formData.servers || [],
     } as SportEvent;
 
@@ -313,14 +318,11 @@ const EventEditor: React.FC = () => {
             <h3 className="font-bold text-sm">Control Panel</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Status</label>
-                <select 
-                  value={formData.status}
-                  onChange={e => setFormData({ ...formData, status: e.target.value as EventStatus })}
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-sm focus:outline-none text-white"
-                >
-                  {Object.values(EventStatus).map(s => <option key={s} value={s} className="bg-[#1F2833]">{s}</option>)}
-                </select>
+                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Automated Status</label>
+                <div className="px-4 py-2 bg-[#0B0C10] rounded-xl text-xs font-bold border border-white/10 text-white/40">
+                   {calculateEventStatus(formData.startTime || '', formData.endTime || '')}
+                </div>
+                <p className="text-[10px] text-white/20 mt-1 italic">Status updates automatically based on match times.</p>
               </div>
               <div>
                 <label className="block text-xs font-bold text-white/30 uppercase mb-2">Pin Priority</label>

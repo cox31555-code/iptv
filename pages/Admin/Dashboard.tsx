@@ -141,8 +141,11 @@ const Dashboard: React.FC = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                         <div className="font-bold text-white group-hover:text-[#04C4FC] transition-colors">{event.teams}</div>
+                        {/* Wrap Star icon in a span to use title attribute since Lucide icons don't support it directly */}
                         {event.isSpecial && (
-                          <Star className="w-3 h-3 text-yellow-400 fill-current" title="Special Event" />
+                          <span title="Special Event">
+                            <Star className="w-3 h-3 text-yellow-400 fill-current" />
+                          </span>
                         )}
                       </div>
                       <div className="text-[10px] text-white/40">{event.league}</div>
@@ -194,7 +197,8 @@ const Dashboard: React.FC = () => {
 const StatCard: React.FC<{ icon: React.ReactNode; label: string; value: number }> = ({ icon, label, value }) => (
   <div className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 flex items-center gap-6">
     <div className="p-4 bg-[#0B0C10] rounded-2xl">
-      {React.cloneElement(icon as React.ReactElement, { className: 'w-6 h-6' })}
+      {/* Use any cast to satisfy TypeScript when cloning Lucide icon elements with className */}
+      {React.cloneElement(icon as React.ReactElement<any>, { className: 'w-6 h-6' })}
     </div>
     <div>
       <p className="text-xs font-bold text-white/30 uppercase tracking-widest">{label}</p>

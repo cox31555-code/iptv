@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
@@ -24,6 +23,11 @@ const Watch: React.FC = () => {
   }
 
   const isLive = event.status === EventStatus.LIVE;
+
+  const kickoffTime = new Date(event.startTime).toLocaleTimeString([], { 
+    hour: '2-digit', 
+    minute: '2-digit'
+  });
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -122,7 +126,7 @@ const Watch: React.FC = () => {
                 <p className="text-[10px] uppercase font-black text-zinc-600 tracking-[0.2em]">Kickoff</p>
                 <div className="flex items-center gap-3 text-lg font-black text-zinc-300">
                   <Calendar className="w-5 h-5 text-sky-500" />
-                  {new Date(event.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {kickoffTime}
                 </div>
               </div>
               <div className="p-7 bg-black/40 rounded-3xl border border-white/5 space-y-2 min-w-[160px]">

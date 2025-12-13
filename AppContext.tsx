@@ -1,6 +1,6 @@
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { SportEvent, AdminUser } from './types.ts';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import { SportEvent, AdminUser, calculateEventStatus } from './types.ts';
 import { INITIAL_EVENTS } from './mockData.ts';
 
 interface AppContextType {
@@ -16,10 +16,18 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [events, setEvents] = useState<SportEvent[]>(() => {
+  const [rawEvents, setRawEvents] = useState<SportEvent[]>(() => {
     const saved = localStorage.getItem('ajsports_events');
     return saved ? JSON.parse(saved) : INITIAL_EVENTS;
   });
+
+  // Derived events with automated status
+  const events = useMemo(() => {
+    return rawEvents.map(event => ({
+      ...event,
+      status: calculateEventStatus(event.startTime, event.endTime)
+    }));
+  }, [rawEvents]);
 
   const [admin, setAdmin] = useState<AdminUser | null>(() => {
     const saved = localStorage.getItem('ajsports_admin');
@@ -27,8 +35,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   useEffect(() => {
-    localStorage.setItem('ajsports_events', JSON.stringify(events));
-  }, [events]);
+    localStorage.setItem('ajsports_events', JSON.stringify(rawEvents));
+  }, [rawEvents]);
 
   useEffect(() => {
     if (admin) {
@@ -38,37 +46,40 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [admin]);
 
-  // Scheduled deletion logic runner
+  // Scheduled deletion and status refresh logic
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
-      setEvents(prev => prev.map(event => {
+      setRawEvents(prev => prev.map(event => {
+        // Auto-delete if reached deleteAt time
         if (!event.isDeleted && event.deleteAt && new Date(event.deleteAt) <= now) {
           return { ...event, isDeleted: true };
         }
         return event;
       }));
-    }, 60000); // Check every minute
+    }, 30000); // Check every 30 seconds for smoother transitions
     return () => clearInterval(interval);
   }, []);
 
   const addEvent = useCallback((event: SportEvent) => {
-    setEvents(prev => [event, ...prev]);
+    setRawEvents(prev => [event, ...prev]);
   }, []);
 
   const updateEvent = useCallback((updated: SportEvent) => {
-    setEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+    setRawEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
   }, []);
 
   const deleteEvent = useCallback((id: string) => {
-    setEvents(prev => prev.map(e => e.id === id ? { ...e, isDeleted: true } : e));
+    setRawEvents(prev => prev.map(e => e.id === id ? { ...e, isDeleted: true } : e));
   }, []);
 
   const login = useCallback((user: AdminUser) => setAdmin(user), []);
   const logout = useCallback(() => setAdmin(null), []);
 
   return (
-    <AppContext.Provider value={{ events, addEvent, updateEvent, deleteEvent, admin, login, logout }}>
+    <AppContext.Provider value={{ 
+      events, addEvent, updateEvent, deleteEvent, admin, login, logout
+    }}>
       {children}
     </AppContext.Provider>
   );

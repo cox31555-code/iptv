@@ -34,7 +34,7 @@ export interface SportEvent {
   teams: string; // Or Title for Special Events
   startTime: string;
   endTime: string;
-  status: EventStatus;
+  status: EventStatus; // This will now be treated as a derived property in UI
   description: string;
   imageUrl: string;
   isSpecial: boolean;
@@ -56,3 +56,16 @@ export interface AdminUser {
   username: string;
   role: AdminRole;
 }
+
+/**
+ * Derives the event status based on current time
+ */
+export const calculateEventStatus = (startTime: string, endTime: string): EventStatus => {
+  const now = new Date().getTime();
+  const start = new Date(startTime).getTime();
+  const end = new Date(endTime).getTime();
+
+  if (now < start) return EventStatus.UPCOMING;
+  if (now >= start && now < end) return EventStatus.LIVE;
+  return EventStatus.ENDED;
+};
