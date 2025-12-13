@@ -329,8 +329,10 @@ const EventEditor: React.FC = () => {
               <iframe 
                 src={previewServer.embedUrl}
                 className="w-full h-full border-none"
+                style={{ marginLeft: '100px', alignContent: 'center' }}
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen
+                allowFullScreen={true}
+                sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation-by-user-activation allow-presentation"
                 title="Admin Preview"
               />
             ) : (

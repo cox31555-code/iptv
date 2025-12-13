@@ -35,14 +35,16 @@ const Watch: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-6">
-          {/* Large Web Player Container - Strictly no sandbox attributes */}
+          {/* Large Web Player Container */}
           <div className="bg-black rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/5 aspect-video w-full relative group">
             {activeServer ? (
               <iframe
                 src={activeServer.embedUrl}
                 className="w-full h-full border-none"
+                style={{ marginLeft: '100px', alignContent: 'center' }}
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen
+                allowFullScreen={true}
+                sandbox="allow-forms allow-scripts allow-pointer-lock allow-same-origin allow-top-navigation-by-user-activation allow-presentation"
                 title="Stream Player"
               />
             ) : (
