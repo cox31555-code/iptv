@@ -1,12 +1,12 @@
 
 import React from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './AppContext';
-import Home from './pages/Public/Home';
-import Watch from './pages/Public/Watch';
-import Login from './pages/Admin/Login';
-import Dashboard from './pages/Admin/Dashboard';
-import EventEditor from './pages/Admin/EventEditor';
+import { AppProvider } from './AppContext.tsx';
+import Home from './pages/Public/Home.tsx';
+import Watch from './pages/Public/Watch.tsx';
+import Login from './pages/Admin/Login.tsx';
+import Dashboard from './pages/Admin/Dashboard.tsx';
+import EventEditor from './pages/Admin/EventEditor.tsx';
 
 const App: React.FC = () => {
   return (

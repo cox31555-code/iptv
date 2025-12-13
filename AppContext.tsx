@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { SportEvent, AdminUser } from './types';
-import { INITIAL_EVENTS } from './mockData';
+import { SportEvent, AdminUser } from './types.ts';
+import { INITIAL_EVENTS } from './mockData.ts';
 
 interface AppContextType {
   events: SportEvent[];

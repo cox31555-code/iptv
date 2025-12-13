@@ -1,10 +1,10 @@
 
 import React, { useState, useMemo } from 'react';
-import { useApp } from '../../AppContext';
-import { EventCategory, EventStatus } from '../../types';
-import { CATEGORY_ORDER } from '../../constants';
-import EventCard from '../../components/EventCard';
-import Navbar from '../../components/Navbar';
+import { useApp } from '../../AppContext.tsx';
+import { EventCategory, EventStatus } from '../../types.ts';
+import { CATEGORY_ORDER } from '../../constants.ts';
+import EventCard from '../../components/EventCard.tsx';
+import Navbar from '../../components/Navbar.tsx';
 import { ChevronRight } from 'lucide-react';
 
 const Home: React.FC = () => {
