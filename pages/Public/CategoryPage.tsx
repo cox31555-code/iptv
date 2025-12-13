@@ -19,19 +19,36 @@ const CategoryPage: React.FC = () => {
     'special': 'Special',
     'football': EventCategory.FOOTBALL,
     'nba': EventCategory.NBA,
-    'other-sports': EventCategory.OTHER
+    'other-sports': 'Other Sports'
   };
 
   const displayName = categoryMap[categorySlug || ''] || 'Category';
   const isSpecialPage = categorySlug === 'special';
+  const isOtherSportsPage = categorySlug === 'other-sports';
 
   const filteredEvents = useMemo(() => {
+    const otherSportsGroup = [
+      EventCategory.NFL,
+      EventCategory.DARTS,
+      EventCategory.MOTORSPORTS,
+      EventCategory.BOXING,
+      EventCategory.UFC,
+      EventCategory.CRICKET,
+      EventCategory.HOCKEY,
+      EventCategory.OTHER
+    ];
+
     return events.filter(e => {
       if (e.isDeleted) return false;
       
-      const matchesCategory = isSpecialPage 
-        ? e.isSpecial 
-        : (e.category === categoryMap[categorySlug || '']);
+      let matchesCategory = false;
+      if (isSpecialPage) {
+        matchesCategory = e.isSpecial;
+      } else if (isOtherSportsPage) {
+        matchesCategory = otherSportsGroup.includes(e.category);
+      } else {
+        matchesCategory = e.category === categoryMap[categorySlug || ''];
+      }
       
       if (!matchesCategory) return false;
 
@@ -41,7 +58,7 @@ const CategoryPage: React.FC = () => {
         e.league.toLowerCase().includes(term)
       );
     });
-  }, [events, categorySlug, searchTerm, categoryMap, isSpecialPage]);
+  }, [events, categorySlug, searchTerm, categoryMap, isSpecialPage, isOtherSportsPage]);
 
   const sortedEvents = useMemo(() => {
     return [...filteredEvents].sort((a, b) => {

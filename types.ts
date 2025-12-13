@@ -2,6 +2,13 @@
 export enum EventCategory {
   FOOTBALL = 'Football',
   NBA = 'NBA',
+  NFL = 'NFL',
+  DARTS = 'Darts',
+  MOTORSPORTS = 'Motorsports',
+  BOXING = 'Boxing',
+  UFC = 'UFC',
+  CRICKET = 'Cricket',
+  HOCKEY = 'Hockey',
   OTHER = 'Other Sports'
 }
 

@@ -1,10 +1,13 @@
 import React from 'react';
-import { Clock, Trophy, Play } from 'lucide-react';
+import { Clock, Trophy, Play, Target, Waves } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SportEvent, EventStatus, EventCategory } from '../types';
 import Logo from './Logo.tsx';
 import FootballIcon from './FootballIcon.tsx';
 import NBAIcon from './NBAIcon.tsx';
+import NFLIcon from './NFLIcon.tsx';
+import MotorsportsIcon from './MotorsportsIcon.tsx';
+import UFCIcon from './UFCIcon.tsx';
 
 interface EventCardProps {
   event: SportEvent;
@@ -19,21 +22,42 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const isFootball = event.category === EventCategory.FOOTBALL;
-  const isNBA = event.category === EventCategory.NBA;
+  const renderSportIcon = () => {
+    const iconClass = "w-3.5 h-3.5 text-sky-500";
+    
+    switch (event.category) {
+      case EventCategory.FOOTBALL:
+        return <FootballIcon className="h-[11px] w-auto shrink-0" />;
+      case EventCategory.NBA:
+        return <NBAIcon className="h-[11px] w-auto shrink-0" />;
+      case EventCategory.NFL:
+        return <NFLIcon className="h-[11px] w-auto shrink-0" />;
+      case EventCategory.DARTS:
+        return <Target className={iconClass} />;
+      case EventCategory.MOTORSPORTS:
+        return <MotorsportsIcon className="h-[11px] w-auto shrink-0" />;
+      case EventCategory.BOXING:
+      case EventCategory.UFC:
+        return <UFCIcon className="h-[11px] w-auto shrink-0" />;
+      case EventCategory.CRICKET:
+        return <Trophy className={iconClass} />;
+      case EventCategory.HOCKEY:
+        return <Waves className={iconClass} />;
+      default:
+        return <Trophy className={iconClass} />;
+    }
+  };
 
   return (
     <div className="group relative bg-zinc-900/40 rounded-2xl overflow-hidden border border-white/[0.05] hover:border-sky-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(14,165,233,0.1)] flex flex-col">
       <div className="aspect-[16/10] bg-black relative overflow-hidden flex items-center justify-center">
         {event.imageUrl ? (
-          /* Custom User-Uploaded or Mock Image */
           <img
             src={event.imageUrl}
             alt={event.teams}
             className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
           />
         ) : (
-          /* Universal Branded Fallback for ALL categories */
           <div className="absolute inset-0 bg-[#0B0C10] flex items-center justify-center p-12 transition-transform duration-700 group-hover:scale-105">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.15)_0%,transparent_70%)] opacity-50" />
             <Logo className="w-full h-full opacity-40 group-hover:opacity-60 transition-opacity" />
@@ -69,18 +93,12 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         </h3>
         
         <div className="flex items-center gap-5 text-[11px] text-zinc-500 font-medium mt-auto mb-5">
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <Clock className="w-3.5 h-3.5 text-sky-500" />
             {formatDate(event.startTime)}
           </div>
-          <div className="flex items-center gap-1.5 uppercase tracking-tighter">
-            {isFootball ? (
-              <FootballIcon className="w-[11px] h-[11px]" />
-            ) : isNBA ? (
-              <NBAIcon className="w-[11px] h-[11px]" />
-            ) : (
-              <Trophy className="w-3.5 h-3.5 text-sky-500" />
-            )}
+          <div className="flex items-center gap-1.5 uppercase tracking-tighter shrink-0 truncate">
+            {renderSportIcon()}
             {event.category}
           </div>
         </div>
