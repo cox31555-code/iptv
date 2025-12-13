@@ -42,10 +42,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
               <div className="hidden md:flex items-center gap-8 px-4">
                 <Link to="/" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Home</Link>
-                <Link to="/category/Special" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Special</Link>
-                <Link to={`/category/${EventCategory.FOOTBALL}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Football</Link>
-                <Link to={`/category/${EventCategory.NBA}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">NBA</Link>
-                <Link to={`/category/${EventCategory.OTHER}`} className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Other Sports</Link>
+                <Link to="/special" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Special</Link>
+                <Link to="/football" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Football</Link>
+                <Link to="/nba" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">NBA</Link>
+                <Link to="/other-sports" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Other Sports</Link>
               </div>
 
               <div className="flex-1 flex justify-end">
@@ -67,10 +67,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             <div className="flex flex-col gap-6 text-center">
               <Link to="/" onClick={() => setIsOpen(false)} className="text-xl font-black tracking-tighter text-white">HOME</Link>
               <div className="h-px bg-white/5 w-12 mx-auto" />
-              <Link to="/category/Special" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Special Events</Link>
-              <Link to={`/category/${EventCategory.FOOTBALL}`} onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Football</Link>
-              <Link to={`/category/${EventCategory.NBA}`} onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">NBA</Link>
-              <Link to={`/category/${EventCategory.OTHER}`} onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Other Sports</Link>
+              <Link to="/special" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Special Events</Link>
+              <Link to="/football" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Football</Link>
+              <Link to="/nba" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">NBA</Link>
+              <Link to="/other-sports" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Other Sports</Link>
               <button 
                 onClick={() => { setIsDonateOpen(true); setIsOpen(false); }}
                 className="mt-4 flex items-center justify-center gap-2 py-4 border border-white/10 text-zinc-400 rounded-2xl font-black uppercase text-xs tracking-widest hover:text-white hover:bg-white/5 transition-all"

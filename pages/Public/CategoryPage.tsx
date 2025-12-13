@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
-import { EventStatus } from '../../types.ts';
+import { EventStatus, EventCategory } from '../../types.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
 import { ChevronLeft } from 'lucide-react';
@@ -10,16 +10,28 @@ import Logo from '../../components/Logo.tsx';
 import FooterLogo from '../../components/FooterLogo.tsx';
 
 const CategoryPage: React.FC = () => {
-  const { categoryName } = useParams<{ categoryName: string }>();
+  const { categorySlug } = useParams<{ categorySlug: string }>();
   const { events } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Map slugs back to human-readable or enum names
+  const categoryMap: Record<string, string> = {
+    'special': 'Special',
+    'football': EventCategory.FOOTBALL,
+    'nba': EventCategory.NBA,
+    'other-sports': EventCategory.OTHER
+  };
+
+  const displayName = categoryMap[categorySlug || ''] || 'Category';
+  const isSpecialPage = categorySlug === 'special';
 
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
       if (e.isDeleted) return false;
       
-      const isSpecialPage = categoryName === 'Special';
-      const matchesCategory = isSpecialPage ? e.isSpecial : (e.category === categoryName);
+      const matchesCategory = isSpecialPage 
+        ? e.isSpecial 
+        : (e.category === categoryMap[categorySlug || '']);
       
       if (!matchesCategory) return false;
 
@@ -29,7 +41,7 @@ const CategoryPage: React.FC = () => {
         e.league.toLowerCase().includes(term)
       );
     });
-  }, [events, categoryName, searchTerm]);
+  }, [events, categorySlug, searchTerm, categoryMap, isSpecialPage]);
 
   const sortedEvents = useMemo(() => {
     return [...filteredEvents].sort((a, b) => {
@@ -53,10 +65,10 @@ const CategoryPage: React.FC = () => {
           
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div className="space-y-2">
-              <div className="text-sky-500">
+              <div className={isSpecialPage ? 'text-yellow-500' : 'text-sky-500'}>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em]">Browsing Category</p>
               </div>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tighter">{categoryName}</h1>
+              <h1 className="text-4xl md:text-5xl font-black tracking-tighter capitalize">{displayName}</h1>
             </div>
             
             <p className="text-zinc-500 text-sm font-medium">
@@ -74,7 +86,7 @@ const CategoryPage: React.FC = () => {
         ) : (
           <div className="text-center py-40 bg-zinc-900/20 rounded-[2.5rem] border border-dashed border-white/5">
             <p className="text-zinc-500 text-lg font-medium">
-              No {categoryName} events found {searchTerm && `for "${searchTerm}"`}
+              No {displayName} events found {searchTerm && `for "${searchTerm}"`}
             </p>
             <Link to="/" className="inline-block mt-4 text-sky-500 text-sm font-bold hover:underline">
               Explore other sports

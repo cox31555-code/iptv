@@ -47,6 +47,12 @@ const Home: React.FC = () => {
     return map;
   }, [filteredEvents]);
 
+  // Helper to slugify category names for cleaner URLs
+  const getSlug = (name: string) => {
+    if (name === 'Special') return 'special';
+    return name.toLowerCase().replace(/\s+/g, '-');
+  };
+
   return (
     <div className="min-h-screen bg-black text-white selection:bg-sky-500/30">
       <Navbar onSearch={() => {}} />
@@ -101,9 +107,9 @@ const Home: React.FC = () => {
                 isSpecial ? 'bg-zinc-900/10 p-6 md:p-10 rounded-[2.5rem] border border-white/[0.03] relative' : ''
               }`}
             >
-              <div className={`flex items-end justify-between border-b border-white/5 pb-2 ${isSpecial ? 'border-sky-500/10' : ''}`}>
+              <div className={`flex items-end justify-between border-b border-white/5 pb-2 ${isSpecial ? 'border-yellow-500/10' : ''}`}>
                 <div className="space-y-1.5">
-                  <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isSpecial ? 'text-sky-400' : 'text-zinc-500'}`}>
+                  <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isSpecial ? 'text-yellow-400' : 'text-sky-500'}`}>
                     {isSpecial ? 'Premium Coverage' : 'Discover'}
                   </p>
                   <h2 className={`font-black tracking-tighter ${isSpecial ? 'text-3xl md:text-4xl' : 'text-3xl'}`}>
@@ -111,7 +117,7 @@ const Home: React.FC = () => {
                   </h2>
                 </div>
                 <Link 
-                  to={`/category/${sectionName}`}
+                  to={`/${getSlug(sectionName)}`}
                   className="group flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-white transition-all"
                 >
                   View full schedule <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />

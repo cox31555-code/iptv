@@ -142,7 +142,7 @@ const Dashboard: React.FC = () => {
                       <div className="flex items-center gap-2">
                         <div className="font-bold text-white group-hover:text-[#04C4FC] transition-colors">{event.teams}</div>
                         {event.isSpecial && (
-                          <Star className="w-3 h-3 text-sky-400 fill-current" title="Special Event" />
+                          <Star className="w-3 h-3 text-yellow-400 fill-current" title="Special Event" />
                         )}
                       </div>
                       <div className="text-[10px] text-white/40">{event.league}</div>
