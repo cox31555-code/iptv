@@ -1,4 +1,3 @@
-
 import { SportEvent, EventCategory, EventStatus } from './types';
 
 export const INITIAL_EVENTS: SportEvent[] = [
@@ -7,6 +6,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     category: EventCategory.FOOTBALL,
     league: 'Premier League',
     teams: 'Arsenal vs Liverpool',
+    keywords: 'Gunners, The Reds, Klopp, Arteta',
     startTime: new Date().toISOString(),
     endTime: new Date(Date.now() + 7200000).toISOString(),
     status: EventStatus.LIVE,
@@ -18,7 +18,6 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's1', name: 'Server 1', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
       { id: 's2', name: 'Server 2', embedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', sortOrder: 2, isDefault: false, isActive: true },
@@ -30,6 +29,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     category: EventCategory.NBA,
     league: 'NBA',
     teams: 'Lakers vs Warriors',
+    keywords: 'LeBron, Steph Curry, GSW, Hollywood, Purple and Gold',
     startTime: new Date(Date.now() + 3600000).toISOString(),
     endTime: new Date(Date.now() + 10800000).toISOString(),
     status: EventStatus.UPCOMING,
@@ -41,7 +41,6 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's4', name: 'Main', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
     ]
@@ -51,6 +50,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     category: EventCategory.OTHER,
     league: 'UFC 300',
     teams: 'Pereira vs Hill',
+    keywords: 'MMA, Dana White, Poatan, Knockout',
     startTime: new Date(Date.now() - 3600000).toISOString(),
     endTime: new Date(Date.now() + 18000000).toISOString(),
     status: EventStatus.LIVE,
@@ -62,7 +62,6 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's5', name: 'Server 1', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
     ]
@@ -72,6 +71,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     category: EventCategory.OTHER,
     league: 'Formula 1',
     teams: 'Monaco Grand Prix',
+    keywords: 'Racing, F1, Hamilton, Verstappen, Ferrari',
     startTime: new Date(Date.now() + 172800000).toISOString(),
     endTime: new Date(Date.now() + 180000000).toISOString(),
     status: EventStatus.UPCOMING,
@@ -83,7 +83,6 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's6', name: 'F1 Live', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
     ]

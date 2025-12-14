@@ -38,6 +38,7 @@ const Home: React.FC = () => {
           e.teams.toLowerCase().includes(term) ||
           e.league.toLowerCase().includes(term) ||
           e.category.toLowerCase().includes(term) ||
+          (e.keywords && e.keywords.toLowerCase().includes(term)) ||
           (e.isSpecial && 'special'.includes(term))
         );
       })

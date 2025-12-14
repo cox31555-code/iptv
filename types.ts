@@ -30,6 +30,7 @@ export interface Team {
   id: string;
   name: string;
   logoUrl: string;
+  keywords?: string;
 }
 
 export interface SportEvent {
@@ -37,6 +38,7 @@ export interface SportEvent {
   category: EventCategory;
   league: string;
   teams: string;
+  keywords?: string;
   startTime: string;
   endTime: string;
   status: EventStatus;

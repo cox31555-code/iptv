@@ -47,7 +47,11 @@ const CategoryPage: React.FC = () => {
       const term = searchTerm.toLowerCase().trim();
       if (!term) return true;
       
-      return e.teams.toLowerCase().includes(term) || e.league.toLowerCase().includes(term);
+      return (
+        e.teams.toLowerCase().includes(term) || 
+        e.league.toLowerCase().includes(term) ||
+        (e.keywords && e.keywords.toLowerCase().includes(term))
+      );
     });
   }, [events, categorySlug, searchTerm, displayName, isSpecialPage, isOtherSportsPage, isValidCategory]);
 

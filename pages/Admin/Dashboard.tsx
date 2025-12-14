@@ -37,9 +37,11 @@ const Dashboard: React.FC = () => {
   const filteredAndSortedEvents = useMemo(() => {
     return [...events]
       .filter(event => {
+        const term = searchTerm.toLowerCase();
         const matchesSearch = 
-          event.teams.toLowerCase().includes(searchTerm.toLowerCase()) || 
-          event.league.toLowerCase().includes(searchTerm.toLowerCase());
+          event.teams.toLowerCase().includes(term) || 
+          event.league.toLowerCase().includes(term) ||
+          (event.keywords && event.keywords.toLowerCase().includes(term));
         const matchesCategory = categoryFilter === 'All' || event.category === categoryFilter;
         return matchesSearch && matchesCategory;
       })

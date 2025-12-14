@@ -12,7 +12,8 @@ import {
   Upload,
   X,
   Users,
-  Search
+  Search,
+  Tag
 } from 'lucide-react';
 import { Team } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
@@ -20,7 +21,7 @@ import Logo from '../../components/Logo.tsx';
 const Teams: React.FC = () => {
   const { admin, teams, addTeam, deleteTeam, logout } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
-  const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '' });
+  const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', keywords: '' });
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   if (!admin) return <Navigate to="/admin/login" />;
@@ -47,13 +48,15 @@ const Teams: React.FC = () => {
     addTeam({
       id: Math.random().toString(36).substr(2, 9),
       name: newTeam.name.trim(),
-      logoUrl: newTeam.logoUrl
+      logoUrl: newTeam.logoUrl,
+      keywords: newTeam.keywords.trim()
     });
-    setNewTeam({ name: '', logoUrl: '' });
+    setNewTeam({ name: '', logoUrl: '', keywords: '' });
   };
 
   const filteredTeams = teams.filter(t => 
-    t.name.toLowerCase().includes(searchTerm.toLowerCase())
+    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (t.keywords && t.keywords.toLowerCase().includes(searchTerm.toLowerCase()))
   ).sort((a, b) => a.name.localeCompare(b.name));
 
   return (
@@ -123,6 +126,18 @@ const Teams: React.FC = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <Tag className="w-3 h-3" /> Keywords / Nicknames
+                  </label>
+                  <input 
+                    value={newTeam.keywords}
+                    onChange={e => setNewTeam({ ...newTeam, keywords: e.target.value })}
+                    placeholder="e.g. Gunners, The Reds"
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-sky-500 outline-none"
+                  />
+                </div>
+
                 <div className="space-y-3">
                   <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Team Logo</label>
                   <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
@@ -181,7 +196,12 @@ const Teams: React.FC = () => {
                   <div className="w-16 h-16 bg-[#0B0C10] rounded-xl flex items-center justify-center p-2 mb-2">
                     <img src={team.logoUrl} alt={team.name} className="w-full h-full object-contain" />
                   </div>
-                  <h3 className="text-xs font-black uppercase tracking-widest text-white truncate w-full px-2">{team.name}</h3>
+                  <div className="w-full min-h-[40px]">
+                    <h3 className="text-xs font-black uppercase tracking-widest text-white truncate w-full px-2">{team.name}</h3>
+                    {team.keywords && (
+                      <p className="text-[8px] text-sky-500/60 font-bold uppercase truncate px-2 mt-1">{team.keywords}</p>
+                    )}
+                  </div>
                   <button 
                     onClick={() => { if(confirm(`Delete ${team.name}?`)) deleteTeam(team.id); }}
                     className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"

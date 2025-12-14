@@ -16,7 +16,8 @@ import {
   X,
   Layout,
   MapPin,
-  Search
+  Search,
+  Tag
 } from 'lucide-react';
 import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team } from '../../types.ts';
 
@@ -33,6 +34,7 @@ const EventEditor: React.FC = () => {
   const [formData, setFormData] = useState<Partial<SportEvent>>({
     teams: '',
     league: '',
+    keywords: '',
     category: EventCategory.FOOTBALL,
     startTime: new Date().toISOString().slice(0, 16),
     endTime: new Date(Date.now() + 7200000).toISOString().slice(0, 16),
@@ -108,13 +110,26 @@ const EventEditor: React.FC = () => {
   }, [teamA, teamB, isTeamBased]);
 
   const handleSelectTeam = (team: Team, type: 'A' | 'B') => {
+    // Logic to update keywords automatically
+    setFormData(prev => {
+      const currentKeywords = prev.keywords ? prev.keywords.split(',').map(k => k.trim()).filter(k => k) : [];
+      const newTeamKeywords = team.keywords ? team.keywords.split(',').map(k => k.trim()).filter(k => k) : [];
+      
+      // Combine and remove duplicates
+      const uniqueKeywords = Array.from(new Set([...currentKeywords, ...newTeamKeywords]));
+      
+      return {
+        ...prev,
+        [type === 'A' ? 'teamALogoUrl' : 'teamBLogoUrl']: team.logoUrl,
+        keywords: uniqueKeywords.join(', ')
+      };
+    });
+
     if (type === 'A') {
       setTeamA(team.name);
-      setFormData(prev => ({ ...prev, teamALogoUrl: team.logoUrl }));
       setShowLookupA(false);
     } else {
       setTeamB(team.name);
-      setFormData(prev => ({ ...prev, teamBLogoUrl: team.logoUrl }));
       setShowLookupB(false);
     }
   };
@@ -148,6 +163,7 @@ const EventEditor: React.FC = () => {
       updatedAt: new Date().toISOString(),
       stadium: formData.stadium || '',
       description: formData.description || '',
+      keywords: formData.keywords || '',
       ...formData,
       startTime,
       endTime,
@@ -250,6 +266,19 @@ const EventEditor: React.FC = () => {
                   <input value={formData.teams} onChange={e => setFormData({ ...formData, teams: e.target.value })} placeholder="e.g. Formula 1 Monaco GP" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all" />
                 </div>
               )}
+              
+              <div className="md:col-span-2">
+                <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                  <Tag className="w-3 h-3" /> Keywords / Nicknames
+                </label>
+                <input 
+                  value={formData.keywords} 
+                  onChange={e => setFormData({ ...formData, keywords: e.target.value })} 
+                  placeholder="e.g. Gunners, The Reds, CR7 (Comma separated)" 
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all" 
+                />
+              </div>
+
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">League</label><input value={formData.league} onChange={e => setFormData({ ...formData, league: e.target.value })} placeholder="e.g. Premier League" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium outline-none" /></div>
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Venue</label><div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" /><input value={formData.stadium} onChange={e => setFormData({ ...formData, stadium: e.target.value })} placeholder="e.g. Anfield" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none" /></div></div>
             </div>

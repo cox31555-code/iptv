@@ -29,8 +29,8 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
   return (
     <>
-      {/* Stable Layout Placeholder */}
-      <div className="w-full h-[120px] md:h-[180px] pointer-events-none" />
+      {/* Stable Layout Placeholder - Increased height to prevent overlap on initial load */}
+      <div className="w-full h-[180px] md:h-[220px] pointer-events-none" />
 
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b ${
         isScrolled 
