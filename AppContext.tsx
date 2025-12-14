@@ -1,14 +1,17 @@
-
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { SportEvent, AdminUser, calculateEventStatus } from './types.ts';
+import { SportEvent, AdminUser, calculateEventStatus, Team } from './types.ts';
 import { INITIAL_EVENTS } from './mockData.ts';
 import { MOCK_ADMIN } from './constants.ts';
 
 interface AppContextType {
   events: SportEvent[];
+  teams: Team[];
   addEvent: (event: SportEvent) => void;
   updateEvent: (event: SportEvent) => void;
   deleteEvent: (id: string) => void;
+  addTeam: (team: Team) => void;
+  updateTeam: (team: Team) => void;
+  deleteTeam: (id: string) => void;
   admin: AdminUser | null;
   adminPassword: string;
   updateAdminPassword: (newPassword: string) => void;
@@ -24,11 +27,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return saved ? JSON.parse(saved) : INITIAL_EVENTS;
   });
 
+  const [teams, setTeams] = useState<Team[]>(() => {
+    const saved = localStorage.getItem('ajsports_teams');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [adminPassword, setAdminPassword] = useState<string>(() => {
     return localStorage.getItem('ajsports_admin_pass') || MOCK_ADMIN.password;
   });
 
-  // Derived events with automated status
   const events = useMemo(() => {
     return rawEvents.map(event => ({
       ...event,
@@ -46,6 +53,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [rawEvents]);
 
   useEffect(() => {
+    localStorage.setItem('ajsports_teams', JSON.stringify(teams));
+  }, [teams]);
+
+  useEffect(() => {
     localStorage.setItem('ajsports_admin_pass', adminPassword);
   }, [adminPassword]);
 
@@ -57,7 +68,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [admin]);
 
-  // Scheduled permanent deletion logic
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
@@ -83,6 +93,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setRawEvents(prev => prev.filter(e => e.id !== id));
   }, []);
 
+  const addTeam = useCallback((team: Team) => {
+    setTeams(prev => [team, ...prev]);
+  }, []);
+
+  const updateTeam = useCallback((updated: Team) => {
+    setTeams(prev => prev.map(t => t.id === updated.id ? updated : t));
+  }, []);
+
+  const deleteTeam = useCallback((id: string) => {
+    setTeams(prev => prev.filter(t => t.id !== id));
+  }, []);
+
   const updateAdminPassword = useCallback((newPassword: string) => {
     setAdminPassword(newPassword);
   }, []);
@@ -92,7 +114,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   return (
     <AppContext.Provider value={{ 
-      events, addEvent, updateEvent, deleteEvent, admin, adminPassword, updateAdminPassword, login, logout
+      events, teams, addEvent, updateEvent, deleteEvent, 
+      addTeam, updateTeam, deleteTeam,
+      admin, adminPassword, updateAdminPassword, login, logout
     }}>
       {children}
     </AppContext.Provider>

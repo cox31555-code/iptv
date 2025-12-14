@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useApp } from '../../AppContext.tsx';
 import { Navigate, Link } from 'react-router-dom';
@@ -12,7 +11,8 @@ import {
   AlertCircle,
   Activity,
   Eye,
-  LogOut
+  LogOut,
+  Users
 } from 'lucide-react';
 import Logo from '../../components/Logo.tsx';
 
@@ -53,7 +53,6 @@ const Settings: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0B0C10] flex flex-col md:flex-row font-sans">
-      {/* Sidebar - Consistent with Dashboard */}
       <aside className="w-full md:w-64 bg-[#1F2833] border-r border-white/5 p-6 flex flex-col">
         <div className="mb-10">
           <Link to="/" className="block">
@@ -70,11 +69,15 @@ const Settings: React.FC = () => {
           <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
             <Activity className="w-4 h-4" /> Dashboard
           </Link>
+          <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
+            <Users className="w-4 h-4" /> Teams
+          </Link>
           <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 bg-[#04C4FC] text-[#0B0C10] rounded-xl font-bold transition-all">
             <Shield className="w-4 h-4" /> Settings
           </Link>
+          <div className="h-px bg-white/5 my-4 mx-2" />
           <Link to="/" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
-            <Eye className="w-4 h-4" /> Public View
+            <ArrowLeft className="w-4 h-4" /> Back to Website
           </Link>
           <button onClick={logout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl font-medium transition-all w-full text-left">
             <LogOut className="w-4 h-4" /> Sign Out
@@ -86,46 +89,12 @@ const Settings: React.FC = () => {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-white uppercase tracking-wider">Account Security</h1>
-            <p className="text-white/40 text-sm font-medium">Manage your administrative access and credentials</p>
+            <p className="text-white/40 text-sm font-medium">Manage your administrative access</p>
           </div>
-          <Link 
-            to="/admin" 
-            className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/70 px-4 py-2.5 rounded-xl font-bold hover:bg-white/10 transition-all text-xs uppercase tracking-widest"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Dashboard
-          </Link>
         </div>
 
         <div className="max-w-2xl space-y-8">
-          {/* Account Profile Card */}
           <section className="bg-[#1F2833] p-6 md:p-8 rounded-2xl border border-white/5 shadow-2xl">
-            <div className="flex items-center gap-3 text-[#04C4FC] mb-8">
-              <User className="w-5 h-5" />
-              <h2 className="font-black uppercase text-xs tracking-[0.2em]">Profile Information</h2>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Username</p>
-                <div className="bg-[#0B0C10] px-4 py-3 rounded-xl border border-white/5 text-sm font-bold">
-                  {admin.username}
-                </div>
-              </div>
-              <div className="space-y-1">
-                <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">Role</p>
-                <div className="bg-[#0B0C10] px-4 py-3 rounded-xl border border-white/5 text-sm font-bold text-[#04C4FC]">
-                  {admin.role}
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Change Password Card */}
-          <section className="bg-[#1F2833] p-6 md:p-8 rounded-2xl border border-white/5 shadow-2xl relative overflow-hidden">
-             <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none">
-                <Lock className="w-32 h-32" />
-             </div>
-
             <div className="flex items-center gap-3 text-[#04C4FC] mb-8">
               <Shield className="w-5 h-5" />
               <h2 className="font-black uppercase text-xs tracking-[0.2em]">Update Password</h2>
@@ -133,9 +102,7 @@ const Settings: React.FC = () => {
 
             {status && (
               <div className={`mb-8 p-4 rounded-xl flex items-center gap-3 border ${
-                status.type === 'success' 
-                  ? 'bg-green-500/10 border-green-500/20 text-green-500' 
-                  : 'bg-red-500/10 border-red-500/20 text-red-500'
+                status.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'
               }`}>
                 {status.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
                 <p className="text-sm font-bold">{status.message}</p>
@@ -150,7 +117,7 @@ const Settings: React.FC = () => {
                   required
                   value={currentPass}
                   onChange={e => setCurrentPass(e.target.value)}
-                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] focus:outline-none transition-all"
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] outline-none transition-all"
                   placeholder="Enter current password"
                 />
               </div>
@@ -163,7 +130,7 @@ const Settings: React.FC = () => {
                     required
                     value={newPass}
                     onChange={e => setNewPass(e.target.value)}
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] focus:outline-none transition-all"
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] outline-none transition-all"
                     placeholder="Min. 6 characters"
                   />
                 </div>
@@ -174,7 +141,7 @@ const Settings: React.FC = () => {
                     required
                     value={confirmPass}
                     onChange={e => setConfirmPass(e.target.value)}
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] focus:outline-none transition-all"
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] outline-none transition-all"
                     placeholder="Repeat new password"
                   />
                 </div>
@@ -190,15 +157,6 @@ const Settings: React.FC = () => {
               </div>
             </form>
           </section>
-
-          {/* Session Info */}
-          <div className="p-6 bg-[#0B0C10] rounded-2xl border border-white/5 flex items-center justify-between">
-             <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/40">Active Session Secured</p>
-             </div>
-             <p className="text-[9px] font-bold text-white/20 uppercase tracking-tighter">Last Login: Just Now</p>
-          </div>
         </div>
       </main>
     </div>

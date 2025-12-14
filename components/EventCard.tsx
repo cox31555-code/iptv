@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -15,11 +14,26 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const isLive = event.status === EventStatus.LIVE;
   const isUpcoming = event.status === EventStatus.UPCOMING;
 
-  const formatTime = (dateStr: string) => {
-    return new Date(dateStr).toLocaleTimeString([], { 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
+  const formatDisplayTime = (dateStr: string) => {
+    const eventDate = new Date(dateStr);
+    const now = new Date();
+    
+    const isSameDay = 
+      eventDate.getDate() === now.getDate() &&
+      eventDate.getMonth() === now.getMonth() &&
+      eventDate.getFullYear() === now.getFullYear();
+
+    if (isSameDay) {
+      return eventDate.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false
+      });
+    } else {
+      const month = eventDate.toLocaleString('en-US', { month: 'short' });
+      const day = eventDate.getDate();
+      return `${month} ${day}`;
+    }
   };
 
   return (
@@ -64,7 +78,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <div className="flex items-center gap-3 md:gap-5 text-[9px] md:text-[11px] text-zinc-500 font-medium mt-auto mb-3 md:mb-5">
           <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
             <Clock className="w-3 h-3 md:w-3.5 md:h-3.5 text-sky-500" />
-            {formatTime(event.startTime)}
+            {formatDisplayTime(event.startTime)}
           </div>
           <div className="flex items-center gap-1 md:gap-1.5 uppercase tracking-tighter shrink-0 truncate">
             <SportIcon category={event.category} className="h-[9px] md:h-[11px] w-auto shrink-0 text-sky-500" />

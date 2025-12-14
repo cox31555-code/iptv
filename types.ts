@@ -27,6 +27,12 @@ export interface StreamServer {
   isActive: boolean;
 }
 
+export interface Team {
+  id: string;
+  name: string;
+  logoUrl: string;
+}
+
 export interface SportEvent {
   id: string;
   category: EventCategory;

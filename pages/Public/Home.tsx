@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../../AppContext.tsx';
 import { EventCategory, getCategorySlug } from '../../types.ts';
@@ -69,7 +68,7 @@ const Home: React.FC = () => {
     <div className="min-h-screen bg-black text-white selection:bg-sky-500/30">
       <Navbar onSearch={() => {}} />
 
-      <section className={`relative w-full flex items-center justify-center overflow-hidden transition-all duration-700 ${isSearching ? 'min-h-[300px] md:min-h-[400px]' : 'min-h-[350px] md:min-h-[500px]'}`}>
+      <section className={`relative w-full flex items-center justify-center overflow-hidden transition-all duration-700 ${isSearching ? 'min-h-[300px] md:min-h-[350px]' : 'min-h-[350px] md:min-h-[420px]'}`}>
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-black" />
           <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-50 grayscale">
@@ -111,18 +110,18 @@ const Home: React.FC = () => {
           <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/60 via-transparent to-black" />
         </div>
 
-        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30 w-full text-center transition-all duration-500 ${isSearching ? 'pt-12 md:pt-16 pb-8' : 'pt-8 md:pt-12 pb-12 md:pb-16'}`}>
+        <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30 w-full text-center transition-all duration-500 ${isSearching ? 'pt-10 md:pt-14 pb-6' : 'pt-8 md:pt-10 pb-10 md:pb-12'}`}>
           <div className="space-y-3 md:space-y-4 animate-in fade-in slide-in-from-top-4 duration-1000">
-            <h1 className="text-3xl md:text-6xl font-black tracking-tighter leading-tight md:leading-[1.1]">
+            <h1 className="text-3xl md:text-5xl font-black tracking-tighter leading-tight md:leading-[1.1]">
               Watch your favorite <br className="hidden sm:block" /> 
               <span className="bg-gradient-to-r from-sky-400 via-cyan-300 to-sky-500 bg-clip-text text-transparent">sports for free.</span>
             </h1>
-            <p className="text-zinc-400 text-[10px] md:text-base max-w-xl mx-auto font-medium">
+            <p className="text-zinc-400 text-[10px] md:text-sm max-w-xl mx-auto font-medium opacity-80">
               Experience zero-latency sports streaming with multiple backup servers and 24/7 coverage.
             </p>
           </div>
 
-          <div className="max-w-2xl mx-auto px-4 transition-all duration-500 mt-10">
+          <div className="max-w-2xl mx-auto px-4 transition-all duration-500 mt-8">
             <div className={`relative transition-all duration-500 ${isSearchFocused ? 'scale-[1.01]' : ''}`}>
               <Search className={`absolute left-4 md:left-6 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 h-5 transition-colors ${isSearchFocused ? 'text-sky-400' : 'text-zinc-500'}`} />
               <input
@@ -132,7 +131,7 @@ const Home: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onFocus={() => setIsSearchFocused(true)}
                 onBlur={() => setIsSearchFocused(false)}
-                className={`w-full bg-zinc-900/60 backdrop-blur-3xl border rounded-xl md:rounded-2xl py-3.5 md:py-5 pl-11 md:pl-14 pr-12 text-xs md:text-sm font-medium transition-all outline-none ${isSearchFocused ? 'border-sky-500/40 bg-zinc-900/80' : 'border-white/5'}`}
+                className={`w-full bg-zinc-900/60 backdrop-blur-3xl border rounded-xl md:rounded-2xl py-3.5 md:py-4.5 pl-11 md:pl-14 pr-12 text-xs md:text-sm font-medium transition-all outline-none ${isSearchFocused ? 'border-sky-500/40 bg-zinc-900/80' : 'border-white/5'}`}
               />
               {isSearching && (
                 <button 
@@ -154,7 +153,7 @@ const Home: React.FC = () => {
         `}</style>
       </section>
 
-      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-20' : 'space-y-16 md:space-y-24 md:pt-0 pb-16'}`}>
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-16' : 'space-y-12 md:space-y-16 md:pt-0 pb-16'}`}>
         {isSearching ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
@@ -187,21 +186,21 @@ const Home: React.FC = () => {
               <section 
                 key={sectionName} 
                 className={isSpecial 
-                  ? 'bg-zinc-900/10 p-6 md:p-14 md:pt-16 rounded-[2rem] md:rounded-[4rem] border border-white/[0.04] shadow-2xl space-y-8 md:space-y-12' 
-                  : 'space-y-8'
+                  ? 'bg-zinc-900/10 p-6 md:p-10 md:pt-12 rounded-[2rem] md:rounded-[2.5rem] border border-white/[0.04] shadow-2xl space-y-6 md:space-y-10' 
+                  : 'space-y-6 md:space-y-8'
                 }
               >
-                <div className={`flex items-end justify-between border-b border-white/10 pb-4 ${isSpecial ? 'border-yellow-500/20' : ''}`}>
-                  <div className="space-y-1.5 md:space-y-3">
-                    <p className={`text-[9px] md:text-[11px] font-black uppercase tracking-[0.3em] ${isSpecial ? 'text-yellow-400' : 'text-sky-500'}`}>
+                <div className={`flex items-end justify-between border-b border-white/10 pb-3 md:pb-4 ${isSpecial ? 'border-yellow-500/20' : ''}`}>
+                  <div className="space-y-1 md:space-y-2">
+                    <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] ${isSpecial ? 'text-yellow-400' : 'text-sky-500'}`}>
                       {isSpecial ? 'Premium Coverage' : 'Discover'}
                     </p>
-                    <h2 className={`font-black tracking-tighter ${isSpecial ? 'text-2xl md:text-6xl leading-none' : 'text-3xl md:text-5xl'}`}>
+                    <h2 className={`font-black tracking-tighter ${isSpecial ? 'text-2xl md:text-4xl leading-none' : 'text-xl md:text-3xl'}`}>
                       {isSpecial ? 'Special Events' : sectionName}
                     </h2>
                   </div>
-                  <Link to={`/${getCategorySlug(sectionName)}`} className="group flex items-center gap-1.5 text-[10px] md:text-[12px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all">
-                    All Events <ChevronRight className="w-4 h-4 md:w-5 h-5 group-hover:translate-x-2 transition-transform" />
+                  <Link to={`/${getCategorySlug(sectionName)}`} className="group flex items-center gap-1.5 text-[9px] md:text-[11px] font-black uppercase tracking-widest text-zinc-500 hover:text-white transition-all">
+                    All Events <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                 </div>
 
@@ -230,14 +229,14 @@ const Home: React.FC = () => {
                         </div>
                       )}
                     </div>
-                    <div className="hidden md:grid grid-cols-3 gap-12">
+                    <div className="hidden md:grid grid-cols-3 gap-8">
                       {specialItems.map(event => (
                         <EventCard key={event.id} event={event} />
                       ))}
                     </div>
                   </div>
                 ) : (
-                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-12">
+                  <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
                     {items.slice(0, 4).map(event => <EventCard key={event.id} event={event} />)}
                   </div>
                 )}
