@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
@@ -145,10 +144,16 @@ const EventEditor: React.FC = () => {
   };
 
   const sportCategories = Object.values(EventCategory);
+  const isIndividualSport = [
+    EventCategory.MOTORSPORTS,
+    EventCategory.DARTS,
+    EventCategory.BOXING,
+    EventCategory.UFC
+  ].includes(formData.category as EventCategory);
 
   return (
     <div className="min-h-screen bg-[#0B0C10] pb-20 text-white font-sans">
-      <header className="sticky top-0 z-10 bg-[#0B0C10]/80 backdrop-blur-md border-b border-white/5">
+      <header className="sticky top-0 z-20 bg-[#0B0C10]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/admin" className="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-colors">
@@ -169,7 +174,7 @@ const EventEditor: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           {/* General Information */}
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
-            <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
+            <div className="flex items-center gap-2 text-zinc-400 mb-4">
               <Info className="w-4 h-4" />
               <h2 className="font-black uppercase text-[10px] tracking-[0.25em]">General Information</h2>
             </div>
@@ -220,7 +225,7 @@ const EventEditor: React.FC = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Main Cover Image (Auto-Purged on Delete)</label>
+                <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Main Cover Image</label>
                 <div className="flex gap-4">
                    <div className="flex-1">
                       <input 
@@ -280,15 +285,16 @@ const EventEditor: React.FC = () => {
 
           {/* Matchup Assets */}
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
-            <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
+            <div className="flex items-center gap-2 text-zinc-400 mb-4">
               <Layout className="w-4 h-4" />
               <h2 className="font-black uppercase text-[10px] tracking-[0.25em]">Matchup Assets</h2>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* League Logo */}
-              <div className="space-y-3 text-center">
-                <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">League Logo</label>
+            <div className={`grid grid-cols-1 ${isIndividualSport ? 'md:grid-cols-1' : 'md:grid-cols-3'} gap-6`}>
+              <div className={`space-y-3 text-center ${isIndividualSport ? 'max-w-xs mx-auto w-full' : ''}`}>
+                <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">
+                  {isIndividualSport ? 'Event / League Logo' : 'League Logo'}
+                </label>
                 <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
                   {formData.leagueLogoUrl ? (
                     <>
@@ -305,49 +311,51 @@ const EventEditor: React.FC = () => {
                 </div>
               </div>
 
-              {/* Team A Logo */}
-              <div className="space-y-3 text-center">
-                <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">Team A Logo</label>
-                <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
-                  {formData.teamALogoUrl ? (
-                    <>
-                      <img src={formData.teamALogoUrl} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" alt="Team A" />
-                      <button onClick={() => removeImage('teamALogoUrl')} className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-xl active:scale-90"><X className="w-3.5 h-3.5"/></button>
-                    </>
-                  ) : (
-                    <button onClick={() => teamALogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-all">
-                      <Upload className="w-7 h-7" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Upload</span>
-                    </button>
-                  )}
-                  <input type="file" ref={teamALogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'teamALogoUrl')} />
-                </div>
-              </div>
+              {!isIndividualSport && (
+                <>
+                  <div className="space-y-3 text-center">
+                    <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">Team A Logo</label>
+                    <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
+                      {formData.teamALogoUrl ? (
+                        <>
+                          <img src={formData.teamALogoUrl} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" alt="Team A" />
+                          <button onClick={() => removeImage('teamALogoUrl')} className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-xl active:scale-90"><X className="w-3.5 h-3.5"/></button>
+                        </>
+                      ) : (
+                        <button onClick={() => teamALogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-all">
+                          <Upload className="w-7 h-7" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Upload</span>
+                        </button>
+                      )}
+                      <input type="file" ref={teamALogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'teamALogoUrl')} />
+                    </div>
+                  </div>
 
-              {/* Team B Logo */}
-              <div className="space-y-3 text-center">
-                <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">Team B Logo</label>
-                <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
-                  {formData.teamBLogoUrl ? (
-                    <>
-                      <img src={formData.teamBLogoUrl} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" alt="Team B" />
-                      <button onClick={() => removeImage('teamBLogoUrl')} className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-xl active:scale-90"><X className="w-3.5 h-3.5"/></button>
-                    </>
-                  ) : (
-                    <button onClick={() => teamBLogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-all">
-                      <Upload className="w-7 h-7" />
-                      <span className="text-[10px] font-black uppercase tracking-widest">Upload</span>
-                    </button>
-                  )}
-                  <input type="file" ref={teamBLogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'teamBLogoUrl')} />
-                </div>
-              </div>
+                  <div className="space-y-3 text-center">
+                    <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">Team B Logo</label>
+                    <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
+                      {formData.teamBLogoUrl ? (
+                        <>
+                          <img src={formData.teamBLogoUrl} className="w-full h-full object-contain p-4 transition-transform duration-500 group-hover:scale-110" alt="Team B" />
+                          <button onClick={() => removeImage('teamBLogoUrl')} className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 opacity-0 group-hover:opacity-100 transition-all shadow-xl active:scale-90"><X className="w-3.5 h-3.5"/></button>
+                        </>
+                      ) : (
+                        <button onClick={() => teamBLogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-all">
+                          <Upload className="w-7 h-7" />
+                          <span className="text-[10px] font-black uppercase tracking-widest">Upload</span>
+                        </button>
+                      )}
+                      <input type="file" ref={teamBLogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'teamBLogoUrl')} />
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </section>
 
           {/* Stream Servers */}
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
-            <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
+            <div className="flex items-center gap-2 text-zinc-400 mb-4">
               <Settings className="w-4 h-4" />
               <h2 className="font-black uppercase text-[10px] tracking-[0.25em]">Stream Sources</h2>
             </div>
@@ -434,7 +442,7 @@ const EventEditor: React.FC = () => {
               <Clock className="w-4 h-4" />
               <h3 className="font-black text-[10px] uppercase tracking-[0.25em]">Auto-Purge Schedule</h3>
             </div>
-            <p className="text-[9px] font-bold text-white/20 leading-relaxed uppercase tracking-wider">Listing and all image assets will be permanently deleted at this time.</p>
+            <p className="text-[9px] font-bold text-white/20 leading-relaxed uppercase tracking-wider">Listing and assets permanently deleted at this time.</p>
             <input 
               type="datetime-local"
               value={formData.deleteAt ? formData.deleteAt.slice(0, 16) : ''}

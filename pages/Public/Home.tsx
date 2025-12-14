@@ -1,13 +1,13 @@
 
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useApp } from '../../AppContext.tsx';
-import { EventCategory, EventStatus, getCategorySlug } from '../../types.ts';
+import { EventCategory, getCategorySlug } from '../../types.ts';
 import { CATEGORY_ORDER } from '../../constants.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
 import { ChevronRight, Search, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import FooterLogo from '../../components/FooterLogo.tsx';
+import Footer from '../../components/Footer.tsx';
 
 const Home: React.FC = () => {
   const { events } = useApp();
@@ -33,7 +33,6 @@ const Home: React.FC = () => {
   }, [events, searchTerm]);
 
   const categorizedEvents = useMemo(() => {
-    // Only compute categories if not searching to save resources
     if (isSearching) return {};
 
     const otherSportsGroup = [
@@ -50,7 +49,6 @@ const Home: React.FC = () => {
     };
 
     Object.values(map).forEach(list => {
-      // Sort purely by oldest start time first as requested
       list.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     });
 
@@ -77,7 +75,40 @@ const Home: React.FC = () => {
           <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-50 grayscale">
             <source src="500kb.mp4" type="video/mp4" />
           </video>
-          <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/20 via-transparent to-black" />
+          
+          {/* High-Precision Linear Grid */}
+          <div className="absolute inset-0 z-10 opacity-[0.05] pointer-events-none" 
+            style={{ 
+              backgroundImage: 'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)', 
+              backgroundSize: '100px 100px' 
+            }} 
+          />
+
+          {/* Tactical Frame & Corner Markers */}
+          <div className="absolute inset-0 z-10 pointer-events-none px-6 py-6 md:px-16 md:py-16 opacity-30">
+            <div className="w-full h-full border border-white/5 relative">
+              <div className="absolute -top-1 -left-1 w-3 h-3 border-t-2 border-l-2 border-sky-500" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 border-t-2 border-r-2 border-sky-500" />
+              <div className="absolute -bottom-1 -left-1 w-3 h-3 border-b-2 border-l-2 border-sky-500" />
+              <div className="absolute -bottom-1 -right-1 w-3 h-3 border-b-2 border-r-2 border-sky-500" />
+              
+              {/* Vertical Edge Marks */}
+              <div className="absolute top-1/2 left-0 -translate-y-1/2 w-px h-12 bg-white/20" />
+              <div className="absolute top-1/2 right-0 -translate-y-1/2 w-px h-12 bg-white/20" />
+            </div>
+          </div>
+
+          {/* Subtle Scanning Trace */}
+          <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden opacity-10">
+            <div className="w-full h-[1px] bg-white animate-[scan_10s_linear_infinite]" 
+              style={{
+                background: 'linear-gradient(90deg, transparent, white, transparent)',
+                boxShadow: '0 0 15px white'
+              }}
+            />
+          </div>
+
+          <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/60 via-transparent to-black" />
         </div>
 
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-30 w-full text-center transition-all duration-500 ${isSearching ? 'pt-12 md:pt-16 pb-8' : 'pt-8 md:pt-12 pb-12 md:pb-16'}`}>
@@ -114,18 +145,23 @@ const Home: React.FC = () => {
             </div>
           </div>
         </div>
+        
+        <style>{`
+          @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(1000%); }
+          }
+        `}</style>
       </section>
 
-      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-20' : 'space-y-16 md:space-y-32 md:pt-0 pb-16'}`}>
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-20' : 'space-y-16 md:space-y-24 md:pt-0 pb-16'}`}>
         {isSearching ? (
-          /* Unified Search Results Grid */
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
               <h2 className="text-xl md:text-2xl font-black tracking-tighter">
                 Search Results <span className="text-sky-500 ml-2">({filteredEvents.length})</span>
               </h2>
             </div>
-            
             {filteredEvents.length > 0 ? (
               <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
                 {filteredEvents.map(event => (
@@ -140,7 +176,6 @@ const Home: React.FC = () => {
             )}
           </div>
         ) : (
-          /* Standard Categorized View */
           CATEGORY_ORDER.map(sectionName => {
             const items = categorizedEvents[sectionName];
             if (!items?.length) return null;
@@ -152,7 +187,7 @@ const Home: React.FC = () => {
               <section 
                 key={sectionName} 
                 className={isSpecial 
-                  ? 'bg-zinc-900/10 pt-0 px-6 pb-6 md:pt-0 md:px-14 md:pb-14 rounded-[2rem] md:rounded-[4rem] border border-white/[0.04] shadow-2xl space-y-8' 
+                  ? 'bg-zinc-900/10 p-6 md:p-14 md:pt-16 rounded-[2rem] md:rounded-[4rem] border border-white/[0.04] shadow-2xl space-y-8 md:space-y-12' 
                   : 'space-y-8'
                 }
               >
@@ -161,7 +196,7 @@ const Home: React.FC = () => {
                     <p className={`text-[9px] md:text-[11px] font-black uppercase tracking-[0.3em] ${isSpecial ? 'text-yellow-400' : 'text-sky-500'}`}>
                       {isSpecial ? 'Premium Coverage' : 'Discover'}
                     </p>
-                    <h2 className={`font-black tracking-tighter ${isSpecial ? 'text-2xl md:text-6xl' : 'text-3xl md:text-5xl'}`}>
+                    <h2 className={`font-black tracking-tighter ${isSpecial ? 'text-2xl md:text-6xl leading-none' : 'text-3xl md:text-5xl'}`}>
                       {isSpecial ? 'Special Events' : sectionName}
                     </h2>
                   </div>
@@ -195,7 +230,6 @@ const Home: React.FC = () => {
                         </div>
                       )}
                     </div>
-
                     <div className="hidden md:grid grid-cols-3 gap-12">
                       {specialItems.map(event => (
                         <EventCard key={event.id} event={event} />
@@ -213,15 +247,7 @@ const Home: React.FC = () => {
         )}
       </main>
 
-      <footer className="border-t border-white/5 pt-12 pb-8 bg-zinc-950/95 mt-16 flex flex-col items-center">
-        <FooterLogo className="h-12 md:h-16 opacity-80" />
-        <p className="text-[10px] text-zinc-500 max-w-4xl mx-auto px-8 mt-10 leading-relaxed text-center opacity-70">
-          AJ Sports merely links/embeds content hosted elsewhere. We do not host any content and are not affiliated with external providers.
-        </p>
-        <p className="text-[9px] font-black uppercase tracking-[0.2em] text-zinc-800 border-t border-white/5 pt-8 mt-8">
-          © 2025 AJ Sports, Inc. All rights reserved
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 };

@@ -2,16 +2,17 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
-import { EventStatus, EventCategory, categoryFromSlug } from '../../types.ts';
+import { EventCategory, categoryFromSlug } from '../../types.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
-import { ChevronLeft } from 'lucide-react';
-import FooterLogo from '../../components/FooterLogo.tsx';
+import { ChevronLeft, Search, XCircle } from 'lucide-react';
+import Footer from '../../components/Footer.tsx';
 
 const CategoryPage: React.FC = () => {
   const { categorySlug } = useParams<{ categorySlug: string }>();
   const { events } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const displayName = categoryFromSlug(categorySlug || '');
   const isSpecialPage = categorySlug === 'special';
@@ -25,7 +26,6 @@ const CategoryPage: React.FC = () => {
     ];
 
     return events.filter(e => {
-      // isDeleted check removed because deleted events no longer exist in state
       let matchesCategory = false;
       if (isSpecialPage) {
         matchesCategory = e.isSpecial;
@@ -37,55 +37,94 @@ const CategoryPage: React.FC = () => {
       
       if (!matchesCategory) return false;
 
-      const term = searchTerm.toLowerCase();
+      const term = searchTerm.toLowerCase().trim();
+      if (!term) return true;
+      
       return e.teams.toLowerCase().includes(term) || e.league.toLowerCase().includes(term);
     });
   }, [events, categorySlug, searchTerm, displayName, isSpecialPage, isOtherSportsPage]);
 
   const sortedEvents = useMemo(() => {
     return [...filteredEvents].sort((a, b) => {
-      // Sort purely by oldest start time first
       return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
     });
   }, [filteredEvents]);
 
+  const clearSearch = () => setSearchTerm('');
+
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      <Navbar onSearch={setSearchTerm} />
+      <Navbar onSearch={() => {}} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-12 flex-1 w-full space-y-12">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 flex-1 w-full space-y-12 md:space-y-16">
         <div className="space-y-6">
-          <Link to="/" className="inline-flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-zinc-500 hover:text-sky-400 group transition-colors">
+          <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-sky-400 group transition-colors">
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
             Back to home
           </Link>
           
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
             <div className="space-y-2">
               <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${isSpecialPage ? 'text-yellow-500' : 'text-sky-500'}`}>Browsing Category</p>
-              <h1 className="text-4xl md:text-5xl font-black tracking-tighter capitalize">{displayName}</h1>
+              <h1 className="text-4xl md:text-6xl font-black tracking-tighter capitalize leading-none">
+                {isSpecialPage ? 'Special Events' : displayName}
+              </h1>
             </div>
-            <p className="text-zinc-500 text-sm font-medium">Showing {sortedEvents.length} active events</p>
+
+            {/* Subtle Search Integrated with Status */}
+            <div className="flex flex-col items-start md:items-end gap-3 min-w-[240px]">
+              <div className={`relative w-full max-w-[200px] transition-all duration-300 ${isSearchFocused ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}>
+                <Search className={`absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 transition-colors ${isSearchFocused ? 'text-sky-400' : 'text-zinc-400'}`} />
+                <input
+                  type="text"
+                  placeholder="Search events..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onBlur={() => setIsSearchFocused(false)}
+                  className="w-full bg-transparent border-b border-white/20 py-1.5 pl-6 pr-6 text-[11px] font-bold transition-all outline-none focus:border-sky-500/50 placeholder:text-zinc-600"
+                />
+                {searchTerm && (
+                  <button 
+                    onClick={clearSearch}
+                    className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-zinc-500 hover:text-white transition-colors"
+                  >
+                    <XCircle className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+              
+              <div className="text-right">
+                <p className="text-zinc-500 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">
+                  {searchTerm ? 'Matches' : 'Active Events'}: <span className="text-zinc-300">{sortedEvents.length}</span>
+                </p>
+              </div>
+            </div>
           </div>
         </div>
 
         {sortedEvents.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {sortedEvents.map(event => <EventCard key={event.id} event={event} />)}
           </div>
         ) : (
-          <div className="text-center py-40 bg-zinc-900/20 rounded-[2.5rem] border border-dashed border-white/5">
-            <p className="text-zinc-500 text-lg font-medium">No events found in this category.</p>
+          <div className="text-center py-32 md:py-48 bg-zinc-900/10 rounded-[2rem] md:rounded-[3.5rem] border border-dashed border-white/5 flex flex-col items-center justify-center space-y-4">
+            <p className="text-zinc-500 text-sm md:text-base font-bold uppercase tracking-widest">
+              {searchTerm ? `No matches for "${searchTerm}"` : 'No events currently listed.'}
+            </p>
+            {searchTerm && (
+              <button 
+                onClick={clearSearch}
+                className="text-sky-500 font-black text-[10px] uppercase tracking-[0.2em] hover:text-sky-400 transition-colors"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         )}
       </main>
 
-      <footer className="border-t border-white/5 pt-12 pb-8 bg-zinc-950/50 mt-12 flex flex-col items-center">
-        <FooterLogo className="h-16 opacity-80" />
-        <p className="text-[10px] text-zinc-600 mt-6 max-w-3xl text-center px-4">
-          All content is copyright of their respective owners. AJ Sports is an indexing service.
-        </p>
-      </footer>
+      <Footer />
     </div>
   );
 };
