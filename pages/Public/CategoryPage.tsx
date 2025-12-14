@@ -1,8 +1,7 @@
-
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
-import { EventCategory, categoryFromSlug } from '../../types.ts';
+import { EventCategory, categoryFromSlug, SportEvent } from '../../types.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
 import { ChevronLeft, Search, XCircle } from 'lucide-react';
@@ -44,13 +43,60 @@ const CategoryPage: React.FC = () => {
     });
   }, [events, categorySlug, searchTerm, displayName, isSpecialPage, isOtherSportsPage]);
 
-  const sortedEvents = useMemo(() => {
-    return [...filteredEvents].sort((a, b) => {
+  // Group events by day
+  const groupedEvents = useMemo(() => {
+    const sorted = [...filteredEvents].sort((a, b) => {
       return new Date(a.startTime).getTime() - new Date(b.startTime).getTime();
     });
+
+    const groups: { dateLabel: string; events: SportEvent[] }[] = [];
+    const groupMap: Record<string, SportEvent[]> = {};
+
+    const formatDateKey = (dateStr: string) => {
+      const d = new Date(dateStr);
+      // We use a sortable key like YYYY-MM-DD
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    };
+
+    const getDisplayLabel = (dateStr: string) => {
+      const date = new Date(dateStr);
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      const eventDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      
+      const dateText = date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+      
+      if (eventDate.getTime() === today.getTime()) return `Today, ${dateText}`;
+      if (eventDate.getTime() === tomorrow.getTime()) return `Tomorrow, ${dateText}`;
+      
+      return dateText;
+    };
+
+    sorted.forEach(event => {
+      const key = formatDateKey(event.startTime);
+      if (!groupMap[key]) {
+        groupMap[key] = [];
+      }
+      groupMap[key].push(event);
+    });
+
+    // Extract keys and sort them to ensure chronological order of groups
+    Object.keys(groupMap).sort().forEach(key => {
+      groups.push({
+        dateLabel: getDisplayLabel(groupMap[key][0].startTime),
+        events: groupMap[key]
+      });
+    });
+
+    return groups;
   }, [filteredEvents]);
 
   const clearSearch = () => setSearchTerm('');
+
+  const totalEventCount = filteredEvents.length;
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
@@ -71,7 +117,6 @@ const CategoryPage: React.FC = () => {
               </h1>
             </div>
 
-            {/* Subtle Search Integrated with Status */}
             <div className="flex flex-col items-start md:items-end gap-3 min-w-[240px]">
               <div className={`relative w-full max-w-[200px] transition-all duration-300 ${isSearchFocused ? 'opacity-100' : 'opacity-50 hover:opacity-100'}`}>
                 <Search className={`absolute left-0 top-1/2 -translate-y-1/2 w-3.5 h-3.5 transition-colors ${isSearchFocused ? 'text-sky-400' : 'text-zinc-400'}`} />
@@ -96,32 +141,47 @@ const CategoryPage: React.FC = () => {
               
               <div className="text-right">
                 <p className="text-zinc-500 text-[9px] md:text-[10px] font-black uppercase tracking-[0.2em]">
-                  {searchTerm ? 'Matches' : 'Active Events'}: <span className="text-zinc-300">{sortedEvents.length}</span>
+                  {searchTerm ? 'Matches' : 'Active Events'}: <span className="text-zinc-300">{totalEventCount}</span>
                 </p>
               </div>
             </div>
           </div>
         </div>
 
-        {sortedEvents.length > 0 ? (
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {sortedEvents.map(event => <EventCard key={event.id} event={event} />)}
-          </div>
-        ) : (
-          <div className="text-center py-32 md:py-48 bg-zinc-900/10 rounded-[2rem] md:rounded-[3.5rem] border border-dashed border-white/5 flex flex-col items-center justify-center space-y-4">
-            <p className="text-zinc-500 text-sm md:text-base font-bold uppercase tracking-widest">
-              {searchTerm ? `No matches for "${searchTerm}"` : 'No events currently listed.'}
-            </p>
-            {searchTerm && (
-              <button 
-                onClick={clearSearch}
-                className="text-sky-500 font-black text-[10px] uppercase tracking-[0.2em] hover:text-sky-400 transition-colors"
-              >
-                Clear Filters
-              </button>
-            )}
-          </div>
-        )}
+        <div className="space-y-16 pb-20">
+          {groupedEvents.length > 0 ? (
+            groupedEvents.map((group, groupIdx) => (
+              <section key={group.dateLabel} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${groupIdx * 100}ms` }}>
+                <div className="flex items-center gap-4">
+                  <h2 className="text-lg md:text-xl font-black tracking-tighter uppercase text-white/90">
+                    {group.dateLabel}
+                  </h2>
+                  <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+                </div>
+
+                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10">
+                  {group.events.map(event => (
+                    <EventCard key={event.id} event={event} />
+                  ))}
+                </div>
+              </section>
+            ))
+          ) : (
+            <div className="text-center py-32 md:py-48 bg-zinc-900/10 rounded-[2rem] md:rounded-[3.5rem] border border-dashed border-white/5 flex flex-col items-center justify-center space-y-4">
+              <p className="text-zinc-500 text-sm md:text-base font-bold uppercase tracking-widest">
+                {searchTerm ? `No matches for "${searchTerm}"` : 'No events currently listed.'}
+              </p>
+              {searchTerm && (
+                <button 
+                  onClick={clearSearch}
+                  className="text-sky-500 font-black text-[10px] uppercase tracking-[0.2em] hover:text-sky-400 transition-colors"
+                >
+                  Clear Filters
+                </button>
+              )}
+            </div>
+          )}
+        </div>
       </main>
 
       <Footer />

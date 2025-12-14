@@ -1,7 +1,7 @@
 import React from 'react';
 import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SportEvent, EventStatus } from '../types.ts';
+import { SportEvent, EventStatus, getEventUrl } from '../types.ts';
 import Logo from './Logo.tsx';
 import SportIcon from './SportIcon.tsx';
 import LiveIndicator from './LiveIndicator.tsx';
@@ -87,7 +87,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         </div>
 
         <Link
-          to={`/watch/${event.id}`}
+          to={getEventUrl(event)}
           className={`group/btn flex items-center justify-center gap-1.5 md:gap-2 w-full py-2 md:py-3 rounded-lg md:rounded-xl font-black text-[9px] md:text-xs uppercase tracking-widest transition-all ${
             isLive 
               ? 'bg-sky-500 text-black hover:bg-sky-400 shadow-[0_0_20px_rgba(14,165,233,0.2)]' 

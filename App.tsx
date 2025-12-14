@@ -87,7 +87,7 @@ const App: React.FC = () => {
 
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
-            <Route path="/watch/:id" element={<Watch />} />
+            <Route path="/watch/:eventSlug" element={<Watch />} />
             <Route path="/:categorySlug" element={<CategoryPage />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>

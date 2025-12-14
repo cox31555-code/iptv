@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
-import { ChevronLeft, Server, Clock, Lock } from 'lucide-react';
+import { ChevronLeft, Server, Clock, Lock, MapPin } from 'lucide-react';
 import Navbar from '../../components/Navbar.tsx';
 import { EventCategory, EventStatus } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
@@ -9,9 +9,18 @@ import SportIcon from '../../components/SportIcon.tsx';
 import Footer from '../../components/Footer.tsx';
 
 const Watch: React.FC = () => {
-  const { id } = useParams<{ id: string }>();
+  const { eventSlug } = useParams<{ eventSlug: string }>();
   const { events } = useApp();
-  const event = events.find(e => e.id === id);
+  
+  // Extract ID from slug (e.g. "e1-premier-league-arsenal-vs-liverpool" -> "e1")
+  const id = useMemo(() => {
+    if (!eventSlug) return null;
+    return eventSlug.split('-')[0];
+  }, [eventSlug]);
+
+  const event = useMemo(() => {
+    return events.find(e => e.id === id);
+  }, [events, id]);
 
   const [activeServer, setActiveServer] = useState(
     event?.servers.find(s => s.isDefault && s.isActive) || event?.servers[0]
@@ -33,6 +42,13 @@ const Watch: React.FC = () => {
       teamB: parts[1] || 'Team B'
     };
   }, [event]);
+
+  // Update server state if event changes (e.g. after data loads)
+  useEffect(() => {
+    if (event && !activeServer) {
+      setActiveServer(event.servers.find(s => s.isDefault && s.isActive) || event.servers[0]);
+    }
+  }, [event, activeServer]);
 
   if (!event) {
     return <Navigate to="/" />;
@@ -91,8 +107,6 @@ const Watch: React.FC = () => {
       <Navbar onSearch={() => {}} />
       
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-2 md:pt-4 lg:pt-1 pb-12 md:pb-20 space-y-4 md:space-y-6 lg:space-y-2 flex-1 w-full">
-        {/* 'Back to home' section removed as requested */}
-
         <div className="flex flex-col items-center justify-center py-4 md:py-4 lg:py-1 space-y-4 md:space-y-6 lg:space-y-2 text-center">
           <div className="flex flex-col items-center gap-2 lg:gap-1">
             <div className="p-2 md:p-2.5 lg:p-1.5 bg-zinc-900/50 rounded-xl md:rounded-2xl border border-white/5 backdrop-blur-3xl flex items-center justify-center min-w-[56px] min-h-[56px] md:min-w-[48px] md:min-h-[48px] lg:min-w-[32px] lg:min-h-[32px] shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
@@ -168,27 +182,23 @@ const Watch: React.FC = () => {
             )}
           </div>
 
-          <div className="space-y-1.5 lg:space-y-0.5 pt-0.5">
+          <div className="flex flex-col items-center gap-2.5 pt-0.5">
             <p className="text-zinc-400 text-sm md:text-base lg:text-xs font-bold tracking-tight">
               {kickoffDate} • {kickoffTime}
             </p>
-            <p className="text-sky-500/60 text-[9px] md:text-[9px] lg:text-[8px] font-black uppercase tracking-[0.25em]">
-              {event.stadium || (event.category === EventCategory.FOOTBALL ? 'International Stadium' : 'Main Event Arena')}
-            </p>
+            
+            {/* Header Row: Stadium Badge (Unified with Date) */}
+            <div className="flex items-center justify-center gap-2 text-sky-400 bg-sky-500/5 border border-sky-500/10 px-3.5 py-1 rounded-full whitespace-nowrap">
+              <MapPin className="w-2 h-2 text-sky-500" />
+              <span className="text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em]">
+                {event.stadium || (event.category === EventCategory.FOOTBALL ? 'International Stadium' : 'Main Event Arena')}
+              </span>
+            </div>
           </div>
         </div>
 
-        {/* 
-            Container used to sync the Available Sources bar width to the Player width on desktop.
-            lg:w-fit combined with lg:mx-auto makes this wrapper as wide as its largest child.
-        */}
-        <div className="flex flex-col space-y-4 md:space-y-6 lg:space-y-4 lg:w-fit lg:mx-auto w-full">
-          {/* 
-              Web Player: 
-              On desktop, we anchor the height (lg:h-[60vh]) and keep aspect-video. 
-              This forces the intrinsic width to be derived from the height, 
-              which lg:w-fit on the parent then uses to size the container.
-          */}
+        {/* Synchronized container for Player, and Sources */}
+        <div className="flex flex-col space-y-4 md:space-y-6 lg:space-y-2 lg:w-fit lg:mx-auto w-full pt-2">
           <div className="bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.9)] border border-white/5 aspect-video w-full lg:w-auto lg:h-[60vh] relative group">
             {!isStreamAvailable ? (
               <div className="absolute inset-0 z-10 bg-[#0B0C10] flex flex-col items-center justify-center p-6 text-center space-y-6 md:space-y-12 lg:space-y-6 overflow-hidden">
@@ -248,8 +258,7 @@ const Watch: React.FC = () => {
             )}
           </div>
 
-          {/* Available Sources Section: matches width of parent container (which is dictated by player) */}
-          <div className="bg-zinc-900/20 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[1.5rem] border border-white/5 overflow-hidden p-4 md:p-8 lg:p-4 w-full">
+          <div className="bg-zinc-900/20 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[1.5rem] border border-white/5 overflow-hidden p-4 md:p-8 lg:p-4 w-full mt-2 lg:mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 lg:gap-2 px-1 mb-4 md:mb-8 lg:mb-4">
               <div className="space-y-1">
                 <h3 className="text-[9px] md:text-[10px] lg:text-[8px] font-black uppercase tracking-[0.3em] text-sky-500 flex items-center gap-2">
