@@ -1,5 +1,6 @@
+
 import React, { useState } from 'react';
-import { Menu, X, Heart } from 'lucide-react';
+import { Menu, X, Heart, Settings } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo.tsx';
 import DonateModal from './DonateModal.tsx';
@@ -16,20 +17,20 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
     <>
       <nav className="sticky top-0 z-50 bg-black/80 backdrop-blur-2xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center pt-8 pb-4 gap-6">
+          <div className="flex flex-col items-center pt-4 md:pt-8 pb-3 md:pb-4 gap-4 md:gap-6">
             {/* Logo Tier */}
             <Link to="/" className="flex items-center group">
-              <Logo className="h-12 md:h-16 group-hover:scale-105 transition-transform" />
+              <Logo className="h-10 md:h-16 group-hover:scale-105 transition-transform" />
             </Link>
 
             {/* Navigation Tier */}
-            <div className="flex items-center justify-between w-full border-t border-white/5 pt-4">
+            <div className="flex items-center justify-between w-full border-t border-white/5 pt-3 md:pt-4">
               
               <div className="flex-1">
                 <div className="md:hidden">
                   <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="p-2 -ml-2 text-zinc-400 hover:text-white transition-colors"
+                    className="p-1 -ml-1 text-zinc-400 hover:text-white transition-colors"
                     aria-label="Toggle menu"
                   >
                     {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -45,13 +46,21 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 <Link to="/other-sports" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Other Sports</Link>
               </div>
 
-              <div className="flex-1 flex justify-end items-center gap-2">
+              <div className="flex-1 flex justify-end items-center gap-3 md:gap-6">
+                <Link 
+                  to="/admin" 
+                  className="flex items-center gap-1.5 text-[8px] md:text-[9px] font-black text-zinc-500 hover:text-sky-400 uppercase tracking-[0.2em] transition-colors"
+                >
+                  <Settings className="w-2.5 h-2.5 md:w-3 h-3" />
+                  <span>Admin</span>
+                </Link>
+
                 <button 
                   onClick={() => setIsDonateOpen(true)}
-                  className="group flex items-center gap-2 px-4 py-2 border border-white/10 hover:border-white/20 hover:bg-white/5 rounded-full transition-all"
+                  className="group flex items-center gap-1.5 md:gap-2 px-3 md:px-4 py-1.5 md:py-2 border border-white/10 hover:border-white/20 hover:bg-white/5 rounded-full transition-all"
                 >
-                  <Heart className="w-3 h-3 text-zinc-500 group-hover:text-white transition-colors" />
-                  <span className="text-[9px] font-black text-zinc-500 group-hover:text-white uppercase tracking-[0.2em]">Donate</span>
+                  <Heart className="w-2.5 h-2.5 md:w-3 h-3 text-zinc-500 group-hover:text-white transition-colors" />
+                  <span className="text-[8px] md:text-[9px] font-black text-zinc-500 group-hover:text-white uppercase tracking-[0.2em]">Donate</span>
                 </button>
               </div>
             </div>
@@ -70,6 +79,14 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               <Link to="/other-sports" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Other Sports</Link>
               
               <div className="flex flex-col gap-3 mt-4">
+                <Link 
+                  to="/admin" 
+                  onClick={() => setIsOpen(false)}
+                  className="flex items-center justify-center gap-2 py-4 bg-zinc-900 border border-white/5 text-zinc-300 rounded-2xl font-black uppercase text-xs tracking-widest hover:text-white transition-all"
+                >
+                  <Settings className="w-4 h-4" />
+                  Admin Dashboard
+                </Link>
                 <button 
                   onClick={() => { setIsDonateOpen(true); setIsOpen(false); }}
                   className="flex items-center justify-center gap-2 py-4 border border-white/10 text-zinc-400 rounded-2xl font-black uppercase text-xs tracking-widest hover:text-white hover:bg-white/5 transition-all"

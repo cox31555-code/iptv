@@ -16,7 +16,9 @@ import {
   Image as ImageIcon,
   Upload,
   X,
-  Star
+  Star,
+  Layout,
+  MapPin
 } from 'lucide-react';
 import { EventCategory, EventStatus, StreamServer, SportEvent, calculateEventStatus } from '../../types.ts';
 
@@ -24,7 +26,11 @@ const EventEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { events, addEvent, updateEvent } = useApp();
+  
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const teamALogoRef = useRef<HTMLInputElement>(null);
+  const teamBLogoRef = useRef<HTMLInputElement>(null);
+  const leagueLogoRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<Partial<SportEvent>>({
     teams: '',
@@ -32,8 +38,12 @@ const EventEditor: React.FC = () => {
     category: EventCategory.FOOTBALL,
     startTime: new Date().toISOString().slice(0, 16),
     endTime: new Date(Date.now() + 7200000).toISOString().slice(0, 16),
+    stadium: '',
     description: '',
     imageUrl: '',
+    teamALogoUrl: '',
+    teamBLogoUrl: '',
+    leagueLogoUrl: '',
     isSpecial: false,
     pinPriority: 0,
     deleteAt: null,
@@ -64,7 +74,7 @@ const EventEditor: React.FC = () => {
     }
   }, [id, events]);
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, field: keyof SportEvent) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 2 * 1024 * 1024) {
@@ -73,17 +83,14 @@ const EventEditor: React.FC = () => {
       }
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData({ ...formData, imageUrl: reader.result as string });
+        setFormData(prev => ({ ...prev, [field]: reader.result as string }));
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const removeImage = () => {
-    setFormData({ ...formData, imageUrl: '' });
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+  const removeImage = (field: keyof SportEvent) => {
+    setFormData(prev => ({ ...prev, [field]: '' }));
   };
 
   const handleSave = () => {
@@ -95,6 +102,8 @@ const EventEditor: React.FC = () => {
       createdAt: (formData as any).createdAt || new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       isDeleted: (formData as any).isDeleted || false,
+      stadium: formData.stadium || '',
+      description: formData.description || '', // Keep internal compatibility but hidden from UI
       ...formData,
       startTime,
       endTime,
@@ -141,7 +150,7 @@ const EventEditor: React.FC = () => {
   const sportCategories = Object.values(EventCategory);
 
   return (
-    <div className="min-h-screen bg-[#0B0C10] pb-20">
+    <div className="min-h-screen bg-[#0B0C10] pb-20 text-white">
       <header className="sticky top-0 z-10 bg-[#0B0C10]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -161,6 +170,7 @@ const EventEditor: React.FC = () => {
 
       <main className="max-w-5xl mx-auto px-4 mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-6">
+          {/* General Information */}
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
             <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
               <Info className="w-4 h-4" />
@@ -200,14 +210,27 @@ const EventEditor: React.FC = () => {
               </div>
 
               <div className="md:col-span-2">
-                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Cover Image</label>
+                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Stadium / Venue</label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+                  <input 
+                    value={formData.stadium}
+                    onChange={e => setFormData({ ...formData, stadium: e.target.value })}
+                    placeholder="e.g. Wembley Stadium"
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl pl-10 pr-4 py-3 focus:ring-2 focus:ring-[#04C4FC] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="md:col-span-2">
+                <label className="block text-xs font-bold text-white/30 uppercase mb-2">Main Cover Image</label>
                 <div className="flex gap-4">
                    <div className="flex-1">
                       <input 
                         type="file"
                         ref={fileInputRef}
                         accept="image/*"
-                        onChange={handleImageUpload}
+                        onChange={e => handleImageUpload(e, 'imageUrl')}
                         className="hidden"
                       />
                       <button 
@@ -224,7 +247,7 @@ const EventEditor: React.FC = () => {
                           <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
                         </div>
                         <button 
-                          onClick={removeImage}
+                          onClick={() => removeImage('imageUrl')}
                           className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         >
                           <X className="w-3 h-3" />
@@ -233,7 +256,9 @@ const EventEditor: React.FC = () => {
                    )}
                 </div>
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-xs font-bold text-white/30 uppercase mb-2">Start Time</label>
                 <input 
@@ -254,19 +279,76 @@ const EventEditor: React.FC = () => {
                 />
               </div>
             </div>
+          </section>
 
-            <div>
-              <label className="block text-xs font-bold text-white/30 uppercase mb-2">Event Description</label>
-              <textarea 
-                rows={4}
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 focus:ring-2 focus:ring-[#04C4FC] focus:outline-none resize-none"
-                placeholder="Details about the match..."
-              />
+          {/* Matchup Assets */}
+          <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
+            <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
+              <Layout className="w-4 h-4" />
+              <h2 className="font-bold uppercase text-xs tracking-widest">Matchup Assets</h2>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* League Logo */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-white/30 uppercase">League Logo</label>
+                <div className="relative group aspect-square bg-[#0B0C10] rounded-xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden">
+                  {formData.leagueLogoUrl ? (
+                    <>
+                      <img src={formData.leagueLogoUrl} className="w-full h-full object-contain p-4" alt="League" />
+                      <button onClick={() => removeImage('leagueLogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3"/></button>
+                    </>
+                  ) : (
+                    <button onClick={() => leagueLogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-colors">
+                      <Upload className="w-6 h-6" />
+                      <span className="text-[10px] font-bold uppercase">Upload</span>
+                    </button>
+                  )}
+                  <input type="file" ref={leagueLogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'leagueLogoUrl')} />
+                </div>
+              </div>
+
+              {/* Team A Logo */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-white/30 uppercase">Team A Logo</label>
+                <div className="relative group aspect-square bg-[#0B0C10] rounded-xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden">
+                  {formData.teamALogoUrl ? (
+                    <>
+                      <img src={formData.teamALogoUrl} className="w-full h-full object-contain p-4" alt="Team A" />
+                      <button onClick={() => removeImage('teamALogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3"/></button>
+                    </>
+                  ) : (
+                    <button onClick={() => teamALogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-colors">
+                      <Upload className="w-6 h-6" />
+                      <span className="text-[10px] font-bold uppercase">Upload</span>
+                    </button>
+                  )}
+                  <input type="file" ref={teamALogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'teamALogoUrl')} />
+                </div>
+              </div>
+
+              {/* Team B Logo */}
+              <div className="space-y-3">
+                <label className="block text-xs font-bold text-white/30 uppercase">Team B Logo</label>
+                <div className="relative group aspect-square bg-[#0B0C10] rounded-xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden">
+                  {formData.teamBLogoUrl ? (
+                    <>
+                      <img src={formData.teamBLogoUrl} className="w-full h-full object-contain p-4" alt="Team B" />
+                      <button onClick={() => removeImage('teamBLogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"><X className="w-3 h-3"/></button>
+                    </>
+                  ) : (
+                    <button onClick={() => teamBLogoRef.current?.click()} className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-colors">
+                      <Upload className="w-6 h-6" />
+                      <span className="text-[10px] font-bold uppercase">Upload</span>
+                    </button>
+                  )}
+                  <input type="file" ref={teamBLogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'teamBLogoUrl')} />
+                </div>
+              </div>
             </div>
           </section>
 
+          {/* Stream Servers */}
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
             <div className="flex items-center gap-2 text-[#04C4FC] mb-4">
               <Settings className="w-4 h-4" />
@@ -313,6 +395,7 @@ const EventEditor: React.FC = () => {
           </section>
         </div>
 
+        {/* Sidebar Controls */}
         <div className="space-y-6">
           <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
             <h3 className="font-bold text-sm">Control Panel</h3>

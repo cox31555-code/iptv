@@ -35,8 +35,12 @@ export interface SportEvent {
   startTime: string;
   endTime: string;
   status: EventStatus; // This will now be treated as a derived property in UI
+  stadium: string;
   description: string;
   imageUrl: string;
+  teamALogoUrl?: string;
+  teamBLogoUrl?: string;
+  leagueLogoUrl?: string;
   isSpecial: boolean;
   pinPriority: number;
   deleteAt: string | null;
