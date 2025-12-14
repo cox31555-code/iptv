@@ -52,10 +52,10 @@ const Watch: React.FC = () => {
 
   const renderLeagueIcon = () => {
     if (event.leagueLogoUrl) {
-      return <img src={event.leagueLogoUrl} alt={event.league} className="h-10 w-auto object-contain" />;
+      return <img src={event.leagueLogoUrl} alt={event.league} className="h-8 w-auto object-contain" />;
     }
 
-    const iconClass = "h-10 w-auto text-sky-500/80";
+    const iconClass = "h-8 w-auto text-sky-500/80";
     switch (event.category) {
       case EventCategory.FOOTBALL: return <FootballIcon className={iconClass} />;
       case EventCategory.NBA: return <NBAIcon className={iconClass} />;
@@ -63,7 +63,7 @@ const Watch: React.FC = () => {
       case EventCategory.MOTORSPORTS: return <MotorsportsIcon className={iconClass} />;
       case EventCategory.BOXING:
       case EventCategory.UFC: return <UFCIcon className={iconClass} />;
-      default: return <Trophy className="w-10 h-10 text-sky-500/80" />;
+      default: return <Trophy className="w-8 h-8 text-sky-500/80" />;
     }
   };
 
@@ -80,31 +80,31 @@ const Watch: React.FC = () => {
           </Link>
         </div>
 
-        {/* Cinematic Matchup Header */}
-        <div className="flex flex-col items-center justify-center py-2 md:py-4 space-y-6 md:space-y-8 text-center">
-          {/* League Info - Redesigned */}
-          <div className="flex flex-col items-center gap-4 md:gap-5">
-            <div className="p-3 md:p-4 bg-zinc-900/50 rounded-2xl md:rounded-[2rem] border border-white/5 backdrop-blur-3xl flex items-center justify-center min-w-[60px] min-h-[60px] shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+        {/* Cinematic Matchup Header - Resized */}
+        <div className="flex flex-col items-center justify-center py-2 md:py-4 space-y-4 md:space-y-6 text-center">
+          {/* League Info */}
+          <div className="flex flex-col items-center gap-3 md:gap-4">
+            <div className="p-2 md:p-3 bg-zinc-900/50 rounded-xl md:rounded-2xl border border-white/5 backdrop-blur-3xl flex items-center justify-center min-w-[50px] min-h-[50px] shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
               {renderLeagueIcon()}
             </div>
             
-            <div className="flex items-center gap-4 md:gap-8">
-              <div className="h-px w-6 md:w-12 bg-gradient-to-r from-transparent via-zinc-800 to-zinc-700" />
-              <span className="text-[9px] md:text-[11px] font-black tracking-[0.4em] text-zinc-500 uppercase">
+            <div className="flex items-center gap-4 md:gap-6">
+              <div className="h-px w-4 md:w-8 bg-gradient-to-r from-transparent via-zinc-800 to-zinc-700" />
+              <span className="text-[8px] md:text-[10px] font-black tracking-[0.3em] text-zinc-500 uppercase">
                 {event.league}
               </span>
-              <div className="h-px w-6 md:w-12 bg-gradient-to-l from-transparent via-zinc-800 to-zinc-700" />
+              <div className="h-px w-4 md:w-8 bg-gradient-to-l from-transparent via-zinc-800 to-zinc-700" />
             </div>
           </div>
 
           {/* Team Versus Row */}
-          <div className="flex items-center justify-center gap-4 md:gap-16 w-full max-w-5xl px-4">
+          <div className="flex items-center justify-center gap-3 md:gap-10 w-full max-w-4xl px-4">
             {/* Team A */}
-            <div className="flex flex-1 items-center justify-end gap-3 md:gap-10">
-              <h2 className="text-xl md:text-6xl font-black tracking-tighter text-right leading-none line-clamp-2 order-2 md:order-1 drop-shadow-2xl">
+            <div className="flex flex-1 items-center justify-end gap-3 md:gap-6">
+              <h2 className="text-lg md:text-4xl font-black tracking-tighter text-right leading-none line-clamp-2 order-2 md:order-1 drop-shadow-2xl">
                 {matchup.teamA}
               </h2>
-              <div className="w-16 h-16 md:w-36 md:h-36 bg-zinc-900 rounded-2xl md:rounded-[3rem] border border-white/5 flex items-center justify-center shrink-0 order-1 md:order-2 shadow-2xl overflow-hidden p-3 md:p-8 group hover:border-sky-500/30 transition-all duration-500">
+              <div className="w-14 h-14 md:w-28 md:h-28 bg-zinc-900 rounded-xl md:rounded-[2.5rem] border border-white/5 flex items-center justify-center shrink-0 order-1 md:order-2 shadow-xl overflow-hidden p-2 md:p-6 group hover:border-sky-500/30 transition-all duration-500">
                 {event.teamALogoUrl ? (
                   <img src={event.teamALogoUrl} alt={matchup.teamA} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
                 ) : (
@@ -115,32 +115,32 @@ const Watch: React.FC = () => {
 
             {/* VS Divider */}
             <div className="shrink-0 flex flex-col items-center justify-center">
-              <div className="h-16 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent hidden md:block mb-6" />
-              <span className="text-zinc-700 text-[10px] md:text-sm font-black italic uppercase tracking-[0.3em]">VS</span>
-              <div className="h-16 w-px bg-gradient-to-t from-transparent via-white/10 to-transparent hidden md:block mt-6" />
+              <div className="h-10 w-px bg-gradient-to-b from-transparent via-white/10 to-transparent hidden md:block mb-4" />
+              <span className="text-zinc-700 text-[8px] md:text-[11px] font-black italic uppercase tracking-[0.3em]">VS</span>
+              <div className="h-10 w-px bg-gradient-to-t from-transparent via-white/10 to-transparent hidden md:block mt-4" />
             </div>
 
             {/* Team B */}
-            <div className="flex flex-1 items-center justify-start gap-3 md:gap-10">
-              <div className="w-16 h-16 md:w-36 md:h-36 bg-zinc-900 rounded-2xl md:rounded-[3rem] border border-white/5 flex items-center justify-center shrink-0 shadow-2xl overflow-hidden p-3 md:p-8 group hover:border-sky-500/30 transition-all duration-500">
+            <div className="flex flex-1 items-center justify-start gap-3 md:gap-6">
+              <div className="w-14 h-14 md:w-28 md:h-28 bg-zinc-900 rounded-xl md:rounded-[2.5rem] border border-white/5 flex items-center justify-center shrink-0 shadow-xl overflow-hidden p-2 md:p-6 group hover:border-sky-500/30 transition-all duration-500">
                 {event.teamBLogoUrl ? (
                   <img src={event.teamBLogoUrl} alt={matchup.teamB} className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500" />
                 ) : (
                   <Logo className="w-full h-full opacity-20 group-hover:opacity-40 transition-opacity" />
                 )}
               </div>
-              <h2 className="text-xl md:text-6xl font-black tracking-tighter text-left leading-none line-clamp-2 drop-shadow-2xl">
+              <h2 className="text-lg md:text-4xl font-black tracking-tighter text-left leading-none line-clamp-2 drop-shadow-2xl">
                 {matchup.teamB}
               </h2>
             </div>
           </div>
 
           {/* Time & Venue */}
-          <div className="space-y-2">
-            <p className="text-zinc-400 text-sm md:text-xl font-bold tracking-tight">
+          <div className="space-y-1.5">
+            <p className="text-zinc-400 text-xs md:text-lg font-bold tracking-tight">
               {kickoffDate} • {kickoffTime}
             </p>
-            <p className="text-sky-500/60 text-[9px] md:text-[11px] font-black uppercase tracking-[0.25em]">
+            <p className="text-sky-500/60 text-[8px] md:text-[10px] font-black uppercase tracking-[0.2em]">
               {event.stadium || (event.category === EventCategory.FOOTBALL ? 'International Stadium' : 'Main Event Arena')}
             </p>
           </div>
