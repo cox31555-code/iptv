@@ -10,14 +10,15 @@ const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { admin, login } = useApp();
+  const { admin, adminPassword, login } = useApp();
   const navigate = useNavigate();
 
   if (admin) return <Navigate to="/admin" />;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (username === MOCK_ADMIN.username && password === MOCK_ADMIN.password) {
+    // Validate against the dynamic password from context
+    if (username === MOCK_ADMIN.username && password === adminPassword) {
       login({ id: MOCK_ADMIN.id, username, role: MOCK_ADMIN.role });
       navigate('/admin');
     } else {
@@ -87,7 +88,7 @@ const Login: React.FC = () => {
         </form>
 
         <p className="text-center mt-8 text-white/20 text-xs">
-          For demo: admin / password
+          Access the dashboard with your administrative credentials.
         </p>
       </div>
     </div>

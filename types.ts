@@ -31,10 +31,10 @@ export interface SportEvent {
   id: string;
   category: EventCategory;
   league: string;
-  teams: string; // Or Title for Special Events
+  teams: string;
   startTime: string;
   endTime: string;
-  status: EventStatus; // This will now be treated as a derived property in UI
+  status: EventStatus;
   stadium: string;
   description: string;
   imageUrl: string;
@@ -47,23 +47,14 @@ export interface SportEvent {
   createdAt: string;
   updatedAt: string;
   servers: StreamServer[];
-  isDeleted: boolean;
-}
-
-export enum AdminRole {
-  ADMIN = 'Admin',
-  EDITOR = 'Editor'
 }
 
 export interface AdminUser {
   id: string;
   username: string;
-  role: AdminRole;
+  role: string;
 }
 
-/**
- * Derives the event status based on current time
- */
 export const calculateEventStatus = (startTime: string, endTime: string): EventStatus => {
   const now = new Date().getTime();
   const start = new Date(startTime).getTime();
@@ -72,4 +63,20 @@ export const calculateEventStatus = (startTime: string, endTime: string): EventS
   if (now < start) return EventStatus.UPCOMING;
   if (now >= start && now < end) return EventStatus.LIVE;
   return EventStatus.ENDED;
+};
+
+export const getCategorySlug = (categoryName: string) => {
+  if (categoryName === 'Special') return 'special';
+  if (categoryName === EventCategory.OTHER) return 'other-sports';
+  return categoryName.toLowerCase().replace(/\s+/g, '-');
+};
+
+export const categoryFromSlug = (slug: string): string => {
+  const map: Record<string, string> = {
+    'special': 'Special',
+    'football': EventCategory.FOOTBALL,
+    'nba': EventCategory.NBA,
+    'other-sports': 'Other Sports'
+  };
+  return map[slug] || 'Category';
 };

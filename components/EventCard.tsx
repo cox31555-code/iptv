@@ -1,15 +1,11 @@
 
 import React from 'react';
-import { Clock, Trophy, Play, Target, Waves } from 'lucide-react';
+import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { SportEvent, EventStatus, EventCategory } from '../types';
-import { useApp } from '../AppContext';
+import { SportEvent, EventStatus } from '../types.ts';
 import Logo from './Logo.tsx';
-import FootballIcon from './FootballIcon.tsx';
-import NBAIcon from './NBAIcon.tsx';
-import NFLIcon from './NFLIcon.tsx';
-import MotorsportsIcon from './MotorsportsIcon.tsx';
-import UFCIcon from './UFCIcon.tsx';
+import SportIcon from './SportIcon.tsx';
+import LiveIndicator from './LiveIndicator.tsx';
 
 interface EventCardProps {
   event: SportEvent;
@@ -19,38 +15,11 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const isLive = event.status === EventStatus.LIVE;
   const isUpcoming = event.status === EventStatus.UPCOMING;
 
-  const formatDate = (dateStr: string) => {
-    const d = new Date(dateStr);
-    return d.toLocaleTimeString([], { 
+  const formatTime = (dateStr: string) => {
+    return new Date(dateStr).toLocaleTimeString([], { 
       hour: '2-digit', 
       minute: '2-digit'
     });
-  };
-
-  const renderSportIcon = () => {
-    const iconClass = "w-3 h-3 md:w-3.5 md:h-3.5 text-sky-500";
-    
-    switch (event.category) {
-      case EventCategory.FOOTBALL:
-        return <FootballIcon className="h-[9px] md:h-[11px] w-auto shrink-0" />;
-      case EventCategory.NBA:
-        return <NBAIcon className="h-[9px] md:h-[11px] w-auto shrink-0" />;
-      case EventCategory.NFL:
-        return <NFLIcon className="h-[9px] md:h-[11px] w-auto shrink-0" />;
-      case EventCategory.DARTS:
-        return <Target className={iconClass} />;
-      case EventCategory.MOTORSPORTS:
-        return <MotorsportsIcon className="h-[9px] md:h-[11px] w-auto shrink-0" />;
-      case EventCategory.BOXING:
-      case EventCategory.UFC:
-        return <UFCIcon className="h-[9px] md:h-[11px] w-auto shrink-0" />;
-      case EventCategory.CRICKET:
-        return <Trophy className={iconClass} />;
-      case EventCategory.HOCKEY:
-        return <Waves className={iconClass} />;
-      default:
-        return <Trophy className={iconClass} />;
-    }
   };
 
   return (
@@ -72,12 +41,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent pointer-events-none" />
         
         <div className="absolute top-2 left-2 md:top-4 md:left-4 flex gap-1.5 md:gap-2">
-          {isLive && (
-            <div className="flex items-center gap-1 md:gap-2 px-1.5 md:px-3 py-0.5 md:py-1 bg-red-500/10 backdrop-blur-md border border-red-500/20 rounded-full">
-              <div className="w-1 md:w-1.5 h-1 md:h-1.5 bg-red-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(239,68,68,0.8)]" />
-              <span className="text-[8px] md:text-[10px] font-black uppercase text-red-500 tracking-wider">Live</span>
-            </div>
-          )}
+          {isLive && <LiveIndicator />}
           {isUpcoming && (
             <div className="px-1.5 md:px-3 py-0.5 md:py-1 bg-sky-500/10 backdrop-blur-md border border-sky-500/20 rounded-full">
               <span className="text-[8px] md:text-[10px] font-black uppercase text-sky-400 tracking-wider">Upcoming</span>
@@ -100,10 +64,10 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <div className="flex items-center gap-3 md:gap-5 text-[9px] md:text-[11px] text-zinc-500 font-medium mt-auto mb-3 md:mb-5">
           <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
             <Clock className="w-3 h-3 md:w-3.5 md:h-3.5 text-sky-500" />
-            {formatDate(event.startTime)}
+            {formatTime(event.startTime)}
           </div>
           <div className="flex items-center gap-1 md:gap-1.5 uppercase tracking-tighter shrink-0 truncate">
-            {renderSportIcon()}
+            <SportIcon category={event.category} className="h-[9px] md:h-[11px] w-auto shrink-0 text-sky-500" />
             <span className="inline-block">{event.category}</span>
           </div>
         </div>

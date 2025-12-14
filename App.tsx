@@ -1,3 +1,4 @@
+
 import React, { useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './AppContext.tsx';
@@ -7,6 +8,7 @@ import CategoryPage from './pages/Public/CategoryPage.tsx';
 import Login from './pages/Admin/Login.tsx';
 import Dashboard from './pages/Admin/Dashboard.tsx';
 import EventEditor from './pages/Admin/EventEditor.tsx';
+import Settings from './pages/Admin/Settings.tsx';
 
 /**
  * AdManager handles the injection of the advertisement script.
@@ -90,6 +92,7 @@ const App: React.FC = () => {
             {/* Admin Routes (Keep these first to avoid matching category slugs) */}
             <Route path="/admin/login" element={<Login />} />
             <Route path="/admin" element={<Dashboard />} />
+            <Route path="/admin/settings" element={<Settings />} />
             <Route path="/admin/events/new" element={<EventEditor />} />
             <Route path="/admin/events/edit/:id" element={<EventEditor />} />
 

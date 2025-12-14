@@ -18,7 +18,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    isDeleted: false,
+    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's1', name: 'Server 1', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
       { id: 's2', name: 'Server 2', embedUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', sortOrder: 2, isDefault: false, isActive: true },
@@ -41,7 +41,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    isDeleted: false,
+    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's4', name: 'Main', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
     ]
@@ -62,7 +62,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    isDeleted: false,
+    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's5', name: 'Server 1', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
     ]
@@ -83,7 +83,7 @@ export const INITIAL_EVENTS: SportEvent[] = [
     deleteAt: null,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
-    isDeleted: false,
+    // Removed isDeleted property as it's not in the SportEvent interface
     servers: [
       { id: 's6', name: 'F1 Live', embedUrl: 'https://player.vimeo.com/video/76979871?h=8272103f6e', sortOrder: 1, isDefault: true, isActive: true },
     ]
