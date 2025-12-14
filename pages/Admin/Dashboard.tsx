@@ -15,7 +15,8 @@ import {
   Filter,
   Users,
   Calendar,
-  ArrowLeft
+  ArrowLeft,
+  AlertTriangle
 } from 'lucide-react';
 import { EventStatus, SportEvent, EventCategory } from '../../types';
 import Logo from '../../components/Logo.tsx';
@@ -77,20 +78,28 @@ const Dashboard: React.FC = () => {
         </div>
 
         <nav className="flex-1 space-y-2">
-          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 bg-[#04C4FC] text-[#0B0C10] rounded-xl font-bold transition-all">
+          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 bg-[#04C4FC] text-[#0B0C10] rounded-xl font-bold transition-all text-xs">
             <Activity className="w-4 h-4" /> Dashboard
           </Link>
-          <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
+          <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
             <Users className="w-4 h-4" /> Teams
           </Link>
-          <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
+          <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
             <SettingsIcon className="w-4 h-4" /> Settings
           </Link>
+          
+          <div className="pt-4 pb-2">
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/20 mb-2 ml-4">Development</p>
+            <Link to="/this-page-does-not-exist" className="flex items-center gap-3 px-4 py-3 text-orange-500/50 hover:text-orange-400 hover:bg-orange-500/5 rounded-xl font-medium transition-all text-xs border border-dashed border-orange-500/10">
+              <AlertTriangle className="w-4 h-4" /> Test 404 Page
+            </Link>
+          </div>
+
           <div className="h-px bg-white/5 my-4 mx-2" />
-          <Link to="/" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
+          <Link to="/" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
             <ArrowLeft className="w-4 h-4" /> Back to Website
           </Link>
-          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl font-medium transition-all w-full text-left">
+          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl font-medium transition-all w-full text-left text-xs">
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </nav>

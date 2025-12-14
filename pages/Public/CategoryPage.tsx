@@ -4,6 +4,7 @@ import { useApp } from '../../AppContext.tsx';
 import { EventCategory, categoryFromSlug, SportEvent } from '../../types.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
+import NotFound from './NotFound.tsx';
 import { ChevronLeft, Search, XCircle } from 'lucide-react';
 import Footer from '../../components/Footer.tsx';
 
@@ -14,10 +15,17 @@ const CategoryPage: React.FC = () => {
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const displayName = categoryFromSlug(categorySlug || '');
+  
+  // Validation: In App.tsx, the dynamic route /:categorySlug catches everything.
+  // We check if the slug is actually one of our supported sections.
+  const isValidCategory = displayName !== 'Category';
+  
   const isSpecialPage = categorySlug === 'special';
   const isOtherSportsPage = categorySlug === 'other-sports';
 
   const filteredEvents = useMemo(() => {
+    if (!isValidCategory) return [];
+
     const otherSportsGroup = [
       EventCategory.NFL, EventCategory.DARTS, EventCategory.MOTORSPORTS,
       EventCategory.BOXING, EventCategory.UFC, EventCategory.CRICKET,
@@ -41,7 +49,12 @@ const CategoryPage: React.FC = () => {
       
       return e.teams.toLowerCase().includes(term) || e.league.toLowerCase().includes(term);
     });
-  }, [events, categorySlug, searchTerm, displayName, isSpecialPage, isOtherSportsPage]);
+  }, [events, categorySlug, searchTerm, displayName, isSpecialPage, isOtherSportsPage, isValidCategory]);
+
+  // If not a valid category route, show the 404 page
+  if (!isValidCategory) {
+    return <NotFound />;
+  }
 
   // Group events by day
   const groupedEvents = useMemo(() => {

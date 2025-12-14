@@ -4,6 +4,7 @@ import { AppProvider } from './AppContext.tsx';
 import Home from './pages/Public/Home.tsx';
 import Watch from './pages/Public/Watch.tsx';
 import CategoryPage from './pages/Public/CategoryPage.tsx';
+import NotFound from './pages/Public/NotFound.tsx';
 import Login from './pages/Admin/Login.tsx';
 import Dashboard from './pages/Admin/Dashboard.tsx';
 import EventEditor from './pages/Admin/EventEditor.tsx';
@@ -89,7 +90,9 @@ const App: React.FC = () => {
             <Route path="/" element={<Home />} />
             <Route path="/watch/:eventSlug" element={<Watch />} />
             <Route path="/:categorySlug" element={<CategoryPage />} />
-            <Route path="*" element={<Navigate to="/" />} />
+            
+            {/* 404 Route */}
+            <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
       </HashRouter>
