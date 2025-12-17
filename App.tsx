@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './AppContext.tsx';
 import Home from './pages/Public/Home.tsx';
 import Watch from './pages/Public/Watch.tsx';
@@ -74,7 +74,7 @@ const AdManager: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AppProvider>
-      <HashRouter>
+      <BrowserRouter>
         <div className="bg-[#0B0C10] text-[#E6E6E6] min-h-screen">
           <AdManager />
           <Routes>
@@ -95,7 +95,7 @@ const App: React.FC = () => {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </div>
-      </HashRouter>
+      </BrowserRouter>
     </AppProvider>
   );
 };
