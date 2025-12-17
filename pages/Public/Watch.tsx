@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
-import { ChevronLeft, Server, Clock, Lock, MapPin } from 'lucide-react';
+import { ChevronLeft, Server, Clock, Lock, MapPin, Loader2 } from 'lucide-react';
 import Navbar from '../../components/Navbar.tsx';
-import { EventCategory, EventStatus } from '../../types.ts';
+import { EventCategory, EventStatus, SportEvent } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
 import SportIcon from '../../components/SportIcon.tsx';
 import Footer from '../../components/Footer.tsx';
+import { getEventById } from '../../api.ts';
 
 const Watch: React.FC = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -18,9 +19,35 @@ const Watch: React.FC = () => {
     return eventSlug.split('-')[0];
   }, [eventSlug]);
 
+  const [fetchedEvent, setFetchedEvent] = useState<SportEvent | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
+  // First check local state, then use fetched event
   const event = useMemo(() => {
-    return events.find(e => e.id === id);
-  }, [events, id]);
+    const fromState = events.find(e => e.id === id);
+    return fromState || fetchedEvent;
+  }, [events, id, fetchedEvent]);
+
+  // Fetch event by ID if not in local state (for deep links/refresh)
+  useEffect(() => {
+    if (!id) return;
+    if (events.find(e => e.id === id)) return; // Already in state
+    
+    setIsLoading(true);
+    setNotFound(false);
+    
+    getEventById(id)
+      .then(data => {
+        setFetchedEvent(data);
+      })
+      .catch(() => {
+        setNotFound(true);
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  }, [id, events]);
 
   const [activeServer, setActiveServer] = useState(
     event?.servers.find(s => s.isDefault && s.isActive) || event?.servers[0]
@@ -50,8 +77,25 @@ const Watch: React.FC = () => {
     }
   }, [event, activeServer]);
 
-  if (!event) {
+  // Show loading state while fetching
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-sky-500" />
+          <p className="text-sm font-bold uppercase tracking-widest text-zinc-500">Loading event...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect only after confirming event doesn't exist
+  if (notFound || (!event && !isLoading)) {
     return <Navigate to="/" />;
+  }
+
+  if (!event) {
+    return null; // Should not reach here, but TypeScript guard
   }
 
   // Only Football and NBA use the split Team A vs Team B UI with logos

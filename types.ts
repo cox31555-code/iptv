@@ -31,6 +31,7 @@ export interface Team {
   name: string;
   logoUrl: string;
   keywords?: string;
+  stadium?: string;
 }
 
 export interface SportEvent {

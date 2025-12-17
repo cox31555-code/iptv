@@ -72,6 +72,8 @@ const EventEditor: React.FC = () => {
   const [previewServer, setPreviewServer] = useState<StreamServer | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [stadiumManuallyEdited, setStadiumManuallyEdited] = useState(false);
+  const [autoPurge, setAutoPurge] = useState(false);
 
   const isTeamBased = formData.category === EventCategory.FOOTBALL || formData.category === EventCategory.NBA;
 
@@ -118,6 +120,15 @@ const EventEditor: React.FC = () => {
     }
   }, [teamA, teamB, isTeamBased]);
 
+  // Auto-update deleteAt when endTime changes and autoPurge is enabled
+  useEffect(() => {
+    if (autoPurge && formData.endTime) {
+      const endDate = new Date(formData.endTime);
+      const purgeDate = new Date(endDate.getTime() + 29 * 60 * 1000);
+      setFormData(prev => ({ ...prev, deleteAt: purgeDate.toISOString() }));
+    }
+  }, [formData.endTime, autoPurge]);
+
   const handleSelectTeam = (team: Team, type: 'A' | 'B') => {
     // Logic to update keywords automatically
     setFormData(prev => {
@@ -127,16 +138,27 @@ const EventEditor: React.FC = () => {
       // Combine and remove duplicates
       const uniqueKeywords = Array.from(new Set([...currentKeywords, ...newTeamKeywords]));
       
-      return {
+      const updates: Partial<SportEvent> = {
         ...prev,
         [type === 'A' ? 'teamALogoUrl' : 'teamBLogoUrl']: team.logoUrl,
         keywords: uniqueKeywords.join(', ')
       };
+      
+      // Autofill stadium from Team A only (if not manually edited)
+      if (type === 'A' && team.stadium && !stadiumManuallyEdited) {
+        updates.stadium = team.stadium;
+      }
+      
+      return updates;
     });
 
     if (type === 'A') {
       setTeamA(team.name);
       setShowLookupA(false);
+      // Reset manual edit flag when Team A changes so autofill can work
+      if (team.stadium) {
+        setStadiumManuallyEdited(false);
+      }
     } else {
       setTeamB(team.name);
       setShowLookupB(false);
@@ -302,7 +324,7 @@ const EventEditor: React.FC = () => {
               </div>
 
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">League</label><input value={formData.league} onChange={e => setFormData({ ...formData, league: e.target.value })} placeholder="e.g. Premier League" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium outline-none" /></div>
-              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Venue</label><div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" /><input value={formData.stadium} onChange={e => setFormData({ ...formData, stadium: e.target.value })} placeholder="e.g. Anfield" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none" /></div></div>
+              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Venue</label><div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" /><input value={formData.stadium} onChange={e => { setStadiumManuallyEdited(true); setFormData({ ...formData, stadium: e.target.value }); }} placeholder="e.g. Anfield" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none" /></div></div>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Start Time</label><input type="datetime-local" value={formData.startTime} onChange={e => setFormData({ ...formData, startTime: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
@@ -440,7 +462,34 @@ const EventEditor: React.FC = () => {
             <div className="space-y-4">
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Priority</label><input type="number" value={formData.pinPriority} onChange={e => setFormData({ ...formData, pinPriority: parseInt(e.target.value) || 0 })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none" /></div>
               <div className="flex items-center justify-between p-4 bg-[#0B0C10] rounded-xl border border-white/5"><span className="text-[10px] font-black uppercase tracking-widest">Premium</span><input type="checkbox" checked={formData.isSpecial} onChange={e => setFormData({ ...formData, isSpecial: e.target.checked })} className="w-5 h-5 accent-sky-500" /></div>
-              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Auto-Purge</label><input type="datetime-local" value={formData.deleteAt?.slice(0, 16) || ''} onChange={e => setFormData({ ...formData, deleteAt: e.target.value ? new Date(e.target.value).toISOString() : null })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs outline-none" /></div>
+              <div className="flex items-center justify-between p-4 bg-[#0B0C10] rounded-xl border border-white/5">
+                <span className="text-[10px] font-black uppercase tracking-widest">Auto-purge 29min after end</span>
+                <input 
+                  type="checkbox" 
+                  checked={autoPurge} 
+                  onChange={e => {
+                    setAutoPurge(e.target.checked);
+                    if (e.target.checked && formData.endTime) {
+                      const endDate = new Date(formData.endTime);
+                      const purgeDate = new Date(endDate.getTime() + 29 * 60 * 1000);
+                      setFormData(prev => ({ ...prev, deleteAt: purgeDate.toISOString() }));
+                    } else if (!e.target.checked) {
+                      setFormData(prev => ({ ...prev, deleteAt: null }));
+                    }
+                  }} 
+                  className="w-5 h-5 accent-sky-500" 
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Auto-Purge Time {autoPurge && <span className="text-sky-400">(auto)</span>}</label>
+                <input 
+                  type="datetime-local" 
+                  value={formData.deleteAt?.slice(0, 16) || ''} 
+                  disabled={autoPurge}
+                  onChange={e => setFormData({ ...formData, deleteAt: e.target.value ? new Date(e.target.value).toISOString() : null })} 
+                  className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs outline-none disabled:opacity-50 disabled:cursor-not-allowed" 
+                />
+              </div>
             </div>
           </section>
 

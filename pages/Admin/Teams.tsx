@@ -13,7 +13,8 @@ import {
   X,
   Users,
   Search,
-  Tag
+  Tag,
+  MapPin
 } from 'lucide-react';
 import { Team } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
@@ -21,7 +22,7 @@ import Logo from '../../components/Logo.tsx';
 const Teams: React.FC = () => {
   const { admin, teams, addTeam, deleteTeam, logout } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
-  const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', keywords: '' });
+  const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', keywords: '', stadium: '' });
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
@@ -53,9 +54,10 @@ const Teams: React.FC = () => {
         id: Math.random().toString(36).substr(2, 9),
         name: newTeam.name.trim(),
         logoUrl: newTeam.logoUrl,
-        keywords: newTeam.keywords.trim()
+        keywords: newTeam.keywords.trim(),
+        stadium: newTeam.stadium.trim()
       });
-      setNewTeam({ name: '', logoUrl: '', keywords: '' });
+      setNewTeam({ name: '', logoUrl: '', keywords: '', stadium: '' });
     } catch (err: any) {
       alert(`Failed to add team: ${err.message}`);
     } finally {
@@ -156,6 +158,19 @@ const Teams: React.FC = () => {
                     value={newTeam.keywords}
                     onChange={e => setNewTeam({ ...newTeam, keywords: e.target.value })}
                     placeholder="e.g. Gunners, The Reds"
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-sky-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2 flex items-center gap-1.5">
+                    <MapPin className="w-3 h-3" /> Home Stadium
+                  </label>
+                  <input 
+                    value={newTeam.stadium}
+                    onChange={e => setNewTeam({ ...newTeam, stadium: e.target.value })}
+                    placeholder="e.g. Anfield"
+                    maxLength={200}
                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-sky-500 outline-none"
                   />
                 </div>
