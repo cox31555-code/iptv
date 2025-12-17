@@ -45,6 +45,7 @@ export interface SportEvent {
   stadium: string;
   description: string;
   imageUrl: string;
+  coverImageUrl?: string | null;
   teamALogoUrl?: string;
   teamBLogoUrl?: string;
   leagueLogoUrl?: string;

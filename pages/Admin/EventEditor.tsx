@@ -17,9 +17,11 @@ import {
   Layout,
   MapPin,
   Search,
-  Tag
+  Tag,
+  Image
 } from 'lucide-react';
 import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team } from '../../types.ts';
+import { uploadCoverImage, getFullImageUrl } from '../../api.ts';
 
 const EventEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -30,6 +32,7 @@ const EventEditor: React.FC = () => {
   const teamALogoRef = useRef<HTMLInputElement>(null);
   const teamBLogoRef = useRef<HTMLInputElement>(null);
   const leagueLogoRef = useRef<HTMLInputElement>(null);
+  const coverImageRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState<Partial<SportEvent>>({
     teams: '',
@@ -41,6 +44,7 @@ const EventEditor: React.FC = () => {
     stadium: '',
     description: '',
     imageUrl: '',
+    coverImageUrl: '',
     teamALogoUrl: '',
     teamBLogoUrl: '',
     leagueLogoUrl: '',
@@ -49,6 +53,9 @@ const EventEditor: React.FC = () => {
     deleteAt: null,
     servers: []
   });
+
+  const [coverImagePreview, setCoverImagePreview] = useState<string | null>(null);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   const [teamA, setTeamA] = useState('');
   const [teamB, setTeamB] = useState('');
@@ -300,6 +307,81 @@ const EventEditor: React.FC = () => {
             <div className="grid grid-cols-2 gap-6">
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Start Time</label><input type="datetime-local" value={formData.startTime} onChange={e => setFormData({ ...formData, startTime: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">End Time</label><input type="datetime-local" value={formData.endTime} onChange={e => setFormData({ ...formData, endTime: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
+            </div>
+          </section>
+
+          <section className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6">
+            <div className="flex items-center gap-2 text-zinc-400 mb-4"><Image className="w-4 h-4" /><h2 className="font-black uppercase text-[10px] tracking-[0.25em]">Cover Image</h2></div>
+            <div className="space-y-3">
+              <p className="text-[10px] text-white/40">Upload a custom cover image for the event card. Recommended: 16:10 aspect ratio, max 5MB.</p>
+              <div className="relative aspect-video bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden hover:border-sky-500/30 transition-all">
+                {(coverImagePreview || formData.coverImageUrl) ? (
+                  <>
+                    <img 
+                      src={coverImagePreview || getFullImageUrl(formData.coverImageUrl) || ''} 
+                      className="w-full h-full object-cover" 
+                      alt="Cover preview" 
+                    />
+                    <button 
+                      onClick={() => {
+                        setCoverImagePreview(null);
+                        setFormData(prev => ({ ...prev, coverImageUrl: '' }));
+                      }} 
+                      className="absolute top-2 right-2 bg-red-500 rounded-full p-1.5 hover:bg-red-400 transition-colors"
+                    >
+                      <X className="w-3 h-3"/>
+                    </button>
+                  </>
+                ) : (
+                  <button 
+                    onClick={() => coverImageRef.current?.click()} 
+                    disabled={isUploadingCover}
+                    className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-colors disabled:opacity-50"
+                  >
+                    {isUploadingCover ? (
+                      <div className="w-8 h-8 border-2 border-sky-400 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <Upload className="w-8 h-8"/>
+                    )}
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
+                      {isUploadingCover ? 'Uploading...' : 'Upload Cover'}
+                    </span>
+                  </button>
+                )}
+                <input 
+                  type="file" 
+                  ref={coverImageRef} 
+                  className="hidden" 
+                  accept=".jpg,.jpeg,.png,.webp,.svg"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    
+                    if (file.size > 5 * 1024 * 1024) {
+                      alert("Image too large (max 5MB).");
+                      return;
+                    }
+                    
+                    // Show local preview immediately
+                    const reader = new FileReader();
+                    reader.onloadend = () => setCoverImagePreview(reader.result as string);
+                    reader.readAsDataURL(file);
+                    
+                    // Upload to server
+                    setIsUploadingCover(true);
+                    try {
+                      const result = await uploadCoverImage(file);
+                      setFormData(prev => ({ ...prev, coverImageUrl: result.url }));
+                      setCoverImagePreview(null); // Clear preview, use actual URL
+                    } catch (err: any) {
+                      alert(err.message || 'Failed to upload image');
+                      setCoverImagePreview(null);
+                    } finally {
+                      setIsUploadingCover(false);
+                    }
+                  }} 
+                />
+              </div>
             </div>
           </section>
 

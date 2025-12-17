@@ -2,6 +2,7 @@ import React from 'react';
 import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SportEvent, EventStatus, getEventUrl } from '../types.ts';
+import { getFullImageUrl } from '../api.ts';
 import Logo from './Logo.tsx';
 import SportIcon from './SportIcon.tsx';
 import LiveIndicator from './LiveIndicator.tsx';
@@ -39,10 +40,12 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   return (
     <div className="group relative bg-zinc-900/40 rounded-xl md:rounded-2xl overflow-hidden border border-white/[0.05] hover:border-sky-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(14,165,233,0.1)] flex flex-col">
       <div className="aspect-[16/10] bg-black relative overflow-hidden flex items-center justify-center">
-        {event.imageUrl ? (
+        {/* Priority: coverImageUrl > imageUrl > Logo fallback */}
+        {(event.coverImageUrl || event.imageUrl) ? (
           <img
-            src={event.imageUrl}
+            src={getFullImageUrl(event.coverImageUrl) || event.imageUrl}
             alt={event.teams}
+            loading="lazy"
             className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
           />
         ) : (

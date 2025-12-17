@@ -149,3 +149,47 @@ export const changePassword = async (oldPassword: string, newPassword: string): 
 export const logout = () => {
   setAuthToken(null);
 };
+
+// ============ UPLOADS ============
+
+export interface UploadResponse {
+  url: string;
+  filename: string;
+  size: number;
+  mimetype: string;
+}
+
+export const uploadCoverImage = async (file: File): Promise<UploadResponse> => {
+  const formData = new FormData();
+  formData.append('image', file);
+
+  const headers: HeadersInit = {};
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/upload/cover-image`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to upload image');
+  return result.data;
+};
+
+export const deleteCoverImage = async (filename: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/upload/cover-image`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ filename }),
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to delete image');
+};
+
+export const getFullImageUrl = (url: string | null | undefined): string | null => {
+  if (!url) return null;
+  if (url.startsWith('http') || url.startsWith('data:')) return url;
+  return `${API_BASE_URL}${url}`;
+};
