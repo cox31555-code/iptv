@@ -1,41 +1,36 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
-import { SportEvent, AdminUser, calculateEventStatus, Team } from './types.ts';
-import { INITIAL_EVENTS } from './mockData.ts';
-import { MOCK_ADMIN } from './constants.ts';
+import { SportEvent, AdminUser, calculateEventStatus, Team } from './types';
+import * as api from './api';
 
 interface AppContextType {
   events: SportEvent[];
   teams: Team[];
-  addEvent: (event: SportEvent) => void;
-  updateEvent: (event: SportEvent) => void;
-  deleteEvent: (id: string) => void;
-  addTeam: (team: Team) => void;
-  updateTeam: (team: Team) => void;
-  deleteTeam: (id: string) => void;
+  loading: boolean;
+  error: string | null;
+  addEvent: (event: SportEvent) => Promise<void>;
+  updateEvent: (event: SportEvent) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
+  addTeam: (team: Team) => Promise<void>;
+  updateTeam: (team: Team) => Promise<void>;
+  deleteTeam: (id: string) => Promise<void>;
   admin: AdminUser | null;
-  adminPassword: string;
-  updateAdminPassword: (newPassword: string) => void;
-  login: (user: AdminUser) => void;
+  loginAdmin: (username: string, password: string) => Promise<void>;
   logout: () => void;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<void>;
+  refreshEvents: () => Promise<void>;
+  refreshTeams: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [rawEvents, setRawEvents] = useState<SportEvent[]>(() => {
-    const saved = localStorage.getItem('ajsports_events');
-    return saved ? JSON.parse(saved) : INITIAL_EVENTS;
-  });
+  const [rawEvents, setRawEvents] = useState<SportEvent[]>([]);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [admin, setAdmin] = useState<AdminUser | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const [teams, setTeams] = useState<Team[]>(() => {
-    const saved = localStorage.getItem('ajsports_teams');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [adminPassword, setAdminPassword] = useState<string>(() => {
-    return localStorage.getItem('ajsports_admin_pass') || MOCK_ADMIN.password;
-  });
-
+  // Calculate status for all events
   const events = useMemo(() => {
     return rawEvents.map(event => ({
       ...event,
@@ -43,80 +38,113 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }));
   }, [rawEvents]);
 
-  const [admin, setAdmin] = useState<AdminUser | null>(() => {
-    const saved = localStorage.getItem('ajsports_admin');
-    return saved ? JSON.parse(saved) : null;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('ajsports_events', JSON.stringify(rawEvents));
-  }, [rawEvents]);
-
-  useEffect(() => {
-    localStorage.setItem('ajsports_teams', JSON.stringify(teams));
-  }, [teams]);
-
-  useEffect(() => {
-    localStorage.setItem('ajsports_admin_pass', adminPassword);
-  }, [adminPassword]);
-
-  useEffect(() => {
-    if (admin) {
-      localStorage.setItem('ajsports_admin', JSON.stringify(admin));
-    } else {
-      localStorage.removeItem('ajsports_admin');
+  // Fetch events from API
+  const refreshEvents = useCallback(async () => {
+    try {
+      const data = await api.getEvents();
+      setRawEvents(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Failed to fetch events:', err);
+      setError(err.message);
     }
-  }, [admin]);
+  }, []);
 
+  // Fetch teams from API
+  const refreshTeams = useCallback(async () => {
+    try {
+      const data = await api.getTeams();
+      setTeams(data);
+      setError(null);
+    } catch (err: any) {
+      console.error('Failed to fetch teams:', err);
+      setError(err.message);
+    }
+  }, []);
+
+  // Initial data fetch
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoading(true);
+      await Promise.all([refreshEvents(), refreshTeams()]);
+      setLoading(false);
+    };
+    fetchData();
+  }, [refreshEvents, refreshTeams]);
+
+  // Periodically refresh events to update status
   useEffect(() => {
     const interval = setInterval(() => {
-      const now = new Date();
-      setRawEvents(prev => prev.filter(event => {
-        if (event.deleteAt && new Date(event.deleteAt) <= now) {
-          return false;
-        }
-        return true;
-      }));
-    }, 15000);
+      refreshEvents();
+    }, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
+  }, [refreshEvents]);
+
+  // Event CRUD operations
+  const addEvent = useCallback(async (event: SportEvent) => {
+    await api.createEvent(event);
+    await refreshEvents();
+  }, [refreshEvents]);
+
+  const updateEvent = useCallback(async (updated: SportEvent) => {
+    await api.updateEvent(updated.id, updated);
+    await refreshEvents();
+  }, [refreshEvents]);
+
+  const deleteEvent = useCallback(async (id: string) => {
+    await api.deleteEvent(id);
+    await refreshEvents();
+  }, [refreshEvents]);
+
+  // Team CRUD operations
+  const addTeam = useCallback(async (team: Team) => {
+    await api.createTeam(team);
+    await refreshTeams();
+  }, [refreshTeams]);
+
+  const updateTeam = useCallback(async (updated: Team) => {
+    await api.updateTeam(updated.id, updated);
+    await refreshTeams();
+  }, [refreshTeams]);
+
+  const deleteTeam = useCallback(async (id: string) => {
+    await api.deleteTeam(id);
+    await refreshTeams();
+  }, [refreshTeams]);
+
+  // Auth operations
+  const loginAdmin = useCallback(async (username: string, password: string) => {
+    await api.login(username, password);
+    setAdmin({ id: '1', username, role: 'Admin' });
   }, []);
 
-  const addEvent = useCallback((event: SportEvent) => {
-    setRawEvents(prev => [event, ...prev]);
+  const logout = useCallback(() => {
+    api.logout();
+    setAdmin(null);
   }, []);
 
-  const updateEvent = useCallback((updated: SportEvent) => {
-    setRawEvents(prev => prev.map(e => e.id === updated.id ? updated : e));
+  const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {
+    await api.changePassword(oldPassword, newPassword);
   }, []);
-
-  const deleteEvent = useCallback((id: string) => {
-    setRawEvents(prev => prev.filter(e => e.id !== id));
-  }, []);
-
-  const addTeam = useCallback((team: Team) => {
-    setTeams(prev => [team, ...prev]);
-  }, []);
-
-  const updateTeam = useCallback((updated: Team) => {
-    setTeams(prev => prev.map(t => t.id === updated.id ? updated : t));
-  }, []);
-
-  const deleteTeam = useCallback((id: string) => {
-    setTeams(prev => prev.filter(t => t.id !== id));
-  }, []);
-
-  const updateAdminPassword = useCallback((newPassword: string) => {
-    setAdminPassword(newPassword);
-  }, []);
-
-  const login = useCallback((user: AdminUser) => setAdmin(user), []);
-  const logout = useCallback(() => setAdmin(null), []);
 
   return (
     <AppContext.Provider value={{ 
-      events, teams, addEvent, updateEvent, deleteEvent, 
-      addTeam, updateTeam, deleteTeam,
-      admin, adminPassword, updateAdminPassword, login, logout
+      events, 
+      teams, 
+      loading,
+      error,
+      addEvent, 
+      updateEvent, 
+      deleteEvent, 
+      addTeam, 
+      updateTeam, 
+      deleteTeam,
+      admin, 
+      loginAdmin,
+      logout,
+      changePassword,
+      refreshEvents,
+      refreshTeams
     }}>
       {children}
     </AppContext.Provider>
