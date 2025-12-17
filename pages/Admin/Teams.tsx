@@ -14,18 +14,22 @@ import {
   Users,
   Search,
   Tag,
-  MapPin
+  MapPin,
+  Pencil,
+  Save
 } from 'lucide-react';
 import { Team } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
 
 const Teams: React.FC = () => {
-  const { admin, teams, addTeam, deleteTeam, logout } = useApp();
+  const { admin, teams, addTeam, updateTeam, deleteTeam, logout } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', keywords: '', stadium: '' });
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   if (!admin) return <Navigate to="/admin/login" />;
 
@@ -44,22 +48,53 @@ const Teams: React.FC = () => {
     }
   };
 
-  const handleAddTeam = async (e: React.FormEvent) => {
+  const handleEditTeam = (team: Team) => {
+    setEditingTeam(team);
+    setNewTeam({
+      name: team.name,
+      logoUrl: team.logoUrl,
+      keywords: team.keywords || '',
+      stadium: team.stadium || ''
+    });
+    // Scroll to form for better UX
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTeam(null);
+    setNewTeam({ name: '', logoUrl: '', keywords: '', stadium: '' });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTeam.name.trim() || !newTeam.logoUrl) return;
 
     setIsAdding(true);
     try {
-      await addTeam({
-        id: Math.random().toString(36).substr(2, 9),
-        name: newTeam.name.trim(),
-        logoUrl: newTeam.logoUrl,
-        keywords: newTeam.keywords.trim(),
-        stadium: newTeam.stadium.trim()
-      });
+      if (editingTeam) {
+        // Update existing team
+        await updateTeam({
+          id: editingTeam.id,
+          name: newTeam.name.trim(),
+          logoUrl: newTeam.logoUrl,
+          keywords: newTeam.keywords.trim(),
+          stadium: newTeam.stadium.trim()
+        });
+      } else {
+        // Create new team
+        await addTeam({
+          id: Math.random().toString(36).substr(2, 9),
+          name: newTeam.name.trim(),
+          logoUrl: newTeam.logoUrl,
+          keywords: newTeam.keywords.trim(),
+          stadium: newTeam.stadium.trim()
+        });
+      }
+      // Reset form and exit edit mode
       setNewTeam({ name: '', logoUrl: '', keywords: '', stadium: '' });
+      setEditingTeam(null);
     } catch (err: any) {
-      alert(`Failed to add team: ${err.message}`);
+      alert(`Failed to ${editingTeam ? 'update' : 'add'} team: ${err.message}`);
     } finally {
       setIsAdding(false);
     }
@@ -70,6 +105,10 @@ const Teams: React.FC = () => {
       setIsDeleting(id);
       try {
         await deleteTeam(id);
+        // If we're editing the team being deleted, exit edit mode
+        if (editingTeam?.id === id) {
+          handleCancelEdit();
+        }
       } catch (err: any) {
         alert(`Failed to delete team: ${err.message}`);
       } finally {
@@ -82,6 +121,8 @@ const Teams: React.FC = () => {
     t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (t.keywords && t.keywords.toLowerCase().includes(searchTerm.toLowerCase()))
   ).sort((a, b) => a.name.localeCompare(b.name));
+
+  const isEditMode = editingTeam !== null;
 
   return (
     <div className="min-h-screen bg-[#0B0C10] flex flex-col md:flex-row font-sans text-white">
@@ -133,10 +174,36 @@ const Teams: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Add Team Form */}
+          {/* Add/Edit Team Form */}
           <div className="lg:col-span-1">
-            <form onSubmit={handleAddTeam} className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 space-y-6 shadow-xl sticky top-8">
-              <h2 className="font-black text-[10px] uppercase tracking-[0.25em] text-sky-400 border-b border-white/5 pb-3">Register New Team</h2>
+            <form 
+              ref={formRef}
+              onSubmit={handleSubmit} 
+              className={`bg-[#1F2833] p-6 rounded-2xl border space-y-6 shadow-xl sticky top-8 transition-all ${
+                isEditMode 
+                  ? 'border-amber-500/50 ring-1 ring-amber-500/20' 
+                  : 'border-white/5'
+              }`}
+            >
+              {/* Form Header */}
+              <div className={`border-b pb-3 ${isEditMode ? 'border-amber-500/30' : 'border-white/5'}`}>
+                <h2 className={`font-black text-[10px] uppercase tracking-[0.25em] ${
+                  isEditMode ? 'text-amber-400' : 'text-sky-400'
+                }`}>
+                  {isEditMode ? (
+                    <span className="flex items-center gap-2">
+                      <Pencil className="w-3 h-3" /> Edit Team
+                    </span>
+                  ) : (
+                    'Register New Team'
+                  )}
+                </h2>
+                {isEditMode && (
+                  <p className="text-[10px] text-amber-400/60 mt-1 font-medium">
+                    Editing: {editingTeam.name}
+                  </p>
+                )}
+              </div>
               
               <div className="space-y-4">
                 <div>
@@ -146,7 +213,11 @@ const Teams: React.FC = () => {
                     value={newTeam.name}
                     onChange={e => setNewTeam({ ...newTeam, name: e.target.value })}
                     placeholder="e.g. Liverpool FC"
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-sky-500 outline-none"
+                    className={`w-full bg-[#0B0C10] border rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 outline-none transition-all ${
+                      isEditMode 
+                        ? 'border-amber-500/30 focus:ring-amber-500' 
+                        : 'border-white/10 focus:ring-sky-500'
+                    }`}
                   />
                 </div>
 
@@ -158,7 +229,11 @@ const Teams: React.FC = () => {
                     value={newTeam.keywords}
                     onChange={e => setNewTeam({ ...newTeam, keywords: e.target.value })}
                     placeholder="e.g. Gunners, The Reds"
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-sky-500 outline-none"
+                    className={`w-full bg-[#0B0C10] border rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 outline-none transition-all ${
+                      isEditMode 
+                        ? 'border-amber-500/30 focus:ring-amber-500' 
+                        : 'border-white/10 focus:ring-sky-500'
+                    }`}
                   />
                 </div>
 
@@ -171,13 +246,21 @@ const Teams: React.FC = () => {
                     onChange={e => setNewTeam({ ...newTeam, stadium: e.target.value })}
                     placeholder="e.g. Anfield"
                     maxLength={200}
-                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-sky-500 outline-none"
+                    className={`w-full bg-[#0B0C10] border rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 outline-none transition-all ${
+                      isEditMode 
+                        ? 'border-amber-500/30 focus:ring-amber-500' 
+                        : 'border-white/10 focus:ring-sky-500'
+                    }`}
                   />
                 </div>
 
                 <div className="space-y-3">
                   <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Team Logo</label>
-                  <div className="relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden transition-all hover:border-sky-500/30">
+                  <div className={`relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed flex items-center justify-center overflow-hidden transition-all ${
+                    isEditMode 
+                      ? 'border-amber-500/30 hover:border-amber-500/50' 
+                      : 'border-white/10 hover:border-sky-500/30'
+                  }`}>
                     {newTeam.logoUrl ? (
                       <>
                         <img src={newTeam.logoUrl} className="w-full h-full object-contain p-6" alt="Preview" />
@@ -193,7 +276,11 @@ const Teams: React.FC = () => {
                       <button 
                         type="button"
                         onClick={() => logoInputRef.current?.click()} 
-                        className="flex flex-col items-center gap-2 text-zinc-600 hover:text-sky-400 transition-all"
+                        className={`flex flex-col items-center gap-2 transition-all ${
+                          isEditMode 
+                            ? 'text-zinc-600 hover:text-amber-400' 
+                            : 'text-zinc-600 hover:text-sky-400'
+                        }`}
                       >
                         <Upload className="w-8 h-8" />
                         <span className="text-[10px] font-black uppercase tracking-widest">Upload Logo</span>
@@ -204,13 +291,39 @@ const Teams: React.FC = () => {
                 </div>
               </div>
 
-              <button 
-                type="submit"
-                disabled={!newTeam.name || !newTeam.logoUrl || isAdding}
-                className="w-full flex items-center justify-center gap-2 bg-[#04C4FC] text-[#0B0C10] py-3.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100"
-              >
-                <Plus className="w-4 h-4" /> {isAdding ? 'Adding...' : 'Register Team'}
-              </button>
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <button 
+                  type="submit"
+                  disabled={!newTeam.name || !newTeam.logoUrl || isAdding}
+                  className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100 ${
+                    isEditMode 
+                      ? 'bg-amber-500 text-black' 
+                      : 'bg-[#04C4FC] text-[#0B0C10]'
+                  }`}
+                >
+                  {isEditMode ? (
+                    <>
+                      <Save className="w-4 h-4" /> {isAdding ? 'Saving...' : 'Save Changes'}
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" /> {isAdding ? 'Adding...' : 'Register Team'}
+                    </>
+                  )}
+                </button>
+
+                {/* Cancel Edit Button - Only shown in edit mode */}
+                {isEditMode && (
+                  <button 
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/70 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-white/10 hover:text-white transition-all"
+                  >
+                    <X className="w-4 h-4" /> Cancel Edit
+                  </button>
+                )}
+              </div>
             </form>
           </div>
 
@@ -229,7 +342,14 @@ const Teams: React.FC = () => {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredTeams.map(team => (
-                <div key={team.id} className="group relative bg-[#1F2833] rounded-2xl border border-white/5 p-4 flex flex-col items-center text-center space-y-3 transition-all hover:border-sky-500/40 hover:shadow-2xl">
+                <div 
+                  key={team.id} 
+                  className={`group relative bg-[#1F2833] rounded-2xl border p-4 flex flex-col items-center text-center space-y-3 transition-all hover:shadow-2xl ${
+                    editingTeam?.id === team.id 
+                      ? 'border-amber-500/60 ring-1 ring-amber-500/30' 
+                      : 'border-white/5 hover:border-sky-500/40'
+                  }`}
+                >
                   <div className="w-16 h-16 bg-[#0B0C10] rounded-xl flex items-center justify-center p-2 mb-2">
                     <img src={team.logoUrl} alt={team.name} className="w-full h-full object-contain" />
                   </div>
@@ -239,13 +359,36 @@ const Teams: React.FC = () => {
                       <p className="text-[8px] text-sky-500/60 font-bold uppercase truncate px-2 mt-1">{team.keywords}</p>
                     )}
                   </div>
-                  <button 
-                    onClick={() => handleDeleteTeam(team.id, team.name)}
-                    disabled={isDeleting === team.id}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white disabled:opacity-50"
-                  >
-                    <Trash2 className="w-3 h-3" />
-                  </button>
+                  
+                  {/* Action Buttons - Edit & Delete */}
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button 
+                      onClick={() => handleEditTeam(team)}
+                      className={`p-1.5 rounded-lg transition-all ${
+                        editingTeam?.id === team.id
+                          ? 'bg-amber-500 text-black'
+                          : 'bg-sky-500/10 text-sky-500 hover:bg-sky-500 hover:text-white'
+                      }`}
+                      title="Edit team"
+                    >
+                      <Pencil className="w-3 h-3" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeleteTeam(team.id, team.name)}
+                      disabled={isDeleting === team.id}
+                      className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white disabled:opacity-50 transition-all"
+                      title="Delete team"
+                    >
+                      <Trash2 className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Currently Editing Indicator */}
+                  {editingTeam?.id === team.id && (
+                    <div className="absolute -top-2 -left-2 bg-amber-500 text-black text-[8px] font-black uppercase px-2 py-0.5 rounded-full">
+                      Editing
+                    </div>
+                  )}
                 </div>
               ))}
               {filteredTeams.length === 0 && (
