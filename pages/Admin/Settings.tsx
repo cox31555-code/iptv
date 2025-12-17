@@ -17,22 +17,18 @@ import {
 import Logo from '../../components/Logo.tsx';
 
 const Settings: React.FC = () => {
-  const { admin, adminPassword, updateAdminPassword, logout } = useApp();
+  const { admin, changePassword, logout } = useApp();
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
   const [status, setStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!admin) return <Navigate to="/admin/login" />;
 
-  const handleUpdatePassword = (e: React.FormEvent) => {
+  const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus(null);
-
-    if (currentPass !== adminPassword) {
-      setStatus({ type: 'error', message: 'The current password you entered is incorrect.' });
-      return;
-    }
 
     if (newPass !== confirmPass) {
       setStatus({ type: 'error', message: 'New passwords do not match.' });
@@ -44,11 +40,18 @@ const Settings: React.FC = () => {
       return;
     }
 
-    updateAdminPassword(newPass);
-    setStatus({ type: 'success', message: 'Password updated successfully!' });
-    setCurrentPass('');
-    setNewPass('');
-    setConfirmPass('');
+    setIsLoading(true);
+    try {
+      await changePassword(currentPass, newPass);
+      setStatus({ type: 'success', message: 'Password updated successfully!' });
+      setCurrentPass('');
+      setNewPass('');
+      setConfirmPass('');
+    } catch (err: any) {
+      setStatus({ type: 'error', message: err.message || 'Failed to update password.' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -119,6 +122,7 @@ const Settings: React.FC = () => {
                   onChange={e => setCurrentPass(e.target.value)}
                   className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] outline-none transition-all"
                   placeholder="Enter current password"
+                  disabled={isLoading}
                 />
               </div>
 
@@ -132,6 +136,7 @@ const Settings: React.FC = () => {
                     onChange={e => setNewPass(e.target.value)}
                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] outline-none transition-all"
                     placeholder="Min. 6 characters"
+                    disabled={isLoading}
                   />
                 </div>
                 <div className="space-y-2">
@@ -143,6 +148,7 @@ const Settings: React.FC = () => {
                     onChange={e => setConfirmPass(e.target.value)}
                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3.5 text-sm font-medium focus:ring-2 focus:ring-[#04C4FC] outline-none transition-all"
                     placeholder="Repeat new password"
+                    disabled={isLoading}
                   />
                 </div>
               </div>
@@ -150,9 +156,10 @@ const Settings: React.FC = () => {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  className="flex items-center justify-center gap-2 w-full md:w-auto bg-[#04C4FC] text-[#0B0C10] px-8 py-3.5 rounded-xl font-black uppercase text-xs tracking-[0.2em] hover:scale-[1.02] transition-transform active:scale-95 shadow-[0_10px_30px_rgba(4,196,252,0.2)]"
+                  disabled={isLoading}
+                  className="flex items-center justify-center gap-2 w-full md:w-auto bg-[#04C4FC] text-[#0B0C10] px-8 py-3.5 rounded-xl font-black uppercase text-xs tracking-[0.2em] hover:scale-[1.02] transition-transform active:scale-95 shadow-[0_10px_30px_rgba(4,196,252,0.2)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
-                  <Save className="w-4 h-4" /> Save New Credentials
+                  <Save className="w-4 h-4" /> {isLoading ? 'Saving...' : 'Save New Credentials'}
                 </button>
               </div>
             </form>

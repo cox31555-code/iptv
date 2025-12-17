@@ -198,8 +198,8 @@ const Watch: React.FC = () => {
         </div>
 
         {/* Synchronized container for Player, and Sources */}
-        <div className="flex flex-col space-y-4 md:space-y-6 lg:space-y-2 lg:w-fit lg:mx-auto w-full pt-2">
-          <div className="bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.9)] border border-white/5 aspect-video w-full lg:w-auto lg:h-[60vh] relative group">
+        <div className="flex flex-col items-center space-y-4 md:space-y-6 lg:space-y-2 w-full pt-2">
+          <div className="bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.9)] border border-white/5 aspect-video w-full max-w-5xl relative group">
             {!isStreamAvailable ? (
               <div className="absolute inset-0 z-10 bg-[#0B0C10] flex flex-col items-center justify-center p-6 text-center space-y-6 md:space-y-12 lg:space-y-6 overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
@@ -258,7 +258,7 @@ const Watch: React.FC = () => {
             )}
           </div>
 
-          <div className="bg-zinc-900/20 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[1.5rem] border border-white/5 overflow-hidden p-4 md:p-8 lg:p-4 w-full mt-2 lg:mt-4">
+          <div className="bg-zinc-900/20 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[1.5rem] border border-white/5 overflow-hidden p-4 md:p-8 lg:p-4 w-full max-w-5xl mt-2 lg:mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 lg:gap-2 px-1 mb-4 md:mb-8 lg:mb-4">
               <div className="space-y-1">
                 <h3 className="text-[9px] md:text-[10px] lg:text-[8px] font-black uppercase tracking-[0.3em] text-sky-500 flex items-center gap-2">

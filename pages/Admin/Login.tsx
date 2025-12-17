@@ -1,8 +1,6 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Navigate, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext';
-import { MOCK_ADMIN } from '../../constants';
 import { Lock, User, ArrowLeft } from 'lucide-react';
 import Logo from '../../components/Logo.tsx';
 
@@ -10,19 +8,24 @@ const Login: React.FC = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const { admin, adminPassword, login } = useApp();
+  const [isLoading, setIsLoading] = useState(false);
+  const { admin, loginAdmin } = useApp();
   const navigate = useNavigate();
 
   if (admin) return <Navigate to="/admin" />;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate against the dynamic password from context
-    if (username === MOCK_ADMIN.username && password === adminPassword) {
-      login({ id: MOCK_ADMIN.id, username, role: MOCK_ADMIN.role });
+    setError('');
+    setIsLoading(true);
+    
+    try {
+      await loginAdmin(username, password);
       navigate('/admin');
-    } else {
-      setError('Invalid username or password');
+    } catch (err: any) {
+      setError(err.message || 'Invalid username or password');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -60,6 +63,7 @@ const Login: React.FC = () => {
                 onChange={(e) => setUsername(e.target.value)}
                 className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#04C4FC] focus:outline-none transition-all"
                 placeholder="admin"
+                disabled={isLoading}
               />
             </div>
           </div>
@@ -75,15 +79,17 @@ const Login: React.FC = () => {
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-[#0B0C10] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-[#04C4FC] focus:outline-none transition-all"
                 placeholder="••••••••"
+                disabled={isLoading}
               />
             </div>
           </div>
 
           <button
             type="submit"
-            className="w-full bg-[#04C4FC] text-[#0B0C10] font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform active:scale-95"
+            disabled={isLoading}
+            className="w-full bg-[#04C4FC] text-[#0B0C10] font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
           >
-            Sign In
+            {isLoading ? 'Signing In...' : 'Sign In'}
           </button>
         </form>
 

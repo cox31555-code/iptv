@@ -63,6 +63,8 @@ const EventEditor: React.FC = () => {
   });
 
   const [previewServer, setPreviewServer] = useState<StreamServer | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const isTeamBased = formData.category === EventCategory.FOOTBALL || formData.category === EventCategory.NBA;
 
@@ -154,25 +156,38 @@ const EventEditor: React.FC = () => {
 
   const removeImage = (field: keyof SportEvent) => setFormData(prev => ({ ...prev, [field]: '' }));
 
-  const handleSave = () => {
-    const startTime = formData.startTime ? new Date(formData.startTime).toISOString() : new Date().toISOString();
-    const endTime = formData.endTime ? new Date(formData.endTime).toISOString() : new Date(Date.now() + 7200000).toISOString();
-    const finalData: SportEvent = {
-      id: id && id !== 'new' ? id : Math.random().toString(36).substr(2, 9),
-      createdAt: (formData as any).createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      stadium: formData.stadium || '',
-      description: formData.description || '',
-      keywords: formData.keywords || '',
-      ...formData,
-      startTime,
-      endTime,
-      status: calculateEventStatus(startTime, endTime),
-      servers: formData.servers || [],
-    } as SportEvent;
-    if (id && id !== 'new') updateEvent(finalData);
-    else addEvent(finalData);
-    navigate('/admin');
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveError(null);
+    
+    try {
+      const startTime = formData.startTime ? new Date(formData.startTime).toISOString() : new Date().toISOString();
+      const endTime = formData.endTime ? new Date(formData.endTime).toISOString() : new Date(Date.now() + 7200000).toISOString();
+      const finalData: SportEvent = {
+        id: id && id !== 'new' ? id : Math.random().toString(36).substr(2, 9),
+        createdAt: (formData as any).createdAt || new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        stadium: formData.stadium || '',
+        description: formData.description || '',
+        keywords: formData.keywords || '',
+        ...formData,
+        startTime,
+        endTime,
+        status: calculateEventStatus(startTime, endTime),
+        servers: formData.servers || [],
+      } as SportEvent;
+      
+      if (id && id !== 'new') {
+        await updateEvent(finalData);
+      } else {
+        await addEvent(finalData);
+      }
+      navigate('/admin');
+    } catch (err: any) {
+      setSaveError(err.message || 'Failed to save event');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const addServer = () => {
@@ -207,7 +222,7 @@ const EventEditor: React.FC = () => {
             <Link to="/admin" className="p-2 hover:bg-white/5 rounded-full text-white/40 hover:text-white transition-colors"><ArrowLeft className="w-5 h-5" /></Link>
             <h1 className="text-xl font-black tracking-tighter uppercase">{id === 'new' ? 'Create Event' : 'Edit Event'}</h1>
           </div>
-          <button onClick={handleSave} className="flex items-center gap-2 bg-[#04C4FC] text-[#0B0C10] px-6 py-2 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform shadow-[0_10px_30px_rgba(4,196,252,0.2)]"><Save className="w-4 h-4" /> Save</button>
+          <button onClick={handleSave} disabled={isSaving} className="flex items-center gap-2 bg-[#04C4FC] text-[#0B0C10] px-6 py-2 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-105 transition-transform shadow-[0_10px_30px_rgba(4,196,252,0.2)] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"><Save className="w-4 h-4" /> {isSaving ? 'Saving...' : 'Save'}</button>
         </div>
       </header>
 

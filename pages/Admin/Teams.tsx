@@ -22,6 +22,8 @@ const Teams: React.FC = () => {
   const { admin, teams, addTeam, deleteTeam, logout } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', keywords: '' });
+  const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
 
   if (!admin) return <Navigate to="/admin/login" />;
@@ -29,8 +31,8 @@ const Teams: React.FC = () => {
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (file.size > 1 * 1024 * 1024) {
-        alert("Logo is too large. Please choose a file smaller than 1MB.");
+      if (file.size > 2 * 1024 * 1024) {
+        alert("Logo is too large. Please choose a file smaller than 2MB.");
         return;
       }
       const reader = new FileReader();
@@ -41,17 +43,37 @@ const Teams: React.FC = () => {
     }
   };
 
-  const handleAddTeam = (e: React.FormEvent) => {
+  const handleAddTeam = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTeam.name.trim() || !newTeam.logoUrl) return;
 
-    addTeam({
-      id: Math.random().toString(36).substr(2, 9),
-      name: newTeam.name.trim(),
-      logoUrl: newTeam.logoUrl,
-      keywords: newTeam.keywords.trim()
-    });
-    setNewTeam({ name: '', logoUrl: '', keywords: '' });
+    setIsAdding(true);
+    try {
+      await addTeam({
+        id: Math.random().toString(36).substr(2, 9),
+        name: newTeam.name.trim(),
+        logoUrl: newTeam.logoUrl,
+        keywords: newTeam.keywords.trim()
+      });
+      setNewTeam({ name: '', logoUrl: '', keywords: '' });
+    } catch (err: any) {
+      alert(`Failed to add team: ${err.message}`);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleDeleteTeam = async (id: string, name: string) => {
+    if (confirm(`Delete ${name}?`)) {
+      setIsDeleting(id);
+      try {
+        await deleteTeam(id);
+      } catch (err: any) {
+        alert(`Failed to delete team: ${err.message}`);
+      } finally {
+        setIsDeleting(null);
+      }
+    }
   };
 
   const filteredTeams = teams.filter(t => 
@@ -169,10 +191,10 @@ const Teams: React.FC = () => {
 
               <button 
                 type="submit"
-                disabled={!newTeam.name || !newTeam.logoUrl}
+                disabled={!newTeam.name || !newTeam.logoUrl || isAdding}
                 className="w-full flex items-center justify-center gap-2 bg-[#04C4FC] text-[#0B0C10] py-3.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100"
               >
-                <Plus className="w-4 h-4" /> Register Team
+                <Plus className="w-4 h-4" /> {isAdding ? 'Adding...' : 'Register Team'}
               </button>
             </form>
           </div>
@@ -203,8 +225,9 @@ const Teams: React.FC = () => {
                     )}
                   </div>
                   <button 
-                    onClick={() => { if(confirm(`Delete ${team.name}?`)) deleteTeam(team.id); }}
-                    className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white"
+                    onClick={() => handleDeleteTeam(team.id, team.name)}
+                    disabled={isDeleting === team.id}
+                    className="absolute top-2 right-2 p-1.5 bg-red-500/10 text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500 hover:text-white disabled:opacity-50"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>

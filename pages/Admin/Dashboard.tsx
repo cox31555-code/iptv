@@ -25,6 +25,7 @@ const Dashboard: React.FC = () => {
   const { admin, events, logout, deleteEvent, addEvent } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
 
   if (!admin) return <Navigate to="/admin/login" />;
   
@@ -48,9 +49,16 @@ const Dashboard: React.FC = () => {
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
   }, [events, searchTerm, categoryFilter]);
 
-  const confirmDelete = (id: string, teams: string) => {
+  const confirmDelete = async (id: string, teams: string) => {
     if (window.confirm(`Are you sure you want to PERMANENTLY delete "${teams}"? This will also purge all uploaded images for this event.`)) {
-      deleteEvent(id);
+      setIsDeleting(id);
+      try {
+        await deleteEvent(id);
+      } catch (err: any) {
+        alert(`Failed to delete event: ${err.message}`);
+      } finally {
+        setIsDeleting(null);
+      }
     }
   };
 
