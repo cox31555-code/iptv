@@ -11,62 +11,50 @@ import EventEditor from './pages/Admin/EventEditor.tsx';
 import Settings from './pages/Admin/Settings.tsx';
 import Teams from './pages/Admin/Teams.tsx';
 
+declare global {
+  interface Window {
+    aclib?: {
+      runAutoTag: (options: { zoneId: string }) => void;
+    };
+  }
+}
+
 const AdManager: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
 
   useEffect(() => {
+    // Don't run ads on admin pages
     if (isAdminPage) {
-      const existingScript = document.getElementById('aclib-script-loader');
-      if (existingScript && existingScript.parentNode) {
-        existingScript.parentNode.removeChild(existingScript);
-      }
       return;
     }
 
-    if (document.getElementById('aclib-script-loader')) return;
-
-    const script = document.createElement('script');
-    script.id = 'aclib-script-loader'; 
-    script.type = 'text/javascript';
-    script.src = '//acscdn.com/script/aclib.js';
-    script.async = true;
-    
-    const execScript = document.createElement('script');
-    execScript.type = 'text/javascript';
-    execScript.innerHTML = `
-      (function() {
-        var retryCount = 0;
-        var checkAclib = setInterval(function() {
-          retryCount++;
-          if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
-            try {
-              window.aclib.runAutoTag({ zoneId: 'tqblxpksrg' });
-              clearInterval(checkAclib);
-            } catch (e) {
-              console.error('Ad lib execution error:', e);
-            }
-          }
-          if (retryCount > 50) clearInterval(checkAclib);
-        }, 100);
-      })();
-    `;
-
-    document.head.appendChild(script);
-
-    script.onload = () => {
-      document.head.appendChild(execScript);
+    // Run the ad tag on public pages
+    const runAdTag = () => {
+      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+        try {
+          window.aclib.runAutoTag({ zoneId: 'v73cub7u8a' });
+        } catch (e) {
+          console.error('Ad lib execution error:', e);
+        }
+        return true;
+      }
+      return false;
     };
 
-    script.onerror = () => {
-      console.warn('Advertisement script failed to load. Ad-blocker might be active.');
-    };
+    // Try immediately, if not ready, retry with interval
+    if (!runAdTag()) {
+      let retryCount = 0;
+      const checkAclib = setInterval(() => {
+        retryCount++;
+        if (runAdTag() || retryCount > 50) {
+          clearInterval(checkAclib);
+        }
+      }, 100);
 
-    return () => {
-      if (script.parentNode) script.parentNode.removeChild(script);
-      if (execScript.parentNode) execScript.parentNode.removeChild(execScript);
-    };
-  }, [isAdminPage]);
+      return () => clearInterval(checkAclib);
+    }
+  }, [isAdminPage, location.pathname]);
 
   return null;
 };
