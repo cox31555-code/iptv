@@ -1,4 +1,4 @@
-import { SportEvent, Team, AdminUser } from './types';
+import { SportEvent, Team, League, AdminUser } from './types';
 
 const API_BASE_URL = 'https://api.ajsports.ch';
 
@@ -115,6 +115,53 @@ export const deleteTeam = async (id: string): Promise<void> => {
   if (!result.success) throw new Error(result.error || 'Failed to delete team');
 };
 
+// ============ LEAGUES ============
+
+export const getLeagues = async (): Promise<League[]> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues`);
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to fetch leagues');
+  return result.data;
+};
+
+export const getLeagueById = async (id: string): Promise<League> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${id}`);
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to fetch league');
+  return result.data;
+};
+
+export const createLeague = async (league: League): Promise<League> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(league),
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to create league');
+  return result.data;
+};
+
+export const updateLeague = async (id: string, league: Partial<League>): Promise<League> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${id}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(league),
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to update league');
+  return result.data;
+};
+
+export const deleteLeague = async (id: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${id}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to delete league');
+};
+
 // ============ AUTH ============
 
 export interface LoginResponse {
@@ -192,4 +239,10 @@ export const getFullImageUrl = (url: string | null | undefined): string | null =
   if (!url) return null;
   if (url.startsWith('http') || url.startsWith('data:')) return url;
   return `${API_BASE_URL}${url}`;
+};
+
+// ============ COVER GENERATION ============
+
+export const getEventCoverUrl = (eventId: string): string => {
+  return `${API_BASE_URL}/api/events/${eventId}/cover.png`;
 };

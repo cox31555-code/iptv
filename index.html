@@ -1,8 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Adcash -->
+    <!-- Adcash with Anti-Adblock Support -->
     <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+    <script>
+      // Initialize Adcash Auto Tag for Anti-Adblock support
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof aclib !== 'undefined' && aclib.runAutoTag) {
+          aclib.runAutoTag({zoneId: 'v73cub7u8a'});
+        }
+      });
+    </script>
     <!-- End Adcash -->
 
     <!-- Google Analytics -->
@@ -45,6 +53,35 @@
       }
       .pb-8 {
         padding-bottom: 0.5rem !important;
+      }
+      /* Styled horizontal scrollbar for carousels */
+      .styled-h-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: #27272a transparent;
+        scroll-behavior: smooth;
+      }
+      .styled-h-scrollbar::-webkit-scrollbar {
+        height: 6px;
+      }
+      .styled-h-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 3px;
+      }
+      .styled-h-scrollbar::-webkit-scrollbar-thumb {
+        background: #27272a;
+        border-radius: 3px;
+        transition: background 0.2s;
+      }
+      .styled-h-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #3f3f46;
+      }
+      /* Hide scrollbar utility */
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
       }
     </style>
   <script type="importmap">

@@ -2,7 +2,7 @@ import React from 'react';
 import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SportEvent, EventStatus, getEventUrl } from '../types.ts';
-import { getFullImageUrl } from '../api.ts';
+import { getFullImageUrl, getEventCoverUrl } from '../api.ts';
 import Logo from './Logo.tsx';
 import SportIcon from './SportIcon.tsx';
 import LiveIndicator from './LiveIndicator.tsx';
@@ -40,20 +40,26 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   return (
     <div className="group relative bg-zinc-900/40 rounded-xl md:rounded-2xl overflow-hidden border border-white/[0.05] hover:border-sky-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(14,165,233,0.1)] flex flex-col">
       <div className="aspect-[16/10] bg-black relative overflow-hidden flex items-center justify-center">
-        {/* Priority: coverImageUrl > imageUrl > Logo fallback */}
-        {(event.coverImageUrl || event.imageUrl) ? (
-          <img
-            src={getFullImageUrl(event.coverImageUrl) || event.imageUrl}
-            alt={event.teams}
-            loading="lazy"
-            className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
-          />
-        ) : (
-          <div className="absolute inset-0 bg-[#0B0C10] flex items-center justify-center p-6 md:p-12 transition-transform duration-700 group-hover:scale-105">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(14,165,233,0.15)_0%,transparent_70%)] opacity-50" />
-            <Logo className="w-full h-full opacity-40 group-hover:opacity-60 transition-opacity" />
-          </div>
-        )}
+        {/* Priority: manual coverImageUrl > generated cover > imageUrl > Logo fallback */}
+        <img
+          src={
+            event.coverImageUrl 
+              ? getFullImageUrl(event.coverImageUrl) 
+              : getEventCoverUrl(event.id)
+          }
+          alt={event.teams}
+          loading="lazy"
+          className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
+          onError={(e) => {
+            // Fallback to imageUrl or hide if no image
+            const target = e.target as HTMLImageElement;
+            if (event.imageUrl && target.src !== event.imageUrl) {
+              target.src = event.imageUrl;
+            } else {
+              target.style.display = 'none';
+            }
+          }}
+        />
         
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/20 to-transparent pointer-events-none" />
         

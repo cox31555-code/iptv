@@ -10,6 +10,7 @@ import Dashboard from './pages/Admin/Dashboard.tsx';
 import EventEditor from './pages/Admin/EventEditor.tsx';
 import Settings from './pages/Admin/Settings.tsx';
 import Teams from './pages/Admin/Teams.tsx';
+import Leagues from './pages/Admin/Leagues.tsx';
 
 declare global {
   interface Window {
@@ -71,6 +72,7 @@ const App: React.FC = () => {
             <Route path="/admin" element={<Dashboard />} />
             <Route path="/admin/settings" element={<Settings />} />
             <Route path="/admin/teams" element={<Teams />} />
+            <Route path="/admin/leagues" element={<Leagues />} />
             <Route path="/admin/events/new" element={<EventEditor />} />
             <Route path="/admin/events/edit/:id" element={<EventEditor />} />
 

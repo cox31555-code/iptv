@@ -34,10 +34,20 @@ export interface Team {
   stadium?: string;
 }
 
+export interface League {
+  id: string;
+  name: string;
+  slug: string;
+  backgroundImageUrl: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
 export interface SportEvent {
   id: string;
   category: EventCategory;
   league: string;
+  leagueId?: string;
   teams: string;
   keywords?: string;
   startTime: string;

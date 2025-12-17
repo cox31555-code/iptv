@@ -16,7 +16,8 @@ import {
   Users,
   Calendar,
   ArrowLeft,
-  AlertTriangle
+  AlertTriangle,
+  Trophy
 } from 'lucide-react';
 import { EventStatus, SportEvent, EventCategory } from '../../types';
 import Logo from '../../components/Logo.tsx';
@@ -93,6 +94,9 @@ const Dashboard: React.FC = () => {
           </Link>
           <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
             <Users className="w-4 h-4" /> Teams
+          </Link>
+          <Link to="/admin/leagues" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
+            <Trophy className="w-4 h-4" /> Leagues
           </Link>
           <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
             <SettingsIcon className="w-4 h-4" /> Settings

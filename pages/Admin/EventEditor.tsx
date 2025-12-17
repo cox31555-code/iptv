@@ -20,8 +20,8 @@ import {
   Tag,
   Image
 } from 'lucide-react';
-import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team } from '../../types.ts';
-import { uploadCoverImage, getFullImageUrl } from '../../api.ts';
+import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team, League } from '../../types.ts';
+import { uploadCoverImage, getFullImageUrl, getLeagues } from '../../api.ts';
 
 const EventEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -75,7 +75,25 @@ const EventEditor: React.FC = () => {
   const [stadiumManuallyEdited, setStadiumManuallyEdited] = useState(false);
   const [autoPurge, setAutoPurge] = useState(false);
 
+  // League state
+  const [leagues, setLeagues] = useState<League[]>([]);
+  const [showLeagueLookup, setShowLeagueLookup] = useState(false);
+  const [leagueSearch, setLeagueSearch] = useState('');
+
   const isTeamBased = formData.category === EventCategory.FOOTBALL || formData.category === EventCategory.NBA;
+
+  // Load leagues on mount
+  useEffect(() => {
+    const loadLeagues = async () => {
+      try {
+        const data = await getLeagues();
+        setLeagues(data);
+      } catch (err) {
+        console.error('Failed to load leagues:', err);
+      }
+    };
+    loadLeagues();
+  }, []);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -323,7 +341,53 @@ const EventEditor: React.FC = () => {
                 />
               </div>
 
-              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">League</label><input value={formData.league} onChange={e => setFormData({ ...formData, league: e.target.value })} placeholder="e.g. Premier League" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium outline-none" /></div>
+              <div className="relative">
+                <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">League (for cover generation)</label>
+                <div className="relative">
+                  <input 
+                    value={formData.league || leagueSearch} 
+                    onFocus={() => setShowLeagueLookup(true)} 
+                    onBlur={() => setTimeout(() => setShowLeagueLookup(false), 200)} 
+                    onChange={e => {
+                      setLeagueSearch(e.target.value);
+                      setFormData({ ...formData, league: e.target.value, leagueId: undefined });
+                    }} 
+                    placeholder="Search or type league..." 
+                    className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all" 
+                  />
+                  <Search className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/10" />
+                </div>
+                {showLeagueLookup && leagues.filter(l => 
+                  l.name.toLowerCase().includes((formData.league || leagueSearch || '').toLowerCase())
+                ).length > 0 && (
+                  <div className="absolute z-50 left-0 right-0 mt-2 bg-[#1F2833] border border-white/10 rounded-xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto">
+                    {leagues
+                      .filter(l => l.name.toLowerCase().includes((formData.league || leagueSearch || '').toLowerCase()))
+                      .map(league => (
+                        <button 
+                          key={league.id} 
+                          type="button" 
+                          onMouseDown={() => {
+                            setFormData({ ...formData, league: league.name, leagueId: league.id });
+                            setLeagueSearch('');
+                            setShowLeagueLookup(false);
+                          }} 
+                          className="flex items-center gap-3 w-full px-4 py-3 hover:bg-sky-500/10 transition-colors border-b border-white/5 last:border-0 text-left"
+                        >
+                          {league.backgroundImageUrl && (
+                            <img src={league.backgroundImageUrl} alt="" className="w-8 h-5 object-cover rounded" />
+                          )}
+                          <span className="text-xs font-black uppercase tracking-widest">{league.name}</span>
+                        </button>
+                      ))}
+                  </div>
+                )}
+                {formData.leagueId && (
+                  <div className="mt-2 text-[9px] text-sky-400">
+                    ✓ Linked to league background for auto cover generation
+                  </div>
+                )}
+              </div>
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Venue</label><div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" /><input value={formData.stadium} onChange={e => { setStadiumManuallyEdited(true); setFormData({ ...formData, stadium: e.target.value }); }} placeholder="e.g. Anfield" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none" /></div></div>
             </div>
             <div className="grid grid-cols-2 gap-6">
