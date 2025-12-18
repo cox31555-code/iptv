@@ -92,10 +92,13 @@ const Leagues: React.FC = () => {
 
   const handleEditLeague = (league: League) => {
     setEditingLeague(league);
+    // Don't load existing background into preview to avoid GET requests
+    // Only show previews for newly selected files (blob: URLs)
     setNewLeague({
       name: league.name,
-      backgroundImageUrl: league.backgroundImageUrl || ''
+      backgroundImageUrl: '' // Empty - will show upload button instead
     });
+    setBgFile(null); // Clear any previously selected file
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
