@@ -239,26 +239,49 @@ const EventEditor: React.FC = () => {
 
   const addServer = () => {
     if (!newServer.name || !newServer.embedUrl) return;
+    
+    const serverId = crypto.randomUUID();
     const server: StreamServer = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: serverId,
       name: newServer.name,
       embedUrl: newServer.embedUrl,
       isActive: newServer.isActive!,
       isDefault: newServer.isDefault!,
-      sortOrder: (formData.servers?.length || 0) + 1
+      sortOrder: 0 // Will be set correctly inside functional update
     };
-    const updatedServers = server.isDefault 
-      ? formData.servers?.map(s => ({ ...s, isDefault: false })) || []
-      : formData.servers || [];
-    setFormData({ ...formData, servers: [...updatedServers, server] });
+    
+    // Use functional update to avoid stale state issues
+    setFormData(prev => {
+      const existingServers = prev.servers || [];
+      // If new server is default, unset default on all existing servers
+      const updatedServers = server.isDefault 
+        ? existingServers.map(s => ({ ...s, isDefault: false }))
+        : existingServers;
+      
+      return {
+        ...prev,
+        servers: [...updatedServers, { ...server, sortOrder: existingServers.length + 1 }]
+      };
+    });
+    
     setNewServer({ name: '', embedUrl: '', isActive: true, isDefault: false });
-    if (!previewServer) setPreviewServer(server);
+    
+    // Set preview server if none selected
+    if (!previewServer) {
+      setPreviewServer(server);
+    }
   };
 
   const removeServer = (serverId: string) => {
-    const updated = formData.servers?.filter(s => s.id !== serverId);
-    setFormData({ ...formData, servers: updated });
-    if (previewServer?.id === serverId) setPreviewServer(updated?.[0] || null);
+    // Use functional update to avoid stale state
+    setFormData(prev => {
+      const updated = (prev.servers || []).filter(s => s.id !== serverId);
+      // Update preview server if the removed one was being previewed
+      if (previewServer?.id === serverId) {
+        setPreviewServer(updated[0] || null);
+      }
+      return { ...prev, servers: updated };
+    });
   };
 
   return (

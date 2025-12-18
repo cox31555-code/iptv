@@ -1,49 +1,39 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, Navigate } from 'react-router-dom';
+import { useApp } from '../../AppContext.tsx';
+import { Navigate, Link } from 'react-router-dom';
 import { 
   Plus, 
-  Pencil, 
   Trash2, 
-  Image, 
-  X, 
-  Save, 
-  Search,
-  Activity,
-  Users,
-  Trophy,
+  Activity, 
   Settings as SettingsIcon,
+  LogOut,
   ArrowLeft,
-  AlertTriangle,
-  LogOut
+  Upload,
+  X,
+  Users,
+  Search,
+  Pencil,
+  Save,
+  Trophy,
+  CheckCircle,
+  Image as ImageIcon
 } from 'lucide-react';
-import { League } from '../../types';
-import { getLeagues, createLeague, updateLeague, deleteLeague, getFullImageUrl } from '../../api';
-import { useApp } from '../../AppContext';
-import Logo from '../../components/Logo';
+import { League } from '../../types.ts';
+import { getLeagues, createLeague, updateLeague, deleteLeague } from '../../api.ts';
+import Logo from '../../components/Logo.tsx';
 
 const Leagues: React.FC = () => {
   const { admin, logout } = useApp();
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Modal state
-  const [showModal, setShowModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '' });
+  const [isAdding, setIsAdding] = useState(false);
+  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingLeague, setEditingLeague] = useState<League | null>(null);
-  const [formData, setFormData] = useState<Partial<League>>({
-    name: '',
-    slug: '',
-    backgroundImageUrl: ''
-  });
-  const [isSaving, setIsSaving] = useState(false);
-  
-  // Delete confirmation
-  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const bgInputRef = useRef<HTMLInputElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  // Redirect if not logged in
   if (!admin) return <Navigate to="/admin/login" />;
 
   useEffect(() => {
@@ -55,9 +45,8 @@ const Leagues: React.FC = () => {
       setIsLoading(true);
       const data = await getLeagues();
       setLeagues(data);
-      setError(null);
     } catch (err: any) {
-      setError(err.message || 'Failed to load leagues');
+      console.error('Failed to load leagues:', err);
     } finally {
       setIsLoading(false);
     }
@@ -70,115 +59,87 @@ const Leagues: React.FC = () => {
       .replace(/^-|-$/g, '');
   };
 
-  const handleNameChange = (name: string) => {
-    setFormData(prev => ({
-      ...prev,
-      name,
-      slug: editingLeague ? prev.slug : generateSlug(name)
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file');
-      return;
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Background image is too large. Please choose a file smaller than 5MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewLeague(prev => ({ ...prev, backgroundImageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
     }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size must be less than 5MB');
-      return;
-    }
-
-    // Convert to base64
-    const reader = new FileReader();
-    reader.onload = () => {
-      setFormData(prev => ({
-        ...prev,
-        backgroundImageUrl: reader.result as string
-      }));
-    };
-    reader.readAsDataURL(file);
   };
 
-  const openCreateModal = () => {
-    setEditingLeague(null);
-    setFormData({
-      name: '',
-      slug: '',
-      backgroundImageUrl: ''
-    });
-    setShowModal(true);
-  };
-
-  const openEditModal = (league: League) => {
+  const handleEditLeague = (league: League) => {
     setEditingLeague(league);
-    setFormData({
+    setNewLeague({
       name: league.name,
-      slug: league.slug,
-      backgroundImageUrl: league.backgroundImageUrl
+      backgroundImageUrl: league.backgroundImageUrl || ''
     });
-    setShowModal(true);
+    formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  const closeModal = () => {
-    setShowModal(false);
+  const handleCancelEdit = () => {
     setEditingLeague(null);
-    setFormData({ name: '', slug: '', backgroundImageUrl: '' });
-    setError(null);
+    setNewLeague({ name: '', backgroundImageUrl: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!formData.name?.trim()) {
-      setError('League name is required');
-      return;
-    }
+    if (!newLeague.name.trim()) return;
 
+    setIsAdding(true);
     try {
-      setIsSaving(true);
-      setError(null);
-
       if (editingLeague) {
-        await updateLeague(editingLeague.id, formData);
+        await updateLeague(editingLeague.id, {
+          name: newLeague.name.trim(),
+          backgroundImageUrl: newLeague.backgroundImageUrl
+        });
       } else {
-        const newLeague: League = {
+        const league: League = {
           id: crypto.randomUUID(),
-          name: formData.name!,
-          slug: formData.slug || generateSlug(formData.name!),
-          backgroundImageUrl: formData.backgroundImageUrl || ''
+          name: newLeague.name.trim(),
+          slug: generateSlug(newLeague.name.trim()),
+          backgroundImageUrl: newLeague.backgroundImageUrl
         };
-        await createLeague(newLeague);
+        await createLeague(league);
       }
-
+      setNewLeague({ name: '', backgroundImageUrl: '' });
+      setEditingLeague(null);
       await loadLeagues();
-      closeModal();
     } catch (err: any) {
-      setError(err.message || 'Failed to save league');
+      alert(`Failed to ${editingLeague ? 'update' : 'add'} league: ${err.message}`);
     } finally {
-      setIsSaving(false);
+      setIsAdding(false);
     }
   };
 
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteLeague(id);
-      await loadLeagues();
-      setDeleteConfirm(null);
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete league');
+  const handleDeleteLeague = async (id: string, name: string) => {
+    if (confirm(`Delete "${name}"?`)) {
+      setIsDeleting(id);
+      try {
+        await deleteLeague(id);
+        if (editingLeague?.id === id) {
+          handleCancelEdit();
+        }
+        await loadLeagues();
+      } catch (err: any) {
+        alert(`Failed to delete league: ${err.message}`);
+      } finally {
+        setIsDeleting(null);
+      }
     }
   };
 
-  const filteredLeagues = leagues.filter(league =>
-    league.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    league.slug.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredLeagues = leagues.filter(l => 
+    l.name.toLowerCase().includes(searchTerm.toLowerCase())
+  ).sort((a, b) => a.name.localeCompare(b.name));
+
+  const isEditMode = editingLeague !== null;
 
   return (
     <div className="min-h-screen bg-[#0B0C10] flex flex-col md:flex-row font-sans text-white">
@@ -189,286 +150,252 @@ const Leagues: React.FC = () => {
             <Logo className="h-12" />
           </Link>
           <div className="mt-4 p-3 bg-[#0B0C10] rounded-xl">
-            <p className="text-xs text-white/40 mb-1 uppercase font-bold">Logged in as</p>
+            <p className="text-xs text-white/40 mb-1 uppercase font-bold">League Database</p>
             <p className="text-sm font-medium text-white">{admin.username}</p>
             <span className="text-[10px] bg-[#04C4FC]/10 text-[#04C4FC] px-1.5 py-0.5 rounded font-black uppercase">{admin.role}</span>
           </div>
         </div>
 
         <nav className="flex-1 space-y-2">
-          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
+          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
             <Activity className="w-4 h-4" /> Dashboard
           </Link>
-          <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
+          <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
             <Users className="w-4 h-4" /> Teams
           </Link>
-          <Link to="/admin/leagues" className="flex items-center gap-3 px-4 py-3 bg-[#04C4FC] text-[#0B0C10] rounded-xl font-bold transition-all text-xs">
+          <Link to="/admin/leagues" className="flex items-center gap-3 px-4 py-3 bg-[#04C4FC] text-[#0B0C10] rounded-xl font-bold transition-all">
             <Trophy className="w-4 h-4" /> Leagues
           </Link>
-          <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
+          <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
             <SettingsIcon className="w-4 h-4" /> Settings
           </Link>
-          
-          <div className="pt-4 pb-2">
-            <p className="text-[9px] font-black uppercase tracking-widest text-white/20 mb-2 ml-4">Development</p>
-            <Link to="/this-page-does-not-exist" className="flex items-center gap-3 px-4 py-3 text-orange-500/50 hover:text-orange-400 hover:bg-orange-500/5 rounded-xl font-medium transition-all text-xs border border-dashed border-orange-500/10">
-              <AlertTriangle className="w-4 h-4" /> Test 404 Page
-            </Link>
-          </div>
-
           <div className="h-px bg-white/5 my-4 mx-2" />
-          <Link to="/" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all text-xs">
+          <Link to="/" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
             <ArrowLeft className="w-4 h-4" /> Back to Website
           </Link>
-          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl font-medium transition-all w-full text-left text-xs">
+          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl font-medium transition-all w-full text-left">
             <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </nav>
       </aside>
 
-      {/* Main Content */}
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white uppercase tracking-wider">Leagues</h1>
-            <p className="text-white/40 text-sm font-medium">Manage league backgrounds for cover image generation</p>
+            <h1 className="text-2xl font-bold tracking-tight text-white uppercase tracking-wider">Leagues Library</h1>
+            <p className="text-white/40 text-sm font-medium">Create and manage leagues for cover image backgrounds</p>
           </div>
-          <button
-            onClick={openCreateModal}
-            className="flex items-center justify-center gap-2 bg-[#04C4FC] text-[#0B0C10] px-6 py-2.5 rounded-xl font-bold hover:scale-105 transition-transform text-xs uppercase tracking-widest shadow-[0_10px_30px_rgba(4,196,252,0.2)]"
+          <Link 
+            to="/admin" 
+            className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/70 px-4 py-2.5 rounded-xl font-bold hover:bg-white/10 transition-all text-xs uppercase tracking-widest"
           >
-            <Plus className="w-4 h-4" /> Add League
-          </button>
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Link>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6 group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-[#04C4FC] transition-colors" />
-          <input
-            type="text"
-            placeholder="Search leagues..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#1F2833] border border-white/10 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-[#04C4FC] outline-none text-white transition-all"
-          />
-        </div>
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 mb-6">
-            {error}
-          </div>
-        )}
-
-        {/* Loading */}
-        {isLoading ? (
-          <div className="flex items-center justify-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#04C4FC]"></div>
-          </div>
-        ) : (
-          /* Leagues Grid */
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredLeagues.map(league => (
-              <div
-                key={league.id}
-                className="bg-[#1F2833] border border-white/5 rounded-2xl overflow-hidden group shadow-lg transition-transform hover:scale-[1.02]"
-              >
-                {/* Background Preview */}
-                <div className="aspect-[16/10] relative bg-[#0B0C10]">
-                  {league.backgroundImageUrl ? (
-                    <img
-                      src={getFullImageUrl(league.backgroundImageUrl) || league.backgroundImageUrl}
-                      alt={league.name}
-                      className="w-full h-full object-cover"
-                    />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Add/Edit League Form */}
+          <div className="lg:col-span-1">
+            <form 
+              ref={formRef}
+              onSubmit={handleSubmit} 
+              className={`bg-[#1F2833] p-6 rounded-2xl border space-y-6 shadow-xl sticky top-8 transition-all ${
+                isEditMode 
+                  ? 'border-amber-500/50 ring-1 ring-amber-500/20' 
+                  : 'border-white/5'
+              }`}
+            >
+              {/* Form Header */}
+              <div className={`border-b pb-3 ${isEditMode ? 'border-amber-500/30' : 'border-white/5'}`}>
+                <h2 className={`font-black text-[10px] uppercase tracking-[0.25em] ${
+                  isEditMode ? 'text-amber-400' : 'text-sky-400'
+                }`}>
+                  {isEditMode ? (
+                    <span className="flex items-center gap-2">
+                      <Pencil className="w-3 h-3" /> Edit League
+                    </span>
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white/10">
-                      <Image className="w-12 h-12" />
-                    </div>
+                    'Register New League'
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  
-                  {/* Actions */}
-                  <div className="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button
-                      onClick={() => openEditModal(league)}
-                      className="p-2 bg-[#0B0C10]/80 hover:bg-[#04C4FC] rounded-xl text-white transition-colors"
-                    >
-                      <Pencil className="w-4 h-4" />
-                    </button>
-                    <button
-                      onClick={() => setDeleteConfirm(league.id)}
-                      className="p-2 bg-[#0B0C10]/80 hover:bg-red-500 rounded-xl text-white transition-colors"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                </h2>
+                {isEditMode && (
+                  <p className="text-[10px] text-amber-400/60 mt-1 font-medium">
+                    Editing: {editingLeague.name}
+                  </p>
+                )}
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">League Name</label>
+                  <input 
+                    required
+                    value={newLeague.name}
+                    onChange={e => setNewLeague({ ...newLeague, name: e.target.value })}
+                    placeholder="e.g. Premier League"
+                    className={`w-full bg-[#0B0C10] border rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 outline-none transition-all ${
+                      isEditMode 
+                        ? 'border-amber-500/30 focus:ring-amber-500' 
+                        : 'border-white/10 focus:ring-sky-500'
+                    }`}
+                  />
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Background Image (1440×900)</label>
+                  <div className={`relative group aspect-video bg-[#0B0C10] rounded-2xl border border-dashed flex items-center justify-center overflow-hidden transition-all ${
+                    isEditMode 
+                      ? 'border-amber-500/30 hover:border-amber-500/50' 
+                      : 'border-white/10 hover:border-sky-500/30'
+                  }`}>
+                    {newLeague.backgroundImageUrl ? (
+                      <>
+                        <img src={newLeague.backgroundImageUrl} className="w-full h-full object-cover" alt="Preview" />
+                        <button 
+                          type="button"
+                          onClick={() => setNewLeague({ ...newLeague, backgroundImageUrl: '' })}
+                          className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 text-white shadow-xl active:scale-90"
+                        >
+                          <X className="w-3.5 h-3.5"/>
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => bgInputRef.current?.click()} 
+                        className={`flex flex-col items-center gap-2 transition-all ${
+                          isEditMode 
+                            ? 'text-zinc-600 hover:text-amber-400' 
+                            : 'text-zinc-600 hover:text-sky-400'
+                        }`}
+                      >
+                        <Upload className="w-8 h-8" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Upload Background</span>
+                      </button>
+                    )}
+                    <input type="file" ref={bgInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
                   </div>
                 </div>
+              </div>
 
-                {/* Info */}
-                <div className="p-5">
-                  <h3 className="font-bold text-white">{league.name}</h3>
-                  <p className="text-xs text-white/30 mt-1 font-mono">/{league.slug}</p>
-                </div>
+              {/* Action Buttons */}
+              <div className="space-y-3">
+                <button 
+                  type="submit"
+                  disabled={!newLeague.name || isAdding}
+                  className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-black uppercase text-xs tracking-widest hover:scale-[1.02] transition-all disabled:opacity-30 disabled:grayscale disabled:hover:scale-100 ${
+                    isEditMode 
+                      ? 'bg-amber-500 text-black' 
+                      : 'bg-[#04C4FC] text-[#0B0C10]'
+                  }`}
+                >
+                  {isEditMode ? (
+                    <>
+                      <Save className="w-4 h-4" /> {isAdding ? 'Saving...' : 'Save Changes'}
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" /> {isAdding ? 'Adding...' : 'Add League'}
+                    </>
+                  )}
+                </button>
 
-                {/* Delete Confirmation */}
-                {deleteConfirm === league.id && (
-                  <div className="p-4 bg-red-500/10 border-t border-red-500/20">
-                    <p className="text-xs text-red-400 mb-3 font-medium">Delete this league?</p>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => handleDelete(league.id)}
-                        className="flex-1 px-3 py-2 bg-red-500 hover:bg-red-600 text-white text-xs font-bold rounded-xl uppercase tracking-wider"
+                {isEditMode && (
+                  <button 
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="w-full flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/70 py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-white/10 hover:text-white transition-all"
+                  >
+                    <X className="w-4 h-4" /> Cancel Edit
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          {/* Leagues Grid */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
+              <input 
+                type="text"
+                placeholder="Lookup leagues..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                className="w-full bg-[#1F2833] border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm font-medium focus:ring-1 focus:ring-sky-500 outline-none"
+              />
+            </div>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#04C4FC]"></div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredLeagues.map(league => (
+                  <div 
+                    key={league.id} 
+                    className={`group relative bg-[#1F2833] rounded-2xl border p-4 flex flex-col items-center text-center space-y-3 transition-all hover:shadow-2xl ${
+                      editingLeague?.id === league.id 
+                        ? 'border-amber-500/60 ring-1 ring-amber-500/30' 
+                        : 'border-white/5 hover:border-sky-500/40'
+                    }`}
+                  >
+                    <div className="w-16 h-16 bg-[#0B0C10] rounded-xl flex items-center justify-center p-2 mb-2">
+                      <Trophy className="w-8 h-8 text-white/20" />
+                    </div>
+                    <div className="w-full min-h-[40px]">
+                      <h3 className="text-xs font-black uppercase tracking-widest text-white truncate w-full px-2">{league.name}</h3>
+                      {league.backgroundImageUrl ? (
+                        <p className="text-[8px] text-green-500/80 font-bold uppercase truncate px-2 mt-1 flex items-center justify-center gap-1">
+                          <CheckCircle className="w-3 h-3" /> Background ✓
+                        </p>
+                      ) : (
+                        <p className="text-[8px] text-white/30 font-bold uppercase truncate px-2 mt-1 flex items-center justify-center gap-1">
+                          <ImageIcon className="w-3 h-3" /> No background
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Action Buttons */}
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button 
+                        onClick={() => handleEditLeague(league)}
+                        className={`p-1.5 rounded-lg transition-all ${
+                          editingLeague?.id === league.id
+                            ? 'bg-amber-500 text-black'
+                            : 'bg-sky-500/10 text-sky-500 hover:bg-sky-500 hover:text-white'
+                        }`}
+                        title="Edit league"
                       >
-                        Delete
+                        <Pencil className="w-3 h-3" />
                       </button>
-                      <button
-                        onClick={() => setDeleteConfirm(null)}
-                        className="flex-1 px-3 py-2 bg-white/5 hover:bg-white/10 text-white text-xs font-bold rounded-xl uppercase tracking-wider"
+                      <button 
+                        onClick={() => handleDeleteLeague(league.id, league.name)}
+                        disabled={isDeleting === league.id}
+                        className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white disabled:opacity-50 transition-all"
+                        title="Delete league"
                       >
-                        Cancel
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
+
+                    {editingLeague?.id === league.id && (
+                      <div className="absolute -top-2 -left-2 bg-amber-500 text-black text-[8px] font-black uppercase px-2 py-0.5 rounded-full">
+                        Editing
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {filteredLeagues.length === 0 && (
+                  <div className="col-span-full py-20 text-center text-zinc-700 font-black uppercase tracking-[0.3em] text-[10px]">
+                    {searchTerm ? 'No results for your query' : 'No leagues registered yet'}
                   </div>
                 )}
               </div>
-            ))}
-
-            {filteredLeagues.length === 0 && (
-              <div className="col-span-full text-center py-20 text-white/30 font-bold uppercase tracking-widest text-xs">
-                {searchQuery ? 'No leagues match your search' : 'No leagues yet. Add your first league!'}
-              </div>
             )}
           </div>
-        )}
-
-        {/* Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-            <div className="bg-[#1F2833] rounded-2xl border border-white/10 w-full max-w-lg shadow-2xl">
-              <div className="flex items-center justify-between p-5 border-b border-white/5">
-                <h2 className="text-lg font-bold text-white uppercase tracking-wider">
-                  {editingLeague ? 'Edit League' : 'Add League'}
-                </h2>
-                <button
-                  onClick={closeModal}
-                  className="p-2 hover:bg-white/5 rounded-xl transition-colors"
-                >
-                  <X className="w-5 h-5 text-white/40" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-5 space-y-5">
-                {/* Name */}
-                <div>
-                  <label className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">
-                    League Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name || ''}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                    className="w-full px-4 py-3 bg-[#0B0C10] border border-white/10 rounded-xl text-white text-sm focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all"
-                    placeholder="e.g., Premier League"
-                  />
-                </div>
-
-                {/* Slug */}
-                <div>
-                  <label className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">
-                    Slug
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.slug || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                    className="w-full px-4 py-3 bg-[#0B0C10] border border-white/10 rounded-xl text-white text-sm focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all font-mono"
-                    placeholder="premier-league"
-                  />
-                </div>
-
-                {/* Background Image */}
-                <div>
-                  <label className="block text-xs font-bold text-white/40 mb-2 uppercase tracking-wider">
-                    Background Image (1440×900 recommended)
-                  </label>
-                  
-                  {/* Preview */}
-                  {formData.backgroundImageUrl && (
-                    <div className="relative aspect-[16/10] mb-3 rounded-xl overflow-hidden bg-[#0B0C10]">
-                      <img
-                        src={formData.backgroundImageUrl}
-                        alt="Preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, backgroundImageUrl: '' }))}
-                        className="absolute top-2 right-2 p-2 bg-red-500 hover:bg-red-600 rounded-xl text-white"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  )}
-
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    onChange={handleFileChange}
-                    className="hidden"
-                  />
-                  
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#0B0C10] hover:bg-white/5 border border-white/10 rounded-xl text-white/50 transition-colors text-xs font-bold uppercase tracking-wider"
-                  >
-                    <Image className="w-4 h-4" />
-                    Upload Image
-                  </button>
-
-                  {/* Or URL input */}
-                  <div className="mt-3">
-                    <input
-                      type="text"
-                      value={formData.backgroundImageUrl?.startsWith('data:') ? '' : (formData.backgroundImageUrl || '')}
-                      onChange={(e) => setFormData(prev => ({ ...prev, backgroundImageUrl: e.target.value }))}
-                      className="w-full px-4 py-3 bg-[#0B0C10] border border-white/10 rounded-xl text-white text-sm focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all"
-                      placeholder="Or paste image URL..."
-                    />
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-3 pt-4">
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="flex-1 px-4 py-3 bg-white/5 hover:bg-white/10 text-white font-bold rounded-xl transition-colors text-xs uppercase tracking-wider"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSaving}
-                    className="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-[#04C4FC] hover:bg-[#04C4FC]/80 disabled:bg-[#04C4FC]/30 text-[#0B0C10] font-bold rounded-xl transition-colors text-xs uppercase tracking-wider"
-                  >
-                    {isSaving ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#0B0C10]" />
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        {editingLeague ? 'Update' : 'Create'}
-                      </>
-                    )}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
+        </div>
       </main>
     </div>
   );

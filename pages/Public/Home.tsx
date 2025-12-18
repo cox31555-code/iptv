@@ -225,7 +225,7 @@ const Home: React.FC = () => {
                     </div>
                     
                     {/* Horizontal scroll for Live events - using standard sizing to match Discover grids */}
-                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 no-scrollbar">
+                    <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
                       {liveEvents.map(event => (
                         <div key={event.id} className={standardItemClass}>
                           <EventCard event={event} />
@@ -262,31 +262,15 @@ const Home: React.FC = () => {
                     </div>
 
                     {isSpecial ? (
-                      <div className="relative">
-                        <div 
-                          ref={specialScrollRef}
-                          onScroll={handleSpecialScroll}
-                          className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 no-scrollbar pb-4"
-                        >
-                          {items.map(event => (
-                            <div key={event.id} className={specialItemClass}>
-                              <EventCard event={event} />
-                            </div>
-                          ))}
-                        </div>
-                        {items.length > 1 && (
-                          <div className="flex justify-center items-center gap-2 mt-4">
-                            {items.map((_, i) => (
-                              <div 
-                                key={i} 
-                                className={`h-1 rounded-full transition-all duration-300 ${activeSpecialIndex === i ? 'w-8 bg-zinc-600' : 'w-2 bg-zinc-800'}`} 
-                              />
-                            ))}
+                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 no-scrollbar pb-4">
+                        {items.map(event => (
+                          <div key={event.id} className={specialItemClass}>
+                            <EventCard event={event} />
                           </div>
-                        )}
+                        ))}
                       </div>
                     ) : (
-                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 no-scrollbar">
+                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
                         {items.slice(0, 16).map(event => (
                           <div key={event.id} className={standardItemClass}>
                             <EventCard event={event} />
