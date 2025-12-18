@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+const [bgFile, setBgFile] = useState<File | null>(null);
 import { useApp } from '../../AppContext.tsx';
 import { Navigate, Link } from 'react-router-dom';
-import {
-  Plus,
-  Trash2,
-  Activity,
+import { 
+  Plus, 
+  Trash2, 
+  Activity, 
   Settings as SettingsIcon,
   LogOut,
   ArrowLeft,
@@ -19,7 +20,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { League } from '../../types.ts';
-import { getLeagues, createLeague, updateLeague, deleteLeague, uploadLeagueBackground, deleteLeagueBackground } from '../../api.ts';
+import { getLeagues, createLeague, updateLeague, deleteLeague } from '../../api.ts';
 import Logo from '../../components/Logo.tsx';
 
 const Leagues: React.FC = () => {
@@ -27,8 +28,7 @@ const Leagues: React.FC = () => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newLeague, setNewLeague] = useState({ name: '' });
-  const [backgroundFile, setBackgroundFile] = useState<File | null>(null);
+  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '' });
   const [isAdding, setIsAdding] = useState(false);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingLeague, setEditingLeague] = useState<League | null>(null);
@@ -60,31 +60,35 @@ const Leagues: React.FC = () => {
       .replace(/^-|-$/g, '');
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Background image is too large. Please choose a file smaller than 5MB.");
-        return;
-      }
-      setBackgroundFile(file);
-    }
-  };
+const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+
+  if (file.size > 5 * 1024 * 1024) {
+    alert("Background image must be under 5MB");
+    return;
+  }
+
+  setBgFile(file);
+
+  // Only for preview (optional)
+  const previewUrl = URL.createObjectURL(file);
+  setNewLeague(prev => ({ ...prev, backgroundImageUrl: previewUrl }));
+};
 
 
   const handleEditLeague = (league: League) => {
     setEditingLeague(league);
     setNewLeague({
-      name: league.name
+      name: league.name,
+      backgroundImageUrl: league.backgroundImageUrl || ''
     });
-    setBackgroundFile(null);
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleCancelEdit = () => {
     setEditingLeague(null);
-    setNewLeague({ name: '' });
-    setBackgroundFile(null);
+    setNewLeague({ name: '', backgroundImageUrl: '' });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -93,32 +97,21 @@ const Leagues: React.FC = () => {
 
     setIsAdding(true);
     try {
-      let leagueId: string;
-      
       if (editingLeague) {
-        // Update existing league
         await updateLeague(editingLeague.id, {
-          name: newLeague.name.trim()
+          name: newLeague.name.trim(),
+          backgroundImageUrl: newLeague.backgroundImageUrl
         });
-        leagueId = editingLeague.id;
       } else {
-        // Create new league
         const league: League = {
           id: crypto.randomUUID(),
           name: newLeague.name.trim(),
-          slug: generateSlug(newLeague.name.trim())
+          slug: generateSlug(newLeague.name.trim()),
+          backgroundImageUrl: newLeague.backgroundImageUrl
         };
-        const created = await createLeague(league);
-        leagueId = created.id;
+        await createLeague(league);
       }
-
-      // Upload background file if selected
-      if (backgroundFile) {
-        await uploadLeagueBackground(leagueId, backgroundFile);
-      }
-
-      setNewLeague({ name: '' });
-      setBackgroundFile(null);
+      setNewLeague({ name: '', backgroundImageUrl: '' });
       setEditingLeague(null);
       await loadLeagues();
     } catch (err: any) {
@@ -141,17 +134,6 @@ const Leagues: React.FC = () => {
         alert(`Failed to delete league: ${err.message}`);
       } finally {
         setIsDeleting(null);
-      }
-    }
-  };
-
-  const handleRemoveBackground = async (leagueId: string) => {
-    if (confirm('Remove background image?')) {
-      try {
-        await deleteLeagueBackground(leagueId);
-        await loadLeagues();
-      } catch (err: any) {
-        alert(`Failed to remove background: ${err.message}`);
       }
     }
   };
@@ -264,57 +246,29 @@ const Leagues: React.FC = () => {
 
                 <div className="space-y-3">
                   <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Background Image (1440×900)</label>
-                  <div className={`relative group bg-[#0B0C10] rounded-2xl border border-dashed p-6 flex flex-col items-center justify-center transition-all ${
-                    isEditMode
-                      ? 'border-amber-500/30 hover:border-amber-500/50'
+                  <div className={`relative group aspect-video bg-[#0B0C10] rounded-2xl border border-dashed flex items-center justify-center overflow-hidden transition-all ${
+                    isEditMode 
+                      ? 'border-amber-500/30 hover:border-amber-500/50' 
                       : 'border-white/10 hover:border-sky-500/30'
                   }`}>
-                    {backgroundFile ? (
-                      <div className="flex flex-col items-center gap-3 w-full">
-                        <div className="flex items-center gap-2 text-green-500">
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="text-sm font-bold">File selected</span>
-                        </div>
-                        <p className="text-xs text-white/60 font-medium truncate max-w-full px-4">{backgroundFile.name}</p>
-                        <p className="text-[10px] text-white/40">{(backgroundFile.size / 1024 / 1024).toFixed(2)} MB</p>
-                        <button
+                    {newLeague.backgroundImageUrl ? (
+                      <>
+                        <img src={newLeague.backgroundImageUrl} className="w-full h-full object-cover" alt="Preview" />
+                        <button 
                           type="button"
-                          onClick={() => setBackgroundFile(null)}
-                          className="mt-2 flex items-center gap-2 bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-500 hover:text-white transition-all text-xs font-bold"
+                          onClick={() => setNewLeague({ ...newLeague, backgroundImageUrl: '' })}
+                          className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 text-white shadow-xl active:scale-90"
                         >
-                          <X className="w-3.5 h-3.5"/> Remove
+                          <X className="w-3.5 h-3.5"/>
                         </button>
-                      </div>
-                    ) : editingLeague?.backgroundImageUrl ? (
-                      <div className="flex flex-col items-center gap-3 w-full">
-                        <div className="flex items-center gap-2 text-sky-500">
-                          <CheckCircle className="w-5 h-5" />
-                          <span className="text-sm font-bold">Background uploaded</span>
-                        </div>
-                        <div className="flex gap-2 mt-2">
-                          <button
-                            type="button"
-                            onClick={() => bgInputRef.current?.click()}
-                            className="flex items-center gap-2 bg-sky-500/10 text-sky-500 px-3 py-1.5 rounded-lg hover:bg-sky-500 hover:text-white transition-all text-xs font-bold"
-                          >
-                            <Upload className="w-3.5 h-3.5"/> Replace
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveBackground(editingLeague.id)}
-                            className="flex items-center gap-2 bg-red-500/10 text-red-500 px-3 py-1.5 rounded-lg hover:bg-red-500 hover:text-white transition-all text-xs font-bold"
-                          >
-                            <X className="w-3.5 h-3.5"/> Remove
-                          </button>
-                        </div>
-                      </div>
+                      </>
                     ) : (
-                      <button
+                      <button 
                         type="button"
-                        onClick={() => bgInputRef.current?.click()}
+                        onClick={() => bgInputRef.current?.click()} 
                         className={`flex flex-col items-center gap-2 transition-all ${
-                          isEditMode
-                            ? 'text-zinc-600 hover:text-amber-400'
+                          isEditMode 
+                            ? 'text-zinc-600 hover:text-amber-400' 
                             : 'text-zinc-600 hover:text-sky-400'
                         }`}
                       >
