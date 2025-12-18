@@ -378,7 +378,12 @@ const EventEditor: React.FC = () => {
                     onBlur={() => setTimeout(() => setShowLeagueLookup(false), 200)} 
                     onChange={e => {
                       setLeagueSearch(e.target.value);
-                      setFormData({ ...formData, league: e.target.value, leagueId: undefined });
+                      // Only update the league text field, preserve leagueId unless field is empty
+                      if (e.target.value.trim() === '') {
+                        setFormData({ ...formData, league: '', leagueId: undefined });
+                      } else {
+                        setFormData({ ...formData, league: e.target.value });
+                      }
                     }} 
                     placeholder="Search or type league..." 
                     className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-medium focus:ring-1 focus:ring-[#04C4FC] outline-none transition-all" 
