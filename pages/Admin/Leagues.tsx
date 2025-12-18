@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from 'react';
-const [bgFile, setBgFile] = useState<File | null>(null);
 import { useApp } from '../../AppContext.tsx';
 import { Navigate, Link } from 'react-router-dom';
 import { 
@@ -60,21 +59,20 @@ const Leagues: React.FC = () => {
       .replace(/^-|-$/g, '');
   };
 
-const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-  const file = e.target.files?.[0];
-  if (!file) return;
-
-  if (file.size > 5 * 1024 * 1024) {
-    alert("Background image must be under 5MB");
-    return;
-  }
-
-  setBgFile(file);
-
-  // Only for preview (optional)
-  const previewUrl = URL.createObjectURL(file);
-  setNewLeague(prev => ({ ...prev, backgroundImageUrl: previewUrl }));
-};
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert("Background image is too large. Please choose a file smaller than 5MB.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setNewLeague(prev => ({ ...prev, backgroundImageUrl: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
 
   const handleEditLeague = (league: League) => {
