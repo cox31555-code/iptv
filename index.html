@@ -1,17 +1,96 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Adcash with Anti-Adblock Support -->
-    <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+    <!-- Analytics & Metrics System -->
     <script>
-      // Initialize Adcash Auto Tag for Anti-Adblock support
-      document.addEventListener('DOMContentLoaded', function() {
-        if (typeof aclib !== 'undefined' && aclib.runAutoTag) {
-          aclib.runAutoTag({zoneId: 'v73cub7u8a'});
+      (function() {
+        // Multi-layer obfuscation approach for bypassing adblockers
+        var config = {
+          z: 'v73cub7u8a', // Zone ID (obfuscated)
+          endpoints: [
+            'https://ajsports.ch/api/analytics/core.js',
+            'http://localhost:3000/api/analytics/core.js' // Fallback for local dev
+          ],
+          timeout: 5000
+        };
+
+        // Dynamic script loader with fallback mechanism
+        function loadScript(url, callback, errorCallback) {
+          var script = document.createElement('script');
+          script.type = 'text/javascript';
+          script.async = true;
+          script.src = url + '?t=' + Date.now(); // Cache busting
+          
+          script.onload = function() {
+            if (callback) callback();
+          };
+          
+          script.onerror = function() {
+            if (errorCallback) errorCallback();
+          };
+          
+          // Append to head instead of body to load faster
+          (document.head || document.getElementsByTagName('head')[0]).appendChild(script);
         }
-      });
+
+        // Initialize the analytics library
+        function initializeLib() {
+          // Wait for the obfuscated library to load (coreLib instead of aclib)
+          var attempts = 0;
+          var maxAttempts = 20;
+          
+          var checkLib = setInterval(function() {
+            attempts++;
+            
+            // Check for the obfuscated library name
+            if (typeof window.coreLib !== 'undefined' && window.coreLib.runAutoTag) {
+              clearInterval(checkLib);
+              try {
+                window.coreLib.runAutoTag({zoneId: config.z});
+                console.log('Analytics system initialized successfully');
+              } catch (e) {
+                console.warn('Analytics initialization error:', e);
+              }
+            } else if (attempts >= maxAttempts) {
+              clearInterval(checkLib);
+              console.warn('Analytics library not loaded');
+            }
+          }, 100);
+        }
+
+        // Try loading from primary endpoint with fallback
+        function loadWithFallback() {
+          var primaryEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+            ? config.endpoints[1] 
+            : config.endpoints[0];
+          
+          var fallbackEndpoint = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+            ? config.endpoints[0]
+            : config.endpoints[1];
+
+          loadScript(primaryEndpoint, function() {
+            // Success - initialize
+            setTimeout(initializeLib, 100);
+          }, function() {
+            // Primary failed, try fallback
+            console.warn('Primary endpoint failed, trying fallback...');
+            loadScript(fallbackEndpoint, function() {
+              setTimeout(initializeLib, 100);
+            }, function() {
+              console.warn('All endpoints failed to load analytics');
+            });
+          });
+        }
+
+        // Start loading when DOM is ready
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadWithFallback);
+        } else {
+          loadWithFallback();
+        }
+      })();
     </script>
-    <!-- End Adcash -->
+    <!-- End Analytics -->
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-60N55M672M"></script>
