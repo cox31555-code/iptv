@@ -262,7 +262,7 @@ const Home: React.FC = () => {
                     </div>
 
                     {isSpecial ? (
-                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 no-scrollbar pb-4">
+                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 styled-h-scrollbar pb-4">
                         {items.map(event => (
                           <div key={event.id} className={specialItemClass}>
                             <EventCard event={event} />

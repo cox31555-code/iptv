@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SportEvent, EventStatus, getEventUrl } from '../types.ts';
@@ -51,13 +51,23 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           loading="lazy"
           className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
           onError={(e) => {
-            // Fallback to imageUrl or hide if no image
             const target = e.target as HTMLImageElement;
+            const dynamicCoverUrl = getEventCoverUrl(event.id);
+            
+            // If manual cover failed, try dynamic generation
+            if (event.coverImageUrl && target.src !== dynamicCoverUrl) {
+              target.src = dynamicCoverUrl;
+              return;
+            }
+            
+            // If dynamic cover failed, try legacy imageUrl
             if (event.imageUrl && target.src !== event.imageUrl) {
               target.src = event.imageUrl;
-            } else {
-              target.style.display = 'none';
+              return;
             }
+            
+            // All sources failed - hide image
+            target.style.display = 'none';
           }}
         />
         
