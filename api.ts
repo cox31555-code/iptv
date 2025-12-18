@@ -162,6 +162,34 @@ export const deleteLeague = async (id: string): Promise<void> => {
   if (!result.success) throw new Error(result.error || 'Failed to delete league');
 };
 
+export const uploadLeagueBackground = async (leagueId: string, file: File): Promise<{ backgroundImageUrl: string }> => {
+  const formData = new FormData();
+  formData.append('background', file);
+
+  const headers: HeadersInit = {};
+  if (authToken) {
+    headers['Authorization'] = `Bearer ${authToken}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${leagueId}/background`, {
+    method: 'POST',
+    headers,
+    body: formData,
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to upload league background');
+  return result.data;
+};
+
+export const deleteLeagueBackground = async (leagueId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${leagueId}/background`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to delete league background');
+};
+
 // ============ AUTH ============
 
 export interface LoginResponse {
