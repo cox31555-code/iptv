@@ -29,6 +29,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [admin, setAdmin] = useState<AdminUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionChecked, setSessionChecked] = useState(false);
 
   // Calculate status for all events
   const events = useMemo(() => {
@@ -60,6 +61,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.error('Failed to fetch teams:', err);
       setError(err.message);
     }
+  }, []);
+
+  // Validate admin session on mount
+  useEffect(() => {
+    const validateAdminSession = async () => {
+      try {
+        const adminData = await api.validateSession();
+        setAdmin(adminData);
+      } catch (err) {
+        // Session invalid or not logged in - this is fine
+        setAdmin(null);
+      } finally {
+        setSessionChecked(true);
+      }
+    };
+    validateAdminSession();
   }, []);
 
   // Initial data fetch
@@ -137,12 +154,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   // Auth operations
   const loginAdmin = useCallback(async (username: string, password: string) => {
     await api.login(username, password);
-    setAdmin({ id: '1', username, role: 'Admin' });
+    // Validate session after login to get admin data
+    const adminData = await api.validateSession();
+    setAdmin(adminData);
   }, []);
 
-  const logout = useCallback(() => {
-    api.logout();
-    setAdmin(null);
+  const logout = useCallback(async () => {
+    try {
+      await api.logout();
+    } catch (err) {
+      console.error('Logout error:', err);
+    } finally {
+      setAdmin(null);
+    }
   }, []);
 
   const changePassword = useCallback(async (oldPassword: string, newPassword: string) => {

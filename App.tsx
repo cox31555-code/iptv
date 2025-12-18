@@ -11,6 +11,7 @@ import EventEditor from './pages/Admin/EventEditor.tsx';
 import Settings from './pages/Admin/Settings.tsx';
 import Teams from './pages/Admin/Teams.tsx';
 import Leagues from './pages/Admin/Leagues.tsx';
+import ProtectedRoute from './admin/components/ProtectedRoute.tsx';
 
 declare global {
   interface Window {
@@ -69,12 +70,12 @@ const App: React.FC = () => {
           <Routes>
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />
-            <Route path="/admin" element={<Dashboard />} />
-            <Route path="/admin/settings" element={<Settings />} />
-            <Route path="/admin/teams" element={<Teams />} />
-            <Route path="/admin/leagues" element={<Leagues />} />
-            <Route path="/admin/events/new" element={<EventEditor />} />
-            <Route path="/admin/events/edit/:id" element={<EventEditor />} />
+            <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+            <Route path="/admin/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+            <Route path="/admin/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
+            <Route path="/admin/leagues" element={<ProtectedRoute><Leagues /></ProtectedRoute>} />
+            <Route path="/admin/events/new" element={<ProtectedRoute><EventEditor /></ProtectedRoute>} />
+            <Route path="/admin/events/edit/:id" element={<ProtectedRoute><EventEditor /></ProtectedRoute>} />
 
             {/* Public Routes */}
             <Route path="/" element={<Home />} />
