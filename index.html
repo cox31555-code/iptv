@@ -56,24 +56,25 @@
       }
       /* Styled horizontal scrollbar for carousels */
       .styled-h-scrollbar {
-        scrollbar-width: auto;
-        scrollbar-color: #3f3f46 #18181b;
+        scrollbar-width: thin;
+        scrollbar-color: #3f3f46 transparent;
         scroll-behavior: smooth;
       }
       .styled-h-scrollbar::-webkit-scrollbar {
-        height: 10px;
+        height: 8px;
+        background: transparent;
       }
       .styled-h-scrollbar::-webkit-scrollbar-track {
-        background: #18181b;
-        border-radius: 5px;
+        background: rgba(39, 39, 42, 0.3);
+        border-radius: 10px;
+        margin: 0 8px;
       }
       .styled-h-scrollbar::-webkit-scrollbar-thumb {
-        background: linear-gradient(90deg, #3f3f46, #52525b);
-        border-radius: 5px;
-        border: 2px solid #18181b;
+        background: #52525b;
+        border-radius: 10px;
       }
       .styled-h-scrollbar::-webkit-scrollbar-thumb:hover {
-        background: linear-gradient(90deg, #0ea5e9, #38bdf8);
+        background: #0ea5e9;
       }
       .styled-h-scrollbar::-webkit-scrollbar-thumb:active {
         background: #0284c7;
