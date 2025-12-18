@@ -210,6 +210,10 @@ const EventEditor: React.FC = () => {
     try {
       const startTime = formData.startTime ? new Date(formData.startTime).toISOString() : new Date().toISOString();
       const endTime = formData.endTime ? new Date(formData.endTime).toISOString() : new Date(Date.now() + 7200000).toISOString();
+      
+      // Normalize coverImageUrl: treat empty string as null for backend
+      const normalizedCoverImageUrl = formData.coverImageUrl?.trim() || null;
+      
       const finalData: SportEvent = {
         id: id && id !== 'new' ? id : Math.random().toString(36).substr(2, 9),
         createdAt: (formData as any).createdAt || new Date().toISOString(),
@@ -218,6 +222,7 @@ const EventEditor: React.FC = () => {
         description: formData.description || '',
         keywords: formData.keywords || '',
         ...formData,
+        coverImageUrl: normalizedCoverImageUrl, // Explicitly include (even if null) so backend can clear it
         startTime,
         endTime,
         status: calculateEventStatus(startTime, endTime),
@@ -434,7 +439,8 @@ const EventEditor: React.FC = () => {
                     <button 
                       onClick={() => {
                         setCoverImagePreview(null);
-                        setFormData(prev => ({ ...prev, coverImageUrl: '' }));
+                        // Set to null (not empty string) so backend clears the field
+                        setFormData(prev => ({ ...prev, coverImageUrl: null }));
                       }} 
                       className="absolute top-2 right-2 bg-red-500 rounded-full p-1.5 hover:bg-red-400 transition-colors"
                     >

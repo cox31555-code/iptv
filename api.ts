@@ -237,8 +237,10 @@ export const deleteCoverImage = async (filename: string): Promise<void> => {
 
 export const getFullImageUrl = (url: string | null | undefined): string | null => {
   if (!url) return null;
-  if (url.startsWith('http') || url.startsWith('data:')) return url;
-  return `${API_BASE_URL}${url}`;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  if (trimmed.startsWith('http') || trimmed.startsWith('data:')) return trimmed;
+  return `${API_BASE_URL}${trimmed}`;
 };
 
 // ============ COVER GENERATION ============

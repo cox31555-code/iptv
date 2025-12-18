@@ -15,6 +15,16 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const isLive = event.status === EventStatus.LIVE;
   const isUpcoming = event.status === EventStatus.UPCOMING;
 
+  // Helper: Get the display cover URL (never returns null)
+  const getDisplayCoverUrl = (): string => {
+    const manualUrl = event.coverImageUrl?.trim();
+    if (manualUrl) {
+      const fullUrl = getFullImageUrl(manualUrl);
+      if (fullUrl) return fullUrl;
+    }
+    return getEventCoverUrl(event.id);
+  };
+
   const formatDisplayTime = (dateStr: string) => {
     const eventDate = new Date(dateStr);
     const now = new Date();
@@ -40,27 +50,23 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   return (
     <div className="group relative bg-zinc-900/40 rounded-xl md:rounded-2xl overflow-hidden border border-white/[0.05] hover:border-sky-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(14,165,233,0.1)] flex flex-col">
       <div className="aspect-[16/10] bg-black relative overflow-hidden flex items-center justify-center">
-        {/* Priority: manual coverImageUrl > generated cover > imageUrl > Logo fallback */}
+        {/* Priority: manual coverImageUrl > generated cover > imageUrl > hide */}
         <img
-          src={
-            event.coverImageUrl 
-              ? getFullImageUrl(event.coverImageUrl) 
-              : getEventCoverUrl(event.id)
-          }
+          src={getDisplayCoverUrl()}
           alt={event.teams}
           loading="lazy"
           className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
-            const dynamicCoverUrl = getEventCoverUrl(event.id);
+            const generatedCoverUrl = getEventCoverUrl(event.id);
             
-            // If manual cover failed, try dynamic generation
-            if (event.coverImageUrl && target.src !== dynamicCoverUrl) {
-              target.src = dynamicCoverUrl;
+            // If manual cover failed, fall back to generated cover
+            if (event.coverImageUrl?.trim() && target.src !== generatedCoverUrl) {
+              target.src = generatedCoverUrl;
               return;
             }
             
-            // If dynamic cover failed, try legacy imageUrl
+            // If generated cover failed, try legacy imageUrl
             if (event.imageUrl && target.src !== event.imageUrl) {
               target.src = event.imageUrl;
               return;
