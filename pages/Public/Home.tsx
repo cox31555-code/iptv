@@ -286,7 +286,7 @@ const Home: React.FC = () => {
                         )}
                       </div>
                     ) : (
-                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
+                      <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 no-scrollbar">
                         {items.slice(0, 16).map(event => (
                           <div key={event.id} className={standardItemClass}>
                             <EventCard event={event} />
