@@ -73,11 +73,33 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [refreshEvents, refreshTeams]);
 
   // Periodically refresh events to update status
+  // OPTIMIZED: Reduced frequency to 60s and pause when tab is hidden
   useEffect(() => {
-    const interval = setInterval(() => {
-      refreshEvents();
-    }, 30000); // Refresh every 30 seconds
-    return () => clearInterval(interval);
+    let interval: NodeJS.Timeout;
+    
+    const startPolling = () => {
+      interval = setInterval(() => {
+        // Only refresh if document is visible (tab is active)
+        if (document.visibilityState === 'visible') {
+          refreshEvents();
+        }
+      }, 60000); // Refresh every 60 seconds (reduced from 30s)
+    };
+    
+    // Handle visibility changes - refresh immediately when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        refreshEvents(); // Immediate refresh when user returns
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    startPolling();
+    
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, [refreshEvents]);
 
   // Event CRUD operations
