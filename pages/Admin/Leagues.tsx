@@ -19,7 +19,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { League } from '../../types.ts';
-import { getLeagues, createLeague, updateLeague, deleteLeague } from '../../api.ts';
+import { getLeagues, createLeague, updateLeague, deleteLeague, uploadLeagueBackground } from '../../api.ts';
 import Logo from '../../components/Logo.tsx';
 
 const Leagues: React.FC = () => {
@@ -28,7 +28,9 @@ const Leagues: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '' });
+  const [bgFile, setBgFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingLeague, setEditingLeague] = useState<League | null>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
@@ -61,17 +63,30 @@ const Leagues: React.FC = () => {
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
-      if (file.size > 5 * 1024 * 1024) {
-        alert("Background image is too large. Please choose a file smaller than 5MB.");
-        return;
-      }
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setNewLeague(prev => ({ ...prev, backgroundImageUrl: reader.result as string }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload PNG, JPG, or WebP images only.');
+      return;
     }
+
+    // Validate file size (5MB max)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Background image is too large. Please choose a file smaller than 5MB.');
+      return;
+    }
+
+    // Store the File object
+    setBgFile(file);
+    
+    // Create preview URL using createObjectURL (no base64!)
+    const previewUrl = URL.createObjectURL(file);
+    setNewLeague(prev => ({ ...prev, backgroundImageUrl: previewUrl }));
+    
+    // Clear any previous upload errors
+    setUploadError(null);
   };
 
 
@@ -85,8 +100,15 @@ const Leagues: React.FC = () => {
   };
 
   const handleCancelEdit = () => {
+    // Clean up object URL to avoid memory leaks
+    if (newLeague.backgroundImageUrl && newLeague.backgroundImageUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(newLeague.backgroundImageUrl);
+    }
+    
     setEditingLeague(null);
     setNewLeague({ name: '', backgroundImageUrl: '' });
+    setBgFile(null);
+    setUploadError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -94,26 +116,58 @@ const Leagues: React.FC = () => {
     if (!newLeague.name.trim()) return;
 
     setIsAdding(true);
+    setUploadError(null);
+    
     try {
+      let leagueId: string;
+      
       if (editingLeague) {
+        // Update existing league (name only, no backgroundImageUrl)
         await updateLeague(editingLeague.id, {
-          name: newLeague.name.trim(),
-          backgroundImageUrl: newLeague.backgroundImageUrl
+          name: newLeague.name.trim()
         });
+        leagueId = editingLeague.id;
       } else {
+        // Create new league (backgroundImageUrl will be set via upload)
         const league: League = {
           id: crypto.randomUUID(),
           name: newLeague.name.trim(),
           slug: generateSlug(newLeague.name.trim()),
-          backgroundImageUrl: newLeague.backgroundImageUrl
+          backgroundImageUrl: '' // Empty - will be set by file upload
         };
-        await createLeague(league);
+        const created = await createLeague(league);
+        leagueId = created.id || league.id;
       }
+
+      // If there's a file to upload, do it now
+      if (bgFile) {
+        try {
+          console.log(`Uploading background for league ${leagueId}...`);
+          await uploadLeagueBackground(leagueId, bgFile);
+          console.log('Background uploaded successfully');
+        } catch (uploadErr: any) {
+          console.error('Background upload failed:', uploadErr);
+          // League created/updated but upload failed
+          setUploadError(
+            `League ${editingLeague ? 'updated' : 'created'}, but background upload failed: ${uploadErr.message || 'Unknown error'}. You can try uploading again by editing the league.`
+          );
+          // Keep the file and form open for retry
+          setIsAdding(false);
+          await loadLeagues();
+          return;
+        }
+      }
+
+      // Success - clean up
       setNewLeague({ name: '', backgroundImageUrl: '' });
+      setBgFile(null);
       setEditingLeague(null);
+      setUploadError(null);
       await loadLeagues();
+      
     } catch (err: any) {
-      alert(`Failed to ${editingLeague ? 'update' : 'add'} league: ${err.message}`);
+      console.error('League operation failed:', err);
+      alert(`Failed to ${editingLeague ? 'update' : 'create'} league: ${err.message}`);
     } finally {
       setIsAdding(false);
     }
@@ -254,7 +308,14 @@ const Leagues: React.FC = () => {
                         <img src={newLeague.backgroundImageUrl} className="w-full h-full object-cover" alt="Preview" />
                         <button 
                           type="button"
-                          onClick={() => setNewLeague({ ...newLeague, backgroundImageUrl: '' })}
+                          onClick={() => {
+                            // Clean up object URL if it exists
+                            if (newLeague.backgroundImageUrl.startsWith('blob:')) {
+                              URL.revokeObjectURL(newLeague.backgroundImageUrl);
+                            }
+                            setNewLeague({ ...newLeague, backgroundImageUrl: '' });
+                            setBgFile(null);
+                          }}
                           className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 text-white shadow-xl active:scale-90"
                         >
                           <X className="w-3.5 h-3.5"/>
@@ -278,6 +339,22 @@ const Leagues: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Upload Error Display */}
+              {uploadError && (
+                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+                  <p className="text-[10px] text-red-400 font-medium leading-relaxed">
+                    {uploadError}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setUploadError(null)}
+                    className="mt-2 text-[9px] text-red-400/70 hover:text-red-400 uppercase tracking-wider font-bold"
+                  >
+                    Dismiss
+                  </button>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="space-y-3">
