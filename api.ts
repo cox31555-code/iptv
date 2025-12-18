@@ -274,5 +274,5 @@ export const getFullImageUrl = (url: string | null | undefined): string | null =
 // ============ COVER GENERATION ============
 
 export const getEventCoverUrl = (eventId: string): string => {
-  return `${API_BASE_URL}/api/events/${eventId}/cover.png`;
+  return `${API_BASE_URL}/api/events/${eventId}/cover.webp`;
 };
