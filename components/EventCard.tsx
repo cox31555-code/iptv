@@ -55,6 +55,9 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
           src={getDisplayCoverUrl()}
           alt={event.teams}
           loading="lazy"
+          decoding="async"
+          width={640}
+          height={400}
           className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"
           onError={(e) => {
             const target = e.target as HTMLImageElement;
