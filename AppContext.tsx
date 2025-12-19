@@ -79,15 +79,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     validateAdminSession();
   }, []);
 
-  // Initial data fetch
+  // Initial data fetch - only fetch events for public pages
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([refreshEvents(), refreshTeams()]);
+      await refreshEvents(); // Teams will be loaded separately when admin logs in
       setLoading(false);
     };
     fetchData();
-  }, [refreshEvents, refreshTeams]);
+  }, [refreshEvents]);
+
+  // Lazy load teams when admin is authenticated
+  useEffect(() => {
+    if (admin && sessionChecked) {
+      refreshTeams();
+    }
+  }, [admin, sessionChecked, refreshTeams]);
 
   // Periodically refresh events to update status
   // OPTIMIZED: Reduced frequency to 60s and pause when tab is hidden
