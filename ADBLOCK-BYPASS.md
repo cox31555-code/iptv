@@ -14,16 +14,12 @@ This document describes the multi-layered approach implemented to bypass adblock
 - Implements in-memory caching (1 hour) to reduce external requests
 - Automatically obfuscates identifiable patterns in the script
 
-**Obfuscation Applied:**
-- `aclib` → `coreLib`
-- `adcash` → `platform`
-- `acscdn` → `cdn`
-
 **Benefits:**
 - ✅ Bypasses domain-based blocking (acscdn.com)
-- ✅ Caches script for performance
-- ✅ Serves from trusted domain
-- ✅ Automatic obfuscation on the fly
+- ✅ Caches script for performance (1 hour)
+- ✅ Serves from trusted domain (ajsports.ch)
+- ✅ Original script preserved for proper functionality
+- ✅ No harmful obfuscation that breaks the library
 
 ### 2. Frontend Dynamic Loader
 **Location:** `index.html`
@@ -119,9 +115,10 @@ Rotate between multiple subdomains or CDN endpoints:
 
 ### Test if Adcash is Loading:
 1. Open browser console
-2. Check for: `Analytics system initialized successfully`
-3. Verify `window.coreLib` exists (not `aclib`)
-4. Check Network tab for request to `/api/analytics/core.js`
+2. Check for: `Adcash initialized successfully`
+3. Verify `window.aclib` exists (type `window.aclib` in console)
+4. Check Network tab for successful request to `/api/analytics/core.js`
+5. Verify status code is 200 and Content-Type is `application/javascript`
 
 ### Test Adblocker Bypass:
 1. Install uBlock Origin or AdBlock Plus

@@ -35,25 +35,25 @@
 
         // Initialize the analytics library
         function initializeLib() {
-          // Wait for the obfuscated library to load (coreLib instead of aclib)
+          // Wait for the library to load (using original aclib name)
           var attempts = 0;
           var maxAttempts = 20;
           
           var checkLib = setInterval(function() {
             attempts++;
             
-            // Check for the obfuscated library name
-            if (typeof window.coreLib !== 'undefined' && window.coreLib.runAutoTag) {
+            // Check for the library (aclib is the correct name)
+            if (typeof window.aclib !== 'undefined' && window.aclib.runAutoTag) {
               clearInterval(checkLib);
               try {
-                window.coreLib.runAutoTag({zoneId: config.z});
-                console.log('Analytics system initialized successfully');
+                window.aclib.runAutoTag({zoneId: config.z});
+                console.log('Adcash initialized successfully');
               } catch (e) {
-                console.warn('Analytics initialization error:', e);
+                console.warn('Adcash initialization error:', e);
               }
             } else if (attempts >= maxAttempts) {
               clearInterval(checkLib);
-              console.warn('Analytics library not loaded');
+              console.warn('Adcash library not loaded - check console for errors');
             }
           }, 100);
         }
