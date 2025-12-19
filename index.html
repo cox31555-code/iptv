@@ -18,14 +18,16 @@
         function loadScript(url, callback, errorCallback) {
           var script = document.createElement('script');
           script.type = 'text/javascript';
-          script.async = true;
+          script.async = false; // Changed to false - ensures script executes before continuing
           script.src = url + '?t=' + Date.now(); // Cache busting
           
           script.onload = function() {
+            console.log('Adcash script loaded from:', url);
             if (callback) callback();
           };
           
           script.onerror = function() {
+            console.error('Failed to load Adcash script from:', url);
             if (errorCallback) errorCallback();
           };
           
@@ -35,27 +37,43 @@
 
         // Initialize the analytics library
         function initializeLib() {
+          console.log('Starting Adcash initialization check...');
           // Wait for the library to load (using original aclib name)
           var attempts = 0;
-          var maxAttempts = 20;
+          var maxAttempts = 50; // Increased from 20 to 50 (10 seconds total)
           
           var checkLib = setInterval(function() {
             attempts++;
             
+            // Debug logging every 10 attempts
+            if (attempts % 10 === 0) {
+              console.log('Checking for window.aclib... attempt', attempts, '/', maxAttempts);
+            }
+            
             // Check for the library (aclib is the correct name)
-            if (typeof window.aclib !== 'undefined' && window.aclib.runAutoTag) {
+            if (typeof window.aclib !== 'undefined') {
               clearInterval(checkLib);
-              try {
-                window.aclib.runAutoTag({zoneId: config.z});
-                console.log('Adcash initialized successfully');
-              } catch (e) {
-                console.warn('Adcash initialization error:', e);
+              console.log('✓ window.aclib found!', window.aclib);
+              
+              if (window.aclib.runAutoTag) {
+                try {
+                  window.aclib.runAutoTag({zoneId: config.z});
+                  console.log('✓ Adcash initialized successfully with zone:', config.z);
+                } catch (e) {
+                  console.error('✗ Adcash initialization error:', e);
+                }
+              } else {
+                console.warn('⚠ window.aclib exists but runAutoTag method not found');
               }
             } else if (attempts >= maxAttempts) {
               clearInterval(checkLib);
-              console.warn('Adcash library not loaded - check console for errors');
+              console.error('✗ Adcash library not loaded after', maxAttempts, 'attempts');
+              console.log('Debug info:', {
+                'window.aclib': typeof window.aclib,
+                'window keys': Object.keys(window).filter(function(k) { return k.toLowerCase().includes('ac'); })
+              });
             }
-          }, 100);
+          }, 200); // Changed from 100ms to 200ms between checks
         }
 
         // Try loading from primary endpoint with fallback
@@ -68,16 +86,18 @@
             ? config.endpoints[0]
             : config.endpoints[1];
 
+          console.log('Loading Adcash from:', primaryEndpoint);
+
           loadScript(primaryEndpoint, function() {
-            // Success - initialize
-            setTimeout(initializeLib, 100);
+            // Success - wait longer before initializing to let script execute
+            setTimeout(initializeLib, 1000); // Increased from 100ms to 1000ms
           }, function() {
             // Primary failed, try fallback
-            console.warn('Primary endpoint failed, trying fallback...');
+            console.warn('Primary endpoint failed, trying fallback:', fallbackEndpoint);
             loadScript(fallbackEndpoint, function() {
-              setTimeout(initializeLib, 100);
+              setTimeout(initializeLib, 1000); // Increased from 100ms to 1000ms
             }, function() {
-              console.warn('All endpoints failed to load analytics');
+              console.error('All endpoints failed to load Adcash');
             });
           });
         }
