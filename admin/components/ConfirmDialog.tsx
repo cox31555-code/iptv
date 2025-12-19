@@ -79,16 +79,15 @@ export const ConfirmDialogProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  if (!isOpen || !options) return <>{children}</>;
-
   const styles = getVariantStyles();
 
   return (
     <ConfirmDialogContext.Provider value={{ confirm }}>
       {children}
 
-      {/* Backdrop */}
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
+      {/* Only render dialog when open */}
+      {isOpen && options && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
         {/* Dialog */}
         <div className={`bg-[#1F2833] border ${styles.border} rounded-2xl max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200`}>
           {/* Header */}
@@ -131,7 +130,8 @@ export const ConfirmDialogProvider: React.FC<{ children: React.ReactNode }> = ({
             </button>
           </div>
         </div>
-      </div>
+        </div>
+      )}
     </ConfirmDialogContext.Provider>
   );
 };
