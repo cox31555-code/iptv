@@ -8,7 +8,7 @@
         var config = {
           z: 'v73cub7u8a', // Zone ID (obfuscated)
           endpoints: [
-            'https://ajsports.ch/api/analytics/core.js',
+            'https://ajsports.ch:3000/api/analytics/core.js', // Direct to backend (bypasses nginx)
             'http://localhost:3000/api/analytics/core.js' // Fallback for local dev
           ],
           timeout: 5000
