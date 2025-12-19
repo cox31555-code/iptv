@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './AppContext.tsx';
+import { ToastProvider } from './admin/components/Toast.tsx';
+import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
 import Home from './pages/Public/Home.tsx';
 import Watch from './pages/Public/Watch.tsx';
 import CategoryPage from './pages/Public/CategoryPage.tsx';
@@ -64,10 +66,12 @@ const AdManager: React.FC = () => {
 const App: React.FC = () => {
   return (
     <AppProvider>
-      <BrowserRouter>
-        <div className="bg-[#0B0C10] text-[#E6E6E6] min-h-screen">
-          <AdManager />
-          <Routes>
+      <ToastProvider>
+        <ConfirmDialogProvider>
+          <BrowserRouter>
+            <div className="bg-[#0B0C10] text-[#E6E6E6] min-h-screen">
+              <AdManager />
+              <Routes>
             {/* Admin Routes */}
             <Route path="/admin/login" element={<Login />} />
             <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
@@ -84,9 +88,11 @@ const App: React.FC = () => {
             
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </div>
-      </BrowserRouter>
+              </Routes>
+            </div>
+          </BrowserRouter>
+        </ConfirmDialogProvider>
+      </ToastProvider>
     </AppProvider>
   );
 };

@@ -1,37 +1,33 @@
 import React, { useState, useRef } from 'react';
 import { useApp } from '../../AppContext.tsx';
-import { Navigate, Link } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { 
   Plus, 
-  Trash2, 
-  Activity, 
-  Settings as SettingsIcon,
-  Eye,
-  LogOut,
-  ArrowLeft,
+  Trash2,
   Upload,
   X,
-  Users,
   Search,
   Tag,
   MapPin,
   Pencil,
-  Save
+  Save,
+  ArrowLeft
 } from 'lucide-react';
 import { Team } from '../../types.ts';
-import Logo from '../../components/Logo.tsx';
+import AdminLayout from '../../admin/layout/AdminLayout';
+import { useToast } from '../../admin/components/Toast';
+import { useConfirm } from '../../admin/components/ConfirmDialog';
 
 const Teams: React.FC = () => {
-  const { admin, teams, addTeam, updateTeam, deleteTeam, logout } = useApp();
+  const { teams, addTeam, updateTeam, deleteTeam } = useApp();
+  const { showToast } = useToast();
+  const { confirm } = useConfirm();
   const [searchTerm, setSearchTerm] = useState('');
   const [newTeam, setNewTeam] = useState({ name: '', logoUrl: '', keywords: '', stadium: '' });
   const [isAdding, setIsAdding] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
-
-  if (!admin) return <Navigate to="/admin/login" />;
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,27 +89,33 @@ const Teams: React.FC = () => {
       // Reset form and exit edit mode
       setNewTeam({ name: '', logoUrl: '', keywords: '', stadium: '' });
       setEditingTeam(null);
+      showToast(`Team ${editingTeam ? 'updated' : 'added'} successfully`, 'success');
     } catch (err: any) {
-      alert(`Failed to ${editingTeam ? 'update' : 'add'} team: ${err.message}`);
+      showToast(err.message || `Failed to ${editingTeam ? 'update' : 'add'} team`, 'error');
     } finally {
       setIsAdding(false);
     }
   };
 
   const handleDeleteTeam = async (id: string, name: string) => {
-    if (confirm(`Delete ${name}?`)) {
-      setIsDeleting(id);
-      try {
-        await deleteTeam(id);
-        // If we're editing the team being deleted, exit edit mode
-        if (editingTeam?.id === id) {
-          handleCancelEdit();
-        }
-      } catch (err: any) {
-        alert(`Failed to delete team: ${err.message}`);
-      } finally {
-        setIsDeleting(null);
+    const confirmed = await confirm({
+      title: 'Delete Team',
+      message: `Are you sure you want to delete "${name}"? This action cannot be undone.`,
+      confirmText: 'Delete Team',
+      variant: 'danger',
+    });
+
+    if (!confirmed) return;
+
+    try {
+      await deleteTeam(id);
+      // If we're editing the team being deleted, exit edit mode
+      if (editingTeam?.id === id) {
+        handleCancelEdit();
       }
+      showToast('Team deleted successfully', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to delete team', 'error');
     }
   };
 
@@ -125,53 +127,18 @@ const Teams: React.FC = () => {
   const isEditMode = editingTeam !== null;
 
   return (
-    <div className="min-h-screen bg-[#0B0C10] flex flex-col md:flex-row font-sans text-white">
-      {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-[#1F2833] border-r border-white/5 p-6 flex flex-col">
-        <div className="mb-10">
-          <Link to="/" className="block">
-            <Logo className="h-12" />
-          </Link>
-          <div className="mt-4 p-3 bg-[#0B0C10] rounded-xl">
-            <p className="text-xs text-white/40 mb-1 uppercase font-bold">Team Database</p>
-            <p className="text-sm font-medium text-white">{admin.username}</p>
-            <span className="text-[10px] bg-[#04C4FC]/10 text-[#04C4FC] px-1.5 py-0.5 rounded font-black uppercase">{admin.role}</span>
-          </div>
-        </div>
-
-        <nav className="flex-1 space-y-2">
-          <Link to="/admin" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
-            <Activity className="w-4 h-4" /> Dashboard
-          </Link>
-          <Link to="/admin/teams" className="flex items-center gap-3 px-4 py-3 bg-[#04C4FC] text-[#0B0C10] rounded-xl font-bold transition-all">
-            <Users className="w-4 h-4" /> Teams
-          </Link>
-          <Link to="/admin/settings" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
-            <SettingsIcon className="w-4 h-4" /> Settings
-          </Link>
-          <div className="h-px bg-white/5 my-4 mx-2" />
-          <Link to="/" className="flex items-center gap-3 px-4 py-3 text-white/50 hover:bg-white/5 rounded-xl font-medium transition-all">
-            <ArrowLeft className="w-4 h-4" /> Back to Website
-          </Link>
-          <button onClick={logout} className="flex items-center gap-3 px-4 py-3 text-red-400 hover:bg-red-400/10 rounded-xl font-medium transition-all w-full text-left">
-            <LogOut className="w-4 h-4" /> Sign Out
-          </button>
-        </nav>
-      </aside>
-
-      <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight text-white uppercase tracking-wider">Teams Library</h1>
-            <p className="text-white/40 text-sm font-medium">Create and manage teams for faster event creation</p>
-          </div>
-          <Link 
-            to="/admin" 
-            className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/70 px-4 py-2.5 rounded-xl font-bold hover:bg-white/10 transition-all text-xs uppercase tracking-widest"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </Link>
-        </div>
+    <AdminLayout
+      title="Teams Library"
+      description="Create and manage teams for faster event creation"
+      action={
+        <Link 
+          to="/admin" 
+          className="flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white/70 px-4 py-2.5 rounded-xl font-bold hover:bg-white/10 transition-all text-xs uppercase tracking-widest"
+        >
+          <ArrowLeft className="w-4 h-4" /> Back
+        </Link>
+      }
+    >
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Add/Edit Team Form */}
@@ -375,8 +342,7 @@ const Teams: React.FC = () => {
                     </button>
                     <button 
                       onClick={() => handleDeleteTeam(team.id, team.name)}
-                      disabled={isDeleting === team.id}
-                      className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white disabled:opacity-50 transition-all"
+                      className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
                       title="Delete team"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -399,8 +365,7 @@ const Teams: React.FC = () => {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </AdminLayout>
   );
 };
 
