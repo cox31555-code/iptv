@@ -33,11 +33,13 @@ const AdManager: React.FC = () => {
       return;
     }
 
-    // Run the ad tag on public pages
+    // Run the ad tag on public pages (all 3 zones)
     const runAdTag = () => {
       if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
         try {
           window.aclib.runAutoTag({ zoneId: 'v73cub7u8a' });
+          window.aclib.runAutoTag({ zoneId: 'tqblxpksrg' });
+          window.aclib.runAutoTag({ zoneId: '9fxj8efkpr' });
         } catch (e) {
           console.error('Ad lib execution error:', e);
         }
