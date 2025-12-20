@@ -97,11 +97,8 @@ const Home: React.FC = () => {
       <section className={`relative w-full flex items-center justify-center overflow-hidden transition-all duration-700 ${isSearching ? 'min-h-[300px] md:min-h-[350px]' : 'min-h-[350px] md:min-h-[420px]'}`}>
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-black" />
-          <video autoPlay muted loop playsInline className="w-full h-full object-cover opacity-50 grayscale">
-            <source src="500kb.mp4" type="video/mp4" />
-          </video>
           
-          <div className="absolute inset-0 z-10 opacity-[0.05] pointer-events-none" 
+          <div className="absolute inset-0 z-10 opacity-[0.05] pointer-events-none"
             style={{ 
               backgroundImage: 'linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)', 
               backgroundSize: '100px 100px' 
@@ -226,7 +223,7 @@ const Home: React.FC = () => {
                     
                     {/* Horizontal scroll for Live events - using standard sizing to match Discover grids */}
                     <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
-                      {liveEvents.map(event => (
+                      {liveEvents.slice(0, 16).map(event => (
                         <div key={event.id} className={standardItemClass}>
                           <EventCard event={event} />
                         </div>
@@ -263,7 +260,7 @@ const Home: React.FC = () => {
 
                     {isSpecial ? (
                       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 styled-h-scrollbar pb-4">
-                        {items.map(event => (
+                        {items.slice(0, 16).map(event => (
                           <div key={event.id} className={specialItemClass}>
                             <EventCard event={event} />
                           </div>
