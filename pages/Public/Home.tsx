@@ -9,7 +9,7 @@ import { Link } from 'react-router-dom';
 import Footer from '../../components/Footer.tsx';
 
 const Home: React.FC = () => {
-  const { events } = useApp();
+  const { events, loading } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeSpecialIndex, setActiveSpecialIndex] = useState(0);
@@ -180,7 +180,22 @@ const Home: React.FC = () => {
       </section>
 
       <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-16' : 'space-y-12 md:space-y-16 md:pt-0 pb-16'}`}>
-        {isSearching ? (
+        {loading && events.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-24 md:py-32 animate-in fade-in duration-700">
+            <div className="relative w-16 h-16 md:w-20 md:h-20">
+              {/* Outer spinning ring */}
+              <div className="absolute inset-0 border-4 border-sky-500/20 rounded-full"></div>
+              <div className="absolute inset-0 border-4 border-transparent border-t-sky-500 rounded-full animate-spin"></div>
+              {/* Inner pulsing dot */}
+              <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-3 h-3 md:w-4 md:h-4 bg-sky-500 rounded-full animate-pulse"></div>
+              </div>
+            </div>
+            <p className="mt-6 text-sm md:text-base font-medium text-zinc-400 animate-pulse">
+              Loading events...
+            </p>
+          </div>
+        ) : isSearching ? (
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-4">
               <h2 className="text-xl md:text-2xl font-black tracking-tighter">
