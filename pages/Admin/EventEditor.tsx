@@ -541,7 +541,7 @@ const EventEditor: React.FC = () => {
               <div className="space-y-2">
                 <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">{!isTeamBased ? 'Event Logo' : 'League Logo'}</label>
                 <div className="relative aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden hover:border-sky-500/30 transition-all">
-                  {formData.leagueLogoUrl ? <><img src={formData.leagueLogoUrl} className="w-full h-full object-contain p-4" alt="" /><button onClick={() => removeImage('leagueLogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1.5"><X className="w-3 h-3"/></button></> : <button onClick={() => leagueLogoRef.current?.click()} className="text-zinc-600 hover:text-sky-400"><Upload className="w-8 h-8"/></button>}
+                  {formData.leagueLogoUrl ? <><img src={getFullImageUrl(formData.leagueLogoUrl) || formData.leagueLogoUrl} className="w-full h-full object-contain p-4" alt="" /><button onClick={() => removeImage('leagueLogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1.5"><X className="w-3 h-3"/></button></> : <button onClick={() => leagueLogoRef.current?.click()} className="text-zinc-600 hover:text-sky-400"><Upload className="w-8 h-8"/></button>}
                   <input type="file" ref={leagueLogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'leagueLogoUrl')} />
                 </div>
               </div>
