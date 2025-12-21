@@ -419,7 +419,12 @@ const EventEditor: React.FC = () => {
                           key={league.id} 
                           type="button" 
                           onMouseDown={() => {
-                            setFormData({ ...formData, league: league.name, leagueId: league.id });
+                            setFormData({ 
+                              ...formData, 
+                              league: league.name, 
+                              leagueId: league.id,
+                              leagueLogoUrl: league.logoUrl || formData.leagueLogoUrl // Auto-fill league logo if available
+                            });
                             setLeagueSearch('');
                             setShowLeagueLookup(false);
                           }} 
@@ -434,8 +439,15 @@ const EventEditor: React.FC = () => {
                   </div>
                 )}
                 {formData.leagueId && (
-                  <div className="mt-2 text-[9px] text-sky-400">
-                    ✓ Linked to league background for auto cover generation
+                  <div className="mt-2 space-y-1">
+                    <div className="text-[9px] text-sky-400">
+                      ✓ Linked to league background for auto cover generation
+                    </div>
+                    {formData.leagueLogoUrl && (
+                      <div className="text-[9px] text-green-400">
+                        ✓ League logo auto-filled
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
