@@ -33,6 +33,7 @@ const EventEditor: React.FC = () => {
   const teamBLogoRef = useRef<HTMLInputElement>(null);
   const leagueLogoRef = useRef<HTMLInputElement>(null);
   const coverImageRef = useRef<HTMLInputElement>(null);
+  const initialLoadComplete = useRef<boolean>(false);
 
   const [formData, setFormData] = useState<Partial<SportEvent>>({
     teams: '',
@@ -74,6 +75,7 @@ const EventEditor: React.FC = () => {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [stadiumManuallyEdited, setStadiumManuallyEdited] = useState(false);
   const [autoPurge, setAutoPurge] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // League state
   const [leagues, setLeagues] = useState<League[]>([]);
@@ -99,23 +101,32 @@ const EventEditor: React.FC = () => {
     if (id && id !== 'new') {
       const existing = events.find(e => e.id === id);
       if (existing) {
-        setFormData({
-          ...existing,
-          startTime: existing.startTime.slice(0, 16),
-          endTime: existing.endTime.slice(0, 16),
-        });
+        // Only sync with backend data on initial load or when there are no unsaved changes
+        if (!initialLoadComplete.current || !hasUnsavedChanges) {
+          setFormData({
+            ...existing,
+            startTime: existing.startTime.slice(0, 16),
+            endTime: existing.endTime.slice(0, 16),
+          });
 
-        if (existing.category === EventCategory.FOOTBALL || existing.category === EventCategory.NBA) {
-          const parts = existing.teams.split(/\s+vs\s+/i);
-          setTeamA(parts[0]?.trim() || '');
-          setTeamB(parts[1]?.trim() || '');
+          if (existing.category === EventCategory.FOOTBALL || existing.category === EventCategory.NBA) {
+            const parts = existing.teams.split(/\s+vs\s+/i);
+            setTeamA(parts[0]?.trim() || '');
+            setTeamB(parts[1]?.trim() || '');
+          }
+
+          const defaultServer = existing.servers.find(s => s.isDefault) || existing.servers[0];
+          if (defaultServer) setPreviewServer(defaultServer);
+          
+          // Mark initial load as complete
+          initialLoadComplete.current = true;
         }
-
-        const defaultServer = existing.servers.find(s => s.isDefault) || existing.servers[0];
-        if (defaultServer) setPreviewServer(defaultServer);
       }
+    } else if (id === 'new') {
+      // For new events, mark as loaded immediately
+      initialLoadComplete.current = true;
     }
-  }, [id, events]);
+  }, [id, events, hasUnsavedChanges]);
 
   const prevCategoryRef = useRef(formData.category);
   useEffect(() => {
@@ -206,6 +217,7 @@ const EventEditor: React.FC = () => {
   const handleSave = async () => {
     setIsSaving(true);
     setSaveError(null);
+    setHasUnsavedChanges(false); // Clear unsaved changes flag when saving
     
     try {
       const startTime = formData.startTime ? new Date(formData.startTime).toISOString() : new Date().toISOString();
@@ -255,6 +267,9 @@ const EventEditor: React.FC = () => {
       sortOrder: 0 // Will be set correctly inside functional update
     };
     
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
+    
     // Use functional update to avoid stale state issues
     setFormData(prev => {
       const existingServers = prev.servers || [];
@@ -278,6 +293,9 @@ const EventEditor: React.FC = () => {
   };
 
   const removeServer = (serverId: string) => {
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
+    
     // Use functional update to avoid stale state
     setFormData(prev => {
       const updated = (prev.servers || []).filter(s => s.id !== serverId);
