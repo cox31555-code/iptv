@@ -5,7 +5,7 @@ import { EventCategory, categoryFromSlug, SportEvent } from '../../types.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
 import NotFound from './NotFound.tsx';
-import { ChevronLeft, Search, XCircle } from 'lucide-react';
+import { ChevronLeft, Search, XCircle, ChevronDown } from 'lucide-react';
 import Footer from '../../components/Footer.tsx';
 
 const CategoryPage: React.FC = () => {
@@ -13,6 +13,7 @@ const CategoryPage: React.FC = () => {
   const { events } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(16);
 
   const displayName = categoryFromSlug(categorySlug || '');
   
@@ -111,7 +112,14 @@ const CategoryPage: React.FC = () => {
     return groups;
   }, [filteredEvents]);
 
-  const clearSearch = () => setSearchTerm('');
+  const clearSearch = () => {
+    setSearchTerm('');
+    setVisibleCount(16); // Reset visible count when clearing search
+  };
+
+  const handleLoadMore = () => {
+    setVisibleCount(prev => prev + 12);
+  };
 
   const totalEventCount = filteredEvents.length;
 
@@ -167,22 +175,70 @@ const CategoryPage: React.FC = () => {
 
         <div className="space-y-16 pb-20">
           {groupedEvents.length > 0 ? (
-            groupedEvents.map((group, groupIdx) => (
-              <section key={group.dateLabel} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${groupIdx * 100}ms` }}>
-                <div className="flex items-center gap-4">
-                  <h2 className="text-lg md:text-xl font-black tracking-tighter uppercase text-white/90">
-                    {group.dateLabel}
-                  </h2>
-                  <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
-                </div>
+            <>
+              {(() => {
+                let eventCount = 0;
+                const sections = [];
+                
+                for (let groupIdx = 0; groupIdx < groupedEvents.length; groupIdx++) {
+                  const group = groupedEvents[groupIdx];
+                  const eventsToShow = [];
+                  
+                  for (const event of group.events) {
+                    if (eventCount < visibleCount) {
+                      eventsToShow.push(event);
+                      eventCount++;
+                    } else {
+                      break;
+                    }
+                  }
+                  
+                  if (eventsToShow.length > 0) {
+                    sections.push(
+                      <section key={group.dateLabel} className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700" style={{ animationDelay: `${groupIdx * 100}ms` }}>
+                        <div className="flex items-center gap-4">
+                          <h2 className="text-lg md:text-xl font-black tracking-tighter uppercase text-white/90">
+                            {group.dateLabel}
+                          </h2>
+                          <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
+                        </div>
 
-                <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10">
-                  {group.events.map(event => (
-                    <EventCard key={event.id} event={event} />
-                  ))}
+                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-10">
+                          {eventsToShow.map(event => (
+                            <EventCard key={event.id} event={event} />
+                          ))}
+                        </div>
+                      </section>
+                    );
+                  }
+                  
+                  if (eventCount >= visibleCount) {
+                    break;
+                  }
+                }
+                
+                return sections;
+              })()}
+              
+              {visibleCount < totalEventCount && (
+                <div className="flex justify-center pt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  <button
+                    onClick={handleLoadMore}
+                    className="group relative px-8 py-4 bg-zinc-900/60 backdrop-blur-xl border border-white/10 rounded-2xl hover:bg-sky-500/10 hover:border-sky-500/30 transition-all duration-300 hover:scale-105 active:scale-95"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm md:text-base font-black uppercase tracking-widest text-zinc-300 group-hover:text-sky-400 transition-colors">
+                        Load More
+                      </span>
+                      <ChevronDown className="w-5 h-5 text-zinc-400 group-hover:text-sky-400 group-hover:translate-y-1 transition-all" />
+                    </div>
+                    <p className="text-[9px] md:text-[10px] font-bold uppercase tracking-wider text-zinc-500 mt-1">
+                      {Math.min(12, totalEventCount - visibleCount)} more events
+                    </p>
+                  </button>
                 </div>
-              </section>
-            ))
+              )}
+            </>
           ) : (
             <div className="text-center py-32 md:py-48 bg-zinc-900/10 rounded-[2rem] md:rounded-[3.5rem] border border-dashed border-white/5 flex flex-col items-center justify-center space-y-4">
               <p className="text-zinc-500 text-sm md:text-base font-bold uppercase tracking-widest">

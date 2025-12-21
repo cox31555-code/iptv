@@ -238,7 +238,7 @@ const Home: React.FC = () => {
                     
                     {/* Horizontal scroll for Live events - using standard sizing to match Discover grids */}
                     <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
-                      {liveEvents.slice(0, 16).map(event => (
+                      {liveEvents.slice(0, 12).map(event => (
                         <div key={event.id} className={standardItemClass}>
                           <EventCard event={event} />
                         </div>
@@ -275,7 +275,7 @@ const Home: React.FC = () => {
 
                     {isSpecial ? (
                       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 styled-h-scrollbar pb-4">
-                        {items.slice(0, 16).map(event => (
+                        {items.slice(0, 12).map(event => (
                           <div key={event.id} className={specialItemClass}>
                             <EventCard event={event} />
                           </div>
@@ -283,7 +283,7 @@ const Home: React.FC = () => {
                       </div>
                     ) : (
                       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
-                        {items.slice(0, 16).map(event => (
+                        {items.slice(0, 12).map(event => (
                           <div key={event.id} className={standardItemClass}>
                             <EventCard event={event} />
                           </div>
