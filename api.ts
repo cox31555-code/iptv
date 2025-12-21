@@ -180,6 +180,28 @@ export const deleteLeagueBackground = async (leagueId: string): Promise<void> =>
   if (!result.success) throw new Error(result.error || 'Failed to delete league background');
 };
 
+export const uploadLeagueLogo = async (leagueId: string, file: File): Promise<{ logoUrl: string }> => {
+  const formData = new FormData();
+  formData.append('logo', file);
+
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${leagueId}/logo`, getFetchOptions({
+    method: 'POST',
+    body: formData,
+  }));
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to upload league logo');
+  return result.data;
+};
+
+export const deleteLeagueLogo = async (leagueId: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/leagues/${leagueId}/logo`, getFetchOptions({
+    method: 'DELETE',
+    headers: getHeaders(),
+  }));
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to delete league logo');
+};
+
 // ============ AUTH ============
 
 export interface LoginResponse {

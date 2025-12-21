@@ -39,6 +39,7 @@ export interface League {
   name: string;
   slug: string;
   backgroundImageUrl: string;
+  logoUrl?: string;
   createdAt?: string;
   updatedAt?: string;
 }

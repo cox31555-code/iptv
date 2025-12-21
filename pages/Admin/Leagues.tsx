@@ -19,7 +19,7 @@ import {
   Image as ImageIcon
 } from 'lucide-react';
 import { League } from '../../types.ts';
-import { getLeagues, createLeague, updateLeague, deleteLeague, uploadLeagueBackground } from '../../api.ts';
+import { getLeagues, createLeague, updateLeague, deleteLeague, uploadLeagueBackground, uploadLeagueLogo } from '../../api.ts';
 import Logo from '../../components/Logo.tsx';
 
 const Leagues: React.FC = () => {
@@ -27,13 +27,15 @@ const Leagues: React.FC = () => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '' });
+  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '', logoUrl: '' });
   const [bgFile, setBgFile] = useState<File | null>(null);
+  const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
   const [editingLeague, setEditingLeague] = useState<League | null>(null);
   const bgInputRef = useRef<HTMLInputElement>(null);
+  const logoInputRef = useRef<HTMLInputElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
 
   if (!admin) return <Navigate to="/admin/login" />;
@@ -89,28 +91,62 @@ const Leagues: React.FC = () => {
     setUploadError(null);
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const validTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/webp', 'image/svg+xml'];
+    if (!validTypes.includes(file.type)) {
+      alert('Invalid file type. Please upload PNG, JPG, WebP, or SVG images only.');
+      return;
+    }
+
+    // Validate file size (2MB max for logos)
+    if (file.size > 2 * 1024 * 1024) {
+      alert('Logo image is too large. Please choose a file smaller than 2MB.');
+      return;
+    }
+
+    // Store the File object
+    setLogoFile(file);
+    
+    // Create preview URL
+    const previewUrl = URL.createObjectURL(file);
+    setNewLeague(prev => ({ ...prev, logoUrl: previewUrl }));
+    
+    // Clear any previous upload errors
+    setUploadError(null);
+  };
+
 
   const handleEditLeague = (league: League) => {
     setEditingLeague(league);
-    // Don't load existing background into preview to avoid GET requests
+    // Don't load existing images into preview to avoid GET requests
     // Only show previews for newly selected files (blob: URLs)
     setNewLeague({
       name: league.name,
-      backgroundImageUrl: '' // Empty - will show upload button instead
+      backgroundImageUrl: '', // Empty - will show upload button instead
+      logoUrl: '' // Empty - will show upload button instead
     });
     setBgFile(null); // Clear any previously selected file
+    setLogoFile(null); // Clear any previously selected logo file
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const handleCancelEdit = () => {
-    // Clean up object URL to avoid memory leaks
+    // Clean up object URLs to avoid memory leaks
     if (newLeague.backgroundImageUrl && newLeague.backgroundImageUrl.startsWith('blob:')) {
       URL.revokeObjectURL(newLeague.backgroundImageUrl);
     }
+    if (newLeague.logoUrl && newLeague.logoUrl.startsWith('blob:')) {
+      URL.revokeObjectURL(newLeague.logoUrl);
+    }
     
     setEditingLeague(null);
-    setNewLeague({ name: '', backgroundImageUrl: '' });
+    setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '' });
     setBgFile(null);
+    setLogoFile(null);
     setUploadError(null);
   };
 
@@ -142,7 +178,7 @@ const Leagues: React.FC = () => {
         leagueId = created.id || league.id;
       }
 
-      // If there's a file to upload, do it now
+      // If there's a background file to upload, do it now
       if (bgFile) {
         try {
           console.log(`Uploading background for league ${leagueId}...`);
@@ -150,11 +186,26 @@ const Leagues: React.FC = () => {
           console.log('Background uploaded successfully');
         } catch (uploadErr: any) {
           console.error('Background upload failed:', uploadErr);
-          // League created/updated but upload failed
           setUploadError(
             `League ${editingLeague ? 'updated' : 'created'}, but background upload failed: ${uploadErr.message || 'Unknown error'}. You can try uploading again by editing the league.`
           );
-          // Keep the file and form open for retry
+          setIsAdding(false);
+          await loadLeagues();
+          return;
+        }
+      }
+
+      // If there's a logo file to upload, do it now
+      if (logoFile) {
+        try {
+          console.log(`Uploading logo for league ${leagueId}...`);
+          await uploadLeagueLogo(leagueId, logoFile);
+          console.log('Logo uploaded successfully');
+        } catch (uploadErr: any) {
+          console.error('Logo upload failed:', uploadErr);
+          setUploadError(
+            `League ${editingLeague ? 'updated' : 'created'}, but logo upload failed: ${uploadErr.message || 'Unknown error'}. You can try uploading again by editing the league.`
+          );
           setIsAdding(false);
           await loadLeagues();
           return;
@@ -162,8 +213,9 @@ const Leagues: React.FC = () => {
       }
 
       // Success - clean up
-      setNewLeague({ name: '', backgroundImageUrl: '' });
+      setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '' });
       setBgFile(null);
+      setLogoFile(null);
       setEditingLeague(null);
       setUploadError(null);
       await loadLeagues();
@@ -339,6 +391,49 @@ const Leagues: React.FC = () => {
                       </button>
                     )}
                     <input type="file" ref={bgInputRef} className="hidden" accept="image/*" onChange={handleImageUpload} />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">League Logo (512×512)</label>
+                  <div className={`relative group aspect-square bg-[#0B0C10] rounded-2xl border border-dashed flex items-center justify-center overflow-hidden transition-all ${
+                    isEditMode 
+                      ? 'border-amber-500/30 hover:border-amber-500/50' 
+                      : 'border-white/10 hover:border-sky-500/30'
+                  }`}>
+                    {newLeague.logoUrl ? (
+                      <>
+                        <img src={newLeague.logoUrl} className="w-full h-full object-contain p-4" alt="Logo Preview" />
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            // Clean up object URL if it exists
+                            if (newLeague.logoUrl.startsWith('blob:')) {
+                              URL.revokeObjectURL(newLeague.logoUrl);
+                            }
+                            setNewLeague({ ...newLeague, logoUrl: '' });
+                            setLogoFile(null);
+                          }}
+                          className="absolute top-3 right-3 bg-red-500 rounded-full p-1.5 text-white shadow-xl active:scale-90"
+                        >
+                          <X className="w-3.5 h-3.5"/>
+                        </button>
+                      </>
+                    ) : (
+                      <button 
+                        type="button"
+                        onClick={() => logoInputRef.current?.click()} 
+                        className={`flex flex-col items-center gap-2 transition-all ${
+                          isEditMode 
+                            ? 'text-zinc-600 hover:text-amber-400' 
+                            : 'text-zinc-600 hover:text-sky-400'
+                        }`}
+                      >
+                        <Trophy className="w-8 h-8" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">Upload Logo</span>
+                      </button>
+                    )}
+                    <input type="file" ref={logoInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
                   </div>
                 </div>
               </div>
