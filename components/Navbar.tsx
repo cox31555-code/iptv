@@ -32,7 +32,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
       {/* Stable Layout Placeholder - Increased height to prevent overlap on initial load */}
       <div className="w-full h-[180px] md:h-[220px] pointer-events-none" />
 
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b ${
+      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b pt-safe ${
         isScrolled 
           ? 'bg-black/95 backdrop-blur-2xl border-zinc-800/40 py-2 shadow-2xl' 
           : 'bg-black/40 backdrop-blur-sm border-transparent py-4 md:py-8'
@@ -91,7 +91,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
         {/* Mobile Menu */}
         {isOpen && (
-          <div className="md:hidden bg-zinc-950 border-t border-zinc-900 py-8 px-6 animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="md:hidden bg-zinc-950 border-t border-zinc-900 py-8 px-safe animate-in fade-in slide-in-from-top-4 duration-300">
             <div className="flex flex-col gap-6 text-center">
               <Link to="/" onClick={() => setIsOpen(false)} className="text-xl font-black tracking-tighter text-white">HOME</Link>
               <div className="h-px bg-zinc-900 w-12 mx-auto" />

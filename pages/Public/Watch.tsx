@@ -89,8 +89,8 @@ const Watch: React.FC = () => {
     );
   }
 
-  // Redirect only after confirming event doesn't exist
-  if (notFound || (!event && !isLoading)) {
+  // Redirect only after confirming event doesn't exist AND fetch completed
+  if (notFound && !isLoading) {
     return <Navigate to="/" />;
   }
 
