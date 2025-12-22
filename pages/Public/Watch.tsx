@@ -291,8 +291,6 @@ const Watch: React.FC = () => {
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 allowFullScreen={true}
                 title="Stream Player"
-                sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-pointer-lock allow-presentation"
-                referrerPolicy="no-referrer"
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-4">
