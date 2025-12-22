@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AppProvider } from './AppContext.tsx';
 import { ToastProvider } from './admin/components/Toast.tsx';
 import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
+import { initViewabilityTracking } from './utils/adViewability.ts';
 import Home from './pages/Public/Home.tsx';
 import Watch from './pages/Public/Watch.tsx';
 import CategoryPage from './pages/Public/CategoryPage.tsx';
@@ -26,32 +27,33 @@ declare global {
 const AdManager: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
+  const zones = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr'];
+  const adRefreshIntervals = new Map<string, NodeJS.Timeout>();
 
   useEffect(() => {
-    // Don't run ads on admin pages
-    if (isAdminPage) {
-      return;
-    }
+    if (isAdminPage) return;
 
-    // Run the ad tag on public pages (single zone)
-    const runAdTag = () => {
+    const runAllZones = () => {
       if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
-        try {
-          window.aclib.runAutoTag({ zoneId: 'tqblxpksrg' });
-        } catch (e) {
-          console.error('Ad lib execution error:', e);
-        }
+        zones.forEach((zoneId, index) => {
+          setTimeout(() => {
+            try {
+              window.aclib.runAutoTag({ zoneId });
+            } catch (e) {
+              console.error(`Ad lib execution error for zone ${zoneId}:`, e);
+            }
+          }, index * 150);
+        });
         return true;
       }
       return false;
     };
 
-    // Try immediately, if not ready, retry with interval
-    if (!runAdTag()) {
+    if (!runAllZones()) {
       let retryCount = 0;
       const checkAclib = setInterval(() => {
         retryCount++;
-        if (runAdTag() || retryCount > 50) {
+        if (runAllZones() || retryCount > 50) {
           clearInterval(checkAclib);
         }
       }, 100);
@@ -60,10 +62,35 @@ const AdManager: React.FC = () => {
     }
   }, [isAdminPage, location.pathname]);
 
+  useEffect(() => {
+    if (isAdminPage) return;
+
+    const refreshAds = () => {
+      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+        zones.forEach((zoneId, index) => {
+          setTimeout(() => {
+            try {
+              window.aclib.runAutoTag({ zoneId });
+            } catch (e) {
+              console.error(`Ad refresh error for zone ${zoneId}:`, e);
+            }
+          }, index * 150);
+        });
+      }
+    };
+
+    const refreshInterval = setInterval(refreshAds, 45000);
+    return () => clearInterval(refreshInterval);
+  }, [isAdminPage, location.pathname]);
+
   return null;
 };
 
 const App: React.FC = () => {
+  useEffect(() => {
+    initViewabilityTracking();
+  }, []);
+
   return (
     <AppProvider>
       <ToastProvider>
