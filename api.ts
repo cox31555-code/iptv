@@ -1,6 +1,10 @@
 import { SportEvent, Team, League, AdminUser } from './types';
+import { createRequestKey } from './utils/eventHelpers';
 
 const API_BASE_URL = 'https://api.ajsports.ch';
+
+// In-flight request deduplication cache
+const inFlightRequests = new Map<string, Promise<any>>();
 
 // Helper to get headers with proper content type
 const getHeaders = (): HeadersInit => {
@@ -15,6 +19,29 @@ const getFetchOptions = (options: RequestInit = {}): RequestInit => {
     ...options,
     credentials: 'include', // Always send cookies
   };
+};
+
+// Deduplicate in-flight GET requests only
+const fetchWithDedup = async (url: string, options: RequestInit = {}): Promise<Response> => {
+  const method = options.method || 'GET';
+  
+  // Only deduplicate GET requests
+  if (method === 'GET') {
+    const key = createRequestKey(url, method);
+    
+    if (inFlightRequests.has(key)) {
+      return inFlightRequests.get(key)!;
+    }
+    
+    const promise = fetch(url, options).finally(() => {
+      inFlightRequests.delete(key);
+    });
+    
+    inFlightRequests.set(key, promise);
+    return promise;
+  }
+  
+  return fetch(url, options);
 };
 
 // ============ EVENTS ============

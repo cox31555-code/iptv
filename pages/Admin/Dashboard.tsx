@@ -27,11 +27,11 @@ const Dashboard: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const stats = {
+  const stats = useMemo(() => ({
     live: events.filter(e => e.status === EventStatus.LIVE).length,
     upcoming: events.filter(e => e.status === EventStatus.UPCOMING).length,
     deletions: events.filter(e => e.deleteAt).length,
-  };
+  }), [events]);
 
   const filteredAndSortedEvents = useMemo(() => {
     return [...events]

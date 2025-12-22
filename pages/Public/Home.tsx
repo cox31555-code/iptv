@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
 import { useApp } from '../../AppContext.tsx';
 import { EventCategory, getCategorySlug, EventStatus } from '../../types.ts';
 import { CATEGORY_ORDER } from '../../constants.ts';
@@ -11,12 +11,13 @@ import Footer from '../../components/Footer.tsx';
 const Home: React.FC = () => {
   const { events, loading } = useApp();
   const [searchTerm, setSearchTerm] = useState('');
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [activeSpecialIndex, setActiveSpecialIndex] = useState(0);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const specialScrollRef = useRef<HTMLDivElement>(null);
 
-  const isSearching = searchTerm.trim().length > 0;
+  const isSearching = deferredSearchTerm.trim().length > 0;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -33,7 +34,7 @@ const Home: React.FC = () => {
   const filteredEvents = useMemo(() => {
     return events
       .filter(e => {
-        const term = searchTerm.toLowerCase();
+        const term = deferredSearchTerm.toLowerCase();
         return (
           e.teams.toLowerCase().includes(term) ||
           e.league.toLowerCase().includes(term) ||
@@ -43,7 +44,7 @@ const Home: React.FC = () => {
         );
       })
       .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
-  }, [events, searchTerm]);
+  }, [events, deferredSearchTerm]);
 
   const liveEvents = useMemo(() => {
     return events

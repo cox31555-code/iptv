@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './AppContext.tsx';
 import { ToastProvider } from './admin/components/Toast.tsx';
 import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
 import { initViewabilityTracking } from './utils/adViewability.ts';
+import { AD_ZONES, AD_RETRY_BACKOFF, AD_MAX_RETRIES, AD_ZONE_DELAY } from './constants.ts';
 import Home from './pages/Public/Home.tsx';
 import Watch from './pages/Public/Watch.tsx';
 import CategoryPage from './pages/Public/CategoryPage.tsx';
@@ -27,61 +28,77 @@ declare global {
 const AdManager: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.startsWith('/admin');
-  const zones = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr'];
-  const adRefreshIntervals = new Map<string, NodeJS.Timeout>();
+  const rafIdRef = useRef<number | null>(null);
+  const retryCountRef = useRef(0);
 
-  useEffect(() => {
-    if (isAdminPage) return;
-
-    const runAllZones = () => {
-      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
-        zones.forEach((zoneId, index) => {
-          setTimeout(() => {
-            try {
-              window.aclib.runAutoTag({ zoneId });
-            } catch (e) {
-              console.error(`Ad lib execution error for zone ${zoneId}:`, e);
-            }
-          }, index * 150);
-        });
-        return true;
-      }
-      return false;
-    };
-
-    if (!runAllZones()) {
-      let retryCount = 0;
-      const checkAclib = setInterval(() => {
-        retryCount++;
-        if (runAllZones() || retryCount > 50) {
-          clearInterval(checkAclib);
-        }
-      }, 100);
-
-      return () => clearInterval(checkAclib);
+  const runAllZones = () => {
+    if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+      AD_ZONES.forEach((zoneId, index) => {
+        setTimeout(() => {
+          try {
+            window.aclib.runAutoTag({ zoneId });
+          } catch (e) {
+            console.error(`Ad lib execution error for zone ${zoneId}:`, e);
+          }
+        }, index * AD_ZONE_DELAY);
+      });
+      return true;
     }
-  }, [isAdminPage, location.pathname]);
+    return false;
+  };
 
+  // Initial load with bounded backoff retry
   useEffect(() => {
     if (isAdminPage) return;
 
-    const refreshAds = () => {
-      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
-        zones.forEach((zoneId, index) => {
-          setTimeout(() => {
-            try {
-              window.aclib.runAutoTag({ zoneId });
-            } catch (e) {
-              console.error(`Ad refresh error for zone ${zoneId}:`, e);
-            }
-          }, index * 150);
-        });
+    if (runAllZones()) {
+      retryCountRef.current = 0;
+      return;
+    }
+
+    retryCountRef.current = 0;
+    const checkAclib = setInterval(() => {
+      retryCountRef.current++;
+      const backoffIndex = Math.min(retryCountRef.current - 1, AD_RETRY_BACKOFF.length - 1);
+      const delay = AD_RETRY_BACKOFF[backoffIndex];
+      
+      if (runAllZones() || retryCountRef.current >= AD_MAX_RETRIES) {
+        clearInterval(checkAclib);
+      }
+    }, AD_RETRY_BACKOFF[0]);
+
+    return () => clearInterval(checkAclib);
+  }, [isAdminPage]);
+
+  // Route change ad refresh with rAF coalescing
+  useEffect(() => {
+    if (isAdminPage) return;
+
+    // Cancel pending rAF if route changes again
+    if (rafIdRef.current !== null) {
+      cancelAnimationFrame(rafIdRef.current);
+    }
+
+    // Schedule refresh on next frame
+    rafIdRef.current = requestAnimationFrame(() => {
+      runAllZones();
+      rafIdRef.current = null;
+    });
+
+    return () => {
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
       }
     };
-
-    const refreshInterval = setInterval(refreshAds, 45000);
-    return () => clearInterval(refreshInterval);
   }, [isAdminPage, location.pathname]);
+
+  // Periodic refresh every 45s
+  useEffect(() => {
+    if (isAdminPage) return;
+
+    const refreshInterval = setInterval(runAllZones, 45000);
+    return () => clearInterval(refreshInterval);
+  }, [isAdminPage]);
 
   return null;
 };

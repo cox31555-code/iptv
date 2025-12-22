@@ -1,16 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Adcash with Anti-Adblock Support -->
-    <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
-    <script>
-      // Initialize Adcash Auto Tag for Anti-Adblock support
-      document.addEventListener('DOMContentLoaded', function() {
-        if (typeof aclib !== 'undefined' && aclib.runAutoTag) {
-          aclib.runAutoTag({zoneId: 'v73cub7u8a'});
-        }
-      });
-    </script>
+    <!-- Adcash Anti-Adblock Library (initialization handled by AdManager in App.tsx) -->
+    <script src="/lib-1b_48s7z.js"></script>
     <!-- End Adcash -->
 
     <!-- Google Analytics -->
@@ -24,7 +16,23 @@
     <!-- End Google Analytics -->
 
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="description" content="Watch free live sports streaming in Full HD - Football, NBA, Boxing, UFC, NFL & more. No buffering, multiple languages, 24/7 coverage of top leagues." />
+    <meta name="keywords" content="free live sports streaming, free football live stream, free NBA live stream, free boxing live stream, free UFC live stream, free NFL live stream, HD sports streaming, live sports online, sports streaming no buffering" />
+    <meta name="robots" content="index, follow" />
+    <meta name="theme-color" content="#04C4FC" />
+    
+    <!-- Open Graph Tags -->
+    <meta property="og:title" content="AJ Sports - Free Live Sports Streaming" />
+    <meta property="og:description" content="Stream Football, NBA, Boxing, UFC & NFL live in Full HD. Completely free, no buffering, 24/7 coverage." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://ajsports.ch" />
+    
+    <!-- Twitter Card Tags -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="AJ Sports - Free Live Sports Streaming" />
+    <meta name="twitter:description" content="Stream Football, NBA, Boxing, UFC & NFL live in Full HD. Completely free, no buffering, 24/7 coverage." />
+    
     <title>AJ Sports - Free Sports Live Streaming</title>
     
     <!-- Favicon -->
@@ -33,6 +41,12 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+      :root {
+        --safe-area-inset-top: env(safe-area-inset-top, 0);
+        --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+        --safe-area-inset-left: env(safe-area-inset-left, 0);
+        --safe-area-inset-right: env(safe-area-inset-right, 0);
+      }
       body {
         font-family: 'Inter', sans-serif;
         background-color: #0B0C10;
@@ -85,6 +99,23 @@
       .no-scrollbar::-webkit-scrollbar {
         display: none;
       }
+      /* Safe area utilities for notch/Dynamic Island support */
+      .pt-safe {
+        padding-top: max(1rem, var(--safe-area-inset-top));
+      }
+      .pb-safe {
+        padding-bottom: max(1rem, var(--safe-area-inset-bottom));
+      }
+      .pl-safe {
+        padding-left: max(1rem, var(--safe-area-inset-left));
+      }
+      .pr-safe {
+        padding-right: max(1rem, var(--safe-area-inset-right));
+      }
+      .px-safe {
+        padding-left: max(1rem, var(--safe-area-inset-left));
+        padding-right: max(1rem, var(--safe-area-inset-right));
+      }
     </style>
 
   <script type="importmap">
@@ -99,7 +130,7 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="/assets/index--1T_MFh7.js"></script>
+  <script type="module" crossorigin src="/assets/index-Qa3iINdO.js"></script>
 </head>
   <body>
     <div id="root"></div>

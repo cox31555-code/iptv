@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Clock, Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { SportEvent, EventStatus, getEventUrl } from '../types.ts';
 import { getFullImageUrl, getEventCoverUrl } from '../api.ts';
+import { formatEventTime, getDisplayCoverUrl } from '../utils/eventHelpers.ts';
 import Logo from './Logo.tsx';
 import SportIcon from './SportIcon.tsx';
 import LiveIndicator from './LiveIndicator.tsx';
@@ -15,44 +16,15 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
   const isLive = event.status === EventStatus.LIVE;
   const isUpcoming = event.status === EventStatus.UPCOMING;
 
-  // Helper: Get the display cover URL (never returns null)
-  const getDisplayCoverUrl = (): string => {
-    const manualUrl = event.coverImageUrl?.trim();
-    if (manualUrl) {
-      const fullUrl = getFullImageUrl(manualUrl);
-      if (fullUrl) return fullUrl;
-    }
-    return getEventCoverUrl(event.id);
-  };
-
-  const formatDisplayTime = (dateStr: string) => {
-    const eventDate = new Date(dateStr);
-    const now = new Date();
-    
-    const isSameDay = 
-      eventDate.getDate() === now.getDate() &&
-      eventDate.getMonth() === now.getMonth() &&
-      eventDate.getFullYear() === now.getFullYear();
-
-    if (isSameDay) {
-      return eventDate.toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        hour12: false
-      });
-    } else {
-      const month = eventDate.toLocaleString('en-US', { month: 'short' });
-      const day = eventDate.getDate();
-      return `${month} ${day}`;
-    }
-  };
+  const displayCoverUrl = useMemo(() => getDisplayCoverUrl(event), [event.id, event.coverImageUrl]);
+  const displayTime = useMemo(() => formatEventTime(event.startTime), [event.startTime]);
 
   return (
     <div className="group relative bg-zinc-900/40 rounded-xl md:rounded-2xl overflow-hidden border border-white/[0.05] hover:border-sky-500/50 transition-all duration-500 hover:shadow-[0_0_30px_rgba(14,165,233,0.1)] flex flex-col">
       <div className="aspect-[16/10] bg-black relative overflow-hidden flex items-center justify-center">
         {/* Priority: manual coverImageUrl > generated cover > imageUrl > hide */}
         <img
-          src={getDisplayCoverUrl()}
+          src={displayCoverUrl}
           alt={event.teams}
           loading="lazy"
           decoding="async"
@@ -106,7 +78,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
         <div className="flex items-center gap-3 md:gap-5 text-[9px] md:text-[11px] text-zinc-500 font-medium mt-auto mb-3 md:mb-5">
           <div className="flex items-center gap-1 md:gap-1.5 shrink-0">
             <Clock className="w-3 h-3 md:w-3.5 md:h-3.5 text-sky-500" />
-            {formatDisplayTime(event.startTime)}
+            {displayTime}
           </div>
           <div className="flex items-center gap-1 md:gap-1.5 uppercase tracking-tighter shrink-0 truncate">
             <SportIcon category={event.category} className="h-[9px] md:h-[11px] w-auto shrink-0 text-sky-500" />
