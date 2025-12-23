@@ -285,13 +285,23 @@ const Watch: React.FC = () => {
                 )}
               </div>
             ) : activeServer ? (
-              <iframe
-                src={activeServer.embedUrl}
-                className="w-full h-full border-none"
-                allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
-                allowFullScreen={true}
-                title="Stream Player"
-              />
+              activeServer.streamType === 'hls' ? (
+                <video
+                  src={activeServer.embedUrl}
+                  className="w-full h-full"
+                  controls
+                  autoPlay
+                  controlsList="nodownload"
+                />
+              ) : (
+                <iframe
+                  src={activeServer.embedUrl}
+                  className="w-full h-full border-none"
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen={true}
+                  title="Stream Player"
+                />
+              )
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-zinc-600 gap-4">
                 <div className="p-4 bg-white/5 rounded-full">

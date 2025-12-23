@@ -21,6 +21,7 @@ export interface StreamServer {
   id: string;
   name: string;
   embedUrl: string;
+  streamType: 'embed' | 'hls';
   sortOrder: number;
   isDefault: boolean;
   isActive: boolean;

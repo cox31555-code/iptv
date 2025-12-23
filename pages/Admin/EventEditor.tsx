@@ -66,6 +66,7 @@ const EventEditor: React.FC = () => {
   const [newServer, setNewServer] = useState<Partial<StreamServer>>({
     name: '',
     embedUrl: '',
+    streamType: 'embed',
     isActive: true,
     isDefault: false
   });
@@ -262,6 +263,7 @@ const EventEditor: React.FC = () => {
       id: serverId,
       name: newServer.name,
       embedUrl: newServer.embedUrl,
+      streamType: newServer.streamType as 'embed' | 'hls',
       isActive: newServer.isActive!,
       isDefault: newServer.isDefault!,
       sortOrder: 0 // Will be set correctly inside functional update
@@ -577,7 +579,14 @@ const EventEditor: React.FC = () => {
                 </div>
               ))}
               <div className="bg-[#0B0C10]/40 p-5 rounded-2xl border border-dashed border-white/10 space-y-4">
-                <div className="grid grid-cols-2 gap-4"><input placeholder="Server Label" value={newServer.name} onChange={e => setNewServer({ ...newServer, name: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs" /><input placeholder="Embed URL" value={newServer.embedUrl} onChange={e => setNewServer({ ...newServer, embedUrl: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs" /></div>
+                <div className="grid grid-cols-3 gap-4">
+                  <input placeholder="Server Label" value={newServer.name} onChange={e => setNewServer({ ...newServer, name: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs" />
+                  <select value={newServer.streamType || 'embed'} onChange={e => setNewServer({ ...newServer, streamType: e.target.value as 'embed' | 'hls' })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs appearance-none">
+                    <option value="embed">Embed</option>
+                    <option value="hls">HLS</option>
+                  </select>
+                  <input placeholder={newServer.streamType === 'hls' ? 'HLS URL' : 'Embed URL'} value={newServer.embedUrl} onChange={e => setNewServer({ ...newServer, embedUrl: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs" />
+                </div>
                 <div className="flex justify-between items-center"><label className="flex items-center gap-2 text-[10px] font-bold text-white/30 uppercase cursor-pointer"><input type="checkbox" checked={newServer.isDefault} onChange={e => setNewServer({ ...newServer, isDefault: e.target.checked })} className="accent-sky-500" /> Default</label><button onClick={addServer} className="px-4 py-2 bg-sky-500 text-black rounded-lg text-[10px] font-black uppercase tracking-widest">Add Source</button></div>
               </div>
             </div>
@@ -622,7 +631,15 @@ const EventEditor: React.FC = () => {
           </section>
 
           <div className="aspect-video bg-[#0B0C10] rounded-2xl border border-white/5 overflow-hidden shadow-2xl">
-            {previewServer ? <iframe src={previewServer.embedUrl} className="w-full h-full border-none" allowFullScreen title="Preview" /> : <div className="h-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-white/10 italic">No Source Selected</div>}
+            {previewServer ? (
+              previewServer.streamType === 'hls' ? (
+                <video src={previewServer.embedUrl} className="w-full h-full" controls autoPlay />
+              ) : (
+                <iframe src={previewServer.embedUrl} className="w-full h-full border-none" allowFullScreen title="Preview" />
+              )
+            ) : (
+              <div className="h-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-white/10 italic">No Source Selected</div>
+            )}
           </div>
         </div>
       </main>
