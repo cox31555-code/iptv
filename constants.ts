@@ -26,7 +26,7 @@ export const MOCK_ADMIN: any = {
 };
 
 // Ad Management Constants
-export const AD_ZONES = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr'];
+export const AD_ZONES = ['tqblxpksrg'];
 export const AD_RETRY_BACKOFF = [100, 200, 400]; // ms, capped at 400
 export const AD_MAX_RETRIES = 13; // ~5s total with backoff
 export const AD_ZONE_DELAY = 150; // ms between zone refreshes

@@ -5,28 +5,22 @@ This document outlines the RPM optimization improvements implemented to increase
 
 ## Changes Implemented
 
-### 1. Multi-Zone Activation (Priority 2)
-**File:** `App.tsx`
+### 1. Single Zone Configuration (Priority 2)
+**File:** `constants.ts`
 
 **What Changed:**
-- Upgraded from 1 active zone to 3 active zones per page
-- Zones: `v73cub7u8a`, `tqblxpksrg`, `9fxj8efkpr`
-- Staggered initialization (150ms delays between zones)
+- Configured single active zone: `tqblxpksrg`
+- Zone defined in `AD_ZONES` constant for easy management
 
 **How It Works:**
 ```typescript
-const zones = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr'];
-zones.forEach((zoneId, index) => {
-  setTimeout(() => {
-    window.aclib.runAutoTag({ zoneId });
-  }, index * 150); // Stagger by 150ms
-});
+export const AD_ZONES = ['tqblxpksrg'];
 ```
 
 **Impact:**
-- 3x more ad placements per page
-- 200-300% increase in impressions
-- Expected RPM improvement: $0.50-1.50 → $3-8 RPM
+- Single zone per page (focused delivery)
+- Improved fill rates with concentrated traffic
+- Expected RPM improvement: $0.50-1.50 → $1.50-3 RPM
 
 **Pages Affected:**
 - Home page
@@ -42,11 +36,11 @@ zones.forEach((zoneId, index) => {
 **What Changed:**
 - Automatic ad refresh every 45 seconds on long-view pages
 - Applies to all public pages
-- Staggered refresh across all 3 zones
+- Single zone refresh with rAF coalescing
 
 **How It Works:**
 ```typescript
-const refreshInterval = setInterval(refreshAds, 45000); // 45 seconds
+const refreshInterval = setInterval(runAllZones, 45000); // 45 seconds
 ```
 
 **Impact:**
@@ -55,8 +49,8 @@ const refreshInterval = setInterval(refreshAds, 45000); // 45 seconds
 - Particularly effective on Watch page (streaming duration)
 
 **Refresh Behavior:**
-- First load: All 3 zones initialize
-- After 45s: All 3 zones refresh
+- First load: Zone initializes
+- After 45s: Zone refreshes
 - Continues every 45s while user is on page
 
 ---
@@ -101,16 +95,13 @@ const observer = new IntersectionObserver((entries) => {
 ## Implementation Details
 
 ### Zone Configuration
-All three zones are now active on every public page:
+Single active zone on every public page:
 
 | Zone ID | Status | Purpose |
 |---------|--------|---------|
-| v73cub7u8a | Active | Primary zone |
-| tqblxpksrg | Active | Secondary zone |
-| 9fxj8efkpr | Active | Tertiary zone |
+| tqblxpksrg | Active | Primary zone |
 
 ### Timing Configuration
-- **Zone Initialization Delay:** 150ms between zones
 - **Ad Refresh Interval:** 45 seconds
 - **Viewability Threshold:** 50% visible
 - **Minimum View Time:** 1 second
@@ -132,16 +123,16 @@ All three zones are now active on every public page:
 - **Estimated RPM:** $0.50-1.50
 
 ### After Optimization
-- 3 zones per page
+- 1 zone per page (focused)
 - 45-second refresh cycle
 - Viewability tracking enabled
-- **Estimated RPM:** $3-8 (4-5x improvement)
+- **Estimated RPM:** $1.50-3 (2-3x improvement)
 
 ### Metrics to Monitor
-1. **Impressions:** Should increase 200-300%
+1. **Impressions:** Should increase 50-100%
 2. **CTR (Click-Through Rate):** May increase slightly
 3. **CPM (Cost Per Mille):** Should improve with viewability
-4. **Fill Rate:** Should improve with multiple zones
+4. **Fill Rate:** Should improve with refresh cycle
 5. **Revenue:** Direct correlation with impressions × CPM
 
 ---
