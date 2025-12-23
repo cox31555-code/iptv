@@ -286,7 +286,7 @@ const Watch: React.FC = () => {
               </div>
             ) : activeServer ? (
               <iframe
-                src={activeServer.embedUrl}
+                src={`/api/proxy/stream?url=${encodeURIComponent(activeServer.embedUrl)}`}
                 className="w-full h-full border-none"
                 allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                 allowFullScreen={true}
