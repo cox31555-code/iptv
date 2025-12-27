@@ -180,25 +180,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await api.changePassword(oldPassword, newPassword);
   }, []);
 
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    events, 
+    teams, 
+    loading,
+    error,
+    addEvent, 
+    updateEvent, 
+    deleteEvent, 
+    addTeam, 
+    updateTeam, 
+    deleteTeam,
+    admin, 
+    loginAdmin,
+    logout,
+    changePassword,
+    refreshEvents,
+    refreshTeams
+  }), [
+    events, 
+    teams, 
+    loading,
+    error,
+    addEvent, 
+    updateEvent, 
+    deleteEvent, 
+    addTeam, 
+    updateTeam, 
+    deleteTeam,
+    admin, 
+    loginAdmin,
+    logout,
+    changePassword,
+    refreshEvents,
+    refreshTeams
+  ]);
+
   return (
-    <AppContext.Provider value={{ 
-      events, 
-      teams, 
-      loading,
-      error,
-      addEvent, 
-      updateEvent, 
-      deleteEvent, 
-      addTeam, 
-      updateTeam, 
-      deleteTeam,
-      admin, 
-      loginAdmin,
-      logout,
-      changePassword,
-      refreshEvents,
-      refreshTeams
-    }}>
+    <AppContext.Provider value={contextValue}>
       {children}
     </AppContext.Provider>
   );

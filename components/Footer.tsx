@@ -4,7 +4,7 @@ import FooterLogo from './FooterLogo.tsx';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="border-t border-white/5 pt-12 pb-8 bg-zinc-950/95 mt-16 flex flex-col items-center w-full">
+    <footer role="contentinfo" className="border-t border-white/5 pt-12 pb-8 bg-zinc-950/95 mt-16 flex flex-col items-center w-full">
       <FooterLogo className="h-12 md:h-16 opacity-80" />
       <div className="max-w-4xl mx-auto px-8 mt-10 space-y-4 text-center">
         <h4 className="text-[11px] font-black uppercase tracking-[0.3em] text-zinc-400 mb-2">Disclaimer</h4>

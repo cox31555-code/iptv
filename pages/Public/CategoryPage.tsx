@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
 import { EventCategory, categoryFromSlug, SportEvent } from '../../types.ts';
+import { usePageTitle } from '../../utils/usePageTitle.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
 import NotFound from './NotFound.tsx';
@@ -23,6 +24,9 @@ const CategoryPage: React.FC = () => {
   
   const isSpecialPage = categorySlug === 'special';
   const isOtherSportsPage = categorySlug === 'other-sports';
+
+  // Set dynamic page title
+  usePageTitle(isSpecialPage ? 'Special Events' : displayName);
 
   const filteredEvents = useMemo(() => {
     if (!isValidCategory) return [];

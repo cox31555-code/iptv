@@ -1,21 +1,30 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AppProvider } from './AppContext.tsx';
 import { ToastProvider } from './admin/components/Toast.tsx';
 import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
 import { initViewabilityTracking } from './utils/adViewability.ts';
 import { AD_ZONES, AD_RETRY_BACKOFF, AD_MAX_RETRIES, AD_ZONE_DELAY } from './constants.ts';
-import Home from './pages/Public/Home.tsx';
-import Watch from './pages/Public/Watch.tsx';
-import CategoryPage from './pages/Public/CategoryPage.tsx';
-import NotFound from './pages/Public/NotFound.tsx';
-import Login from './pages/Admin/Login.tsx';
-import Dashboard from './pages/Admin/Dashboard.tsx';
-import EventEditor from './pages/Admin/EventEditor.tsx';
-import Settings from './pages/Admin/Settings.tsx';
-import Teams from './pages/Admin/Teams.tsx';
-import Leagues from './pages/Admin/Leagues.tsx';
 import ProtectedRoute from './admin/components/ProtectedRoute.tsx';
+
+// Lazy load route components for better performance
+const Home = lazy(() => import('./pages/Public/Home.tsx'));
+const Watch = lazy(() => import('./pages/Public/Watch.tsx'));
+const CategoryPage = lazy(() => import('./pages/Public/CategoryPage.tsx'));
+const NotFound = lazy(() => import('./pages/Public/NotFound.tsx'));
+const Login = lazy(() => import('./pages/Admin/Login.tsx'));
+const Dashboard = lazy(() => import('./pages/Admin/Dashboard.tsx'));
+const EventEditor = lazy(() => import('./pages/Admin/EventEditor.tsx'));
+const Settings = lazy(() => import('./pages/Admin/Settings.tsx'));
+const Teams = lazy(() => import('./pages/Admin/Teams.tsx'));
+const Leagues = lazy(() => import('./pages/Admin/Leagues.tsx'));
+
+// Loading fallback component
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-[#04C4FC] text-lg">Loading...</div>
+  </div>
+);
 
 declare global {
   interface Window {
@@ -115,9 +124,10 @@ const App: React.FC = () => {
           <BrowserRouter>
             <div className="bg-[#0B0C10] text-[#E6E6E6] min-h-screen">
               <AdManager />
-              <Routes>
-            {/* Admin Routes */}
-            <Route path="/admin/login" element={<Login />} />
+              <Suspense fallback={<LoadingFallback />}>
+                <Routes>
+                  {/* Admin Routes */}
+                  <Route path="/admin/login" element={<Login />} />
             <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/admin/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
             <Route path="/admin/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
@@ -132,7 +142,8 @@ const App: React.FC = () => {
             
             {/* 404 Route */}
             <Route path="*" element={<NotFound />} />
-              </Routes>
+                </Routes>
+              </Suspense>
             </div>
           </BrowserRouter>
         </ConfirmDialogProvider>

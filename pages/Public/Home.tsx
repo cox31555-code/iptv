@@ -7,6 +7,7 @@ import Navbar from '../../components/Navbar.tsx';
 import { ChevronRight, Search, XCircle, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../../components/Footer.tsx';
+import { usePageTitle } from '../../utils/usePageTitle.ts';
 
 const Home: React.FC = () => {
   const { events, loading } = useApp();
@@ -18,6 +19,9 @@ const Home: React.FC = () => {
   const specialScrollRef = useRef<HTMLDivElement>(null);
 
   const isSearching = deferredSearchTerm.trim().length > 0;
+
+  // Set dynamic page title
+  usePageTitle('Live Sports Streaming');
 
   useEffect(() => {
     const handleScroll = () => {

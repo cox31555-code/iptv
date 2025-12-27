@@ -12,7 +12,7 @@ interface EventCardProps {
   event: SportEvent;
 }
 
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = React.memo(({ event }) => {
   const isLive = event.status === EventStatus.LIVE;
   const isUpcoming = event.status === EventStatus.UPCOMING;
 
@@ -100,6 +100,6 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
       </div>
     </div>
   );
-};
+});
 
 export default EventCard;

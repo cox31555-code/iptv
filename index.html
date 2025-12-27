@@ -1,24 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <!-- Adcash Anti-Adblock Library (initialization handled by AdManager in App.tsx) -->
-    <script src="/lib-1b_48s7z.js"></script>
-    <!-- End Adcash -->
-
-    <!-- Google Analytics -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-60N55M672M"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', 'G-60N55M672M');
-    </script>
-    <!-- End Google Analytics -->
-
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="description" content="Watch free live sports streaming in Full HD - Football, NBA, Boxing, UFC, NFL & more. No buffering, multiple languages, 24/7 coverage of top leagues." />
     <meta name="keywords" content="free live sports streaming, free football live stream, free NBA live stream, free boxing live stream, free UFC live stream, free NFL live stream, HD sports streaming, live sports online, sports streaming no buffering" />
+    <meta name="author" content="AJSPORTS" />
     <meta name="robots" content="index, follow" />
     <meta name="theme-color" content="#04C4FC" />
     
@@ -27,11 +14,16 @@
     <meta property="og:description" content="Stream Football, NBA, Boxing, UFC & NFL live in Full HD. Completely free, no buffering, 24/7 coverage." />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://ajsports.ch" />
+    <meta property="og:site_name" content="AJSPORTS" />
+    <meta property="og:image" content="https://ajsports.ch/favicon.ico" />
     
     <!-- Twitter Card Tags -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="AJ Sports - Free Live Sports Streaming" />
     <meta name="twitter:description" content="Stream Football, NBA, Boxing, UFC & NFL live in Full HD. Completely free, no buffering, 24/7 coverage." />
+    
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://ajsports.ch" />
     
     <title>AJ Sports - Free Sports Live Streaming</title>
     
@@ -39,7 +31,13 @@
     <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Preconnect to external domains for faster loading -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Accessibility styles -->
+    <link rel="stylesheet" href="/styles/accessibility.css">
     <style>
       :root {
         --safe-area-inset-top: env(safe-area-inset-top, 0);
@@ -133,5 +131,18 @@
   <body>
     <div id="root"></div>
     <script type="module" src="./index.tsx"></script>
+    
+    <!-- Deferred scripts for better performance -->
+    <!-- Adcash Anti-Adblock Library -->
+    <script src="/lib-1b_48s7z.js" defer></script>
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-60N55M672M"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-60N55M672M');
+    </script>
   </body>
 </html>

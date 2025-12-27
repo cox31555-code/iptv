@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
+import { usePageTitle } from '../../utils/usePageTitle.ts';
 import { ChevronLeft, Server, Clock, Lock, MapPin, Loader2 } from 'lucide-react';
 import Navbar from '../../components/Navbar.tsx';
 import { EventCategory, EventStatus, SportEvent } from '../../types.ts';
@@ -54,6 +55,9 @@ const Watch: React.FC = () => {
   );
 
   const [currentTime, setCurrentTime] = useState(Date.now());
+  
+  // Set dynamic page title
+  usePageTitle(event ? `${event.teams} - ${event.league}` : 'Watch Live');
   
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -299,7 +303,7 @@ const Watch: React.FC = () => {
                   className="w-full h-full border-none"
                   allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
                   allowFullScreen={true}
-                  title="Stream Player"
+                  title={`Live stream: ${event.teams} - ${event.league}`}
                 />
               )
             ) : (

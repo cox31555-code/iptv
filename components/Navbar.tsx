@@ -32,11 +32,14 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
       {/* Stable Layout Placeholder - Increased height to prevent overlap on initial load */}
       <div className="w-full h-[180px] md:h-[220px] pointer-events-none" />
 
-      <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b pt-safe ${
-        isScrolled 
-          ? 'bg-black/95 backdrop-blur-2xl border-zinc-800/40 py-2 shadow-2xl' 
-          : 'bg-black/40 backdrop-blur-sm border-transparent py-4 md:py-8'
-      }`}>
+      <nav 
+        role="navigation" 
+        aria-label="Main navigation"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b pt-safe ${
+          isScrolled 
+            ? 'bg-black/95 backdrop-blur-2xl border-zinc-800/40 py-2 shadow-2xl' 
+            : 'bg-black/40 backdrop-blur-sm border-transparent py-4 md:py-8'
+        }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-0">
             
@@ -46,7 +49,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 isScrolled ? 'max-h-0 opacity-0 -translate-y-4 pointer-events-none mb-0' : 'max-h-24 opacity-100 translate-y-0 mb-4 md:mb-6'
               }`}
             >
-              <Link to="/" className="flex items-center group py-1">
+              <Link to="/" aria-label="Home" className="flex items-center group py-1">
                 <Logo className="h-10 md:h-16 group-hover:scale-105 transition-transform duration-500" />
               </Link>
             </div>
