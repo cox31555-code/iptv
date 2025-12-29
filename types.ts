@@ -41,7 +41,6 @@ export interface League {
   slug: string;
   backgroundImageUrl: string;
   logoUrl?: string;
-  categoryId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
