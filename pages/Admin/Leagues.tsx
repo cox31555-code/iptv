@@ -18,7 +18,7 @@ import {
   CheckCircle,
   Image as ImageIcon
 } from 'lucide-react';
-import { League } from '../../types.ts';
+import { League, EventCategory } from '../../types.ts';
 import { getLeagues, createLeague, updateLeague, deleteLeague, uploadLeagueBackground, uploadLeagueLogo } from '../../api.ts';
 import Logo from '../../components/Logo.tsx';
 
@@ -27,7 +27,7 @@ const Leagues: React.FC = () => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '', logoUrl: '' });
+  const [newLeague, setNewLeague] = useState({ name: '', categoryId: '', backgroundImageUrl: '', logoUrl: '' });
   const [bgFile, setBgFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -126,6 +126,7 @@ const Leagues: React.FC = () => {
     // Only show previews for newly selected files (blob: URLs)
     setNewLeague({
       name: league.name,
+      categoryId: league.categoryId || '',
       backgroundImageUrl: '', // Empty - will show upload button instead
       logoUrl: '' // Empty - will show upload button instead
     });
@@ -144,7 +145,7 @@ const Leagues: React.FC = () => {
     }
     
     setEditingLeague(null);
-    setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '' });
+    setNewLeague({ name: '', categoryId: '', backgroundImageUrl: '', logoUrl: '' });
     setBgFile(null);
     setLogoFile(null);
     setUploadError(null);
@@ -161,9 +162,10 @@ const Leagues: React.FC = () => {
       let leagueId: string;
       
       if (editingLeague) {
-        // Update existing league (name only, no backgroundImageUrl)
+        // Update existing league (name and categoryId, no backgroundImageUrl)
         await updateLeague(editingLeague.id, {
-          name: newLeague.name.trim()
+          name: newLeague.name.trim(),
+          categoryId: newLeague.categoryId || undefined
         });
         leagueId = editingLeague.id;
       } else {
@@ -172,7 +174,8 @@ const Leagues: React.FC = () => {
           id: crypto.randomUUID(),
           name: newLeague.name.trim(),
           slug: generateSlug(newLeague.name.trim()),
-          backgroundImageUrl: '' // Empty - will be set by file upload
+          backgroundImageUrl: '', // Empty - will be set by file upload
+          categoryId: newLeague.categoryId || undefined
         };
         const created = await createLeague(league);
         leagueId = created.id || league.id;
@@ -349,6 +352,27 @@ const Leagues: React.FC = () => {
                         : 'border-white/10 focus:ring-sky-500'
                     }`}
                   />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Category</label>
+                  <select
+                    value={newLeague.categoryId}
+                    onChange={e => setNewLeague({ ...newLeague, categoryId: e.target.value })}
+                    className={`w-full bg-[#0B0C10] border rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 outline-none transition-all ${
+                      isEditMode 
+                        ? 'border-amber-500/30 focus:ring-amber-500' 
+                        : 'border-white/10 focus:ring-sky-500'
+                    }`}
+                  >
+                    <option value="">Select a category (optional)</option>
+                    <option value="Football">Football</option>
+                    <option value="NBA">NBA</option>
+                    <option value="NFL">NFL</option>
+                    <option value="UFC">UFC</option>
+                    <option value="Motorsports">Motorsports</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
 
                 <div className="space-y-3">

@@ -1,7 +1,7 @@
 import { SportEvent, Team, League, AdminUser } from './types';
 import { createRequestKey } from './utils/eventHelpers';
 
-const API_BASE_URL = 'https://api.ajsports.ch';
+const API_BASE_URL = 'http://localhost:3000';
 
 // In-flight request deduplication cache
 const inFlightRequests = new Map<string, Promise<any>>();
