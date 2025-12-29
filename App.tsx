@@ -4,7 +4,7 @@ import { AppProvider } from './AppContext.tsx';
 import { ToastProvider } from './admin/components/Toast.tsx';
 import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
 import { initViewabilityTracking } from './utils/adViewability.ts';
-import { AD_ZONES, AD_RETRY_BACKOFF, AD_MAX_RETRIES, AD_ZONE_DELAY } from './constants.ts';
+import { AD_ZONES, AD_RETRY_BACKOFF, AD_MAX_RETRIES, AD_ZONE_DELAY, ZONE_MAPPING } from './constants.ts';
 import ProtectedRoute from './admin/components/ProtectedRoute.tsx';
 
 // Lazy load route components for better performance
@@ -40,17 +40,24 @@ const AdManager: React.FC = () => {
   const rafIdRef = useRef<number | null>(null);
   const retryCountRef = useRef(0);
 
+  // Determine which zone to use based on current route
+  const getZoneForRoute = (pathname: string): string => {
+    if (pathname === '/') return ZONE_MAPPING.home;
+    if (pathname.startsWith('/watch/')) return ZONE_MAPPING.watch;
+    // Category pages match pattern /:categorySlug (single segment, not /watch or /admin)
+    if (pathname.match(/^\/[^\/]+$/)) return ZONE_MAPPING.category;
+    return ZONE_MAPPING.default;
+  };
+
   const runAllZones = () => {
     if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
-      AD_ZONES.forEach((zoneId, index) => {
-        setTimeout(() => {
-          try {
-            window.aclib.runAutoTag({ zoneId });
-          } catch (e) {
-            console.error(`Ad lib execution error for zone ${zoneId}:`, e);
-          }
-        }, index * AD_ZONE_DELAY);
-      });
+      const currentZone = getZoneForRoute(location.pathname);
+      try {
+        window.aclib.runAutoTag({ zoneId: currentZone });
+        console.log(`[AdManager] Running zone ${currentZone} for route ${location.pathname}`);
+      } catch (e) {
+        console.error(`Ad lib execution error for zone ${currentZone}:`, e);
+      }
       return true;
     }
     return false;

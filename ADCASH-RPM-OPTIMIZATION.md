@@ -5,21 +5,38 @@ This document outlines the RPM optimization improvements implemented to increase
 
 ## Changes Implemented
 
-### 1. Single Zone Configuration (Priority 2)
-**File:** `constants.ts`
+### 1. Zone-Per-Page Configuration (Priority 2)
+**Files:** `constants.ts`, `App.tsx`
 
 **What Changed:**
-- Configured single active zone: `tqblxpksrg`
-- Zone defined in `AD_ZONES` constant for easy management
+- Implemented page-type based zone mapping
+- Each major page type uses a dedicated AdCash zone
+- Route detection automatically selects appropriate zone
+
+**Zone Mapping:**
+```typescript
+export const ZONE_MAPPING = {
+  home: 'v73cub7u8a',        // Home page (/)
+  category: 'tqblxpksrg',    // Category pages (/:categorySlug)
+  watch: '9fxj8efkpr',       // Watch page (/watch/:eventSlug)
+  default: 'tqblxpksrg'      // Fallback for other pages
+};
+```
 
 **How It Works:**
 ```typescript
-export const AD_ZONES = ['tqblxpksrg'];
+const getZoneForRoute = (pathname: string): string => {
+  if (pathname === '/') return ZONE_MAPPING.home;
+  if (pathname.startsWith('/watch/')) return ZONE_MAPPING.watch;
+  if (pathname.match(/^\/[^\/]+$/)) return ZONE_MAPPING.category;
+  return ZONE_MAPPING.default;
+};
 ```
 
 **Impact:**
-- Single zone per page (focused delivery)
-- Improved fill rates with concentrated traffic
+- Dedicated zone per page type for better analytics
+- AdCash optimizes each zone for its specific traffic pattern
+- Can track and optimize performance by page type
 - Expected RPM improvement: $0.50-1.50 → $1.50-3 RPM
 
 **Pages Affected:**
@@ -95,11 +112,13 @@ const observer = new IntersectionObserver((entries) => {
 ## Implementation Details
 
 ### Zone Configuration
-Single active zone on every public page:
+Zone-per-page mapping for optimized analytics and performance:
 
-| Zone ID | Status | Purpose |
-|---------|--------|---------|
-| tqblxpksrg | Active | Primary zone |
+| Zone ID | Status | Page Type | Route Pattern |
+|---------|--------|-----------|---------------|
+| v73cub7u8a | Active | Home Page | `/` |
+| tqblxpksrg | Active | Category Pages | `/:categorySlug` |
+| 9fxj8efkpr | Active | Watch Page | `/watch/:eventSlug` |
 
 ### Timing Configuration
 - **Ad Refresh Interval:** 45 seconds
@@ -237,17 +256,36 @@ Add explicit ad divs with proper sizing for better fill rates:
 
 ## Monitoring & Analytics
 
+### Zone-Specific Analytics Benefits
+
+With the zone-per-page strategy, you can now track performance by page type:
+
+**Home Page (v73cub7u8a):**
+- High traffic volume, short session duration
+- Focus on: CTR, initial impressions
+- Optimize for: Quick engagement
+
+**Category Pages (tqblxpksrg):**
+- Medium traffic, browsing behavior
+- Focus on: Impressions per session, fill rate
+- Optimize for: Discovery phase engagement
+
+**Watch Page (9fxj8efkpr):**
+- Highest engagement, longest sessions
+- Focus on: Viewability, refresh impressions
+- Optimize for: Time-on-page monetization
+
 ### Key Metrics to Track
-1. **Daily Impressions:** Target 3x increase
-2. **CPM Trend:** Should improve over 7-14 days
-3. **Fill Rate:** Monitor per zone
-4. **Revenue:** Direct indicator of success
+1. **Daily Impressions per Zone:** Compare Home vs Category vs Watch
+2. **CPM Trend per Zone:** Identify highest-performing page type
+3. **Fill Rate per Zone:** Monitor which pages get best ad coverage
+4. **Revenue per Zone:** Direct indicator of page-type value
 
 ### AdCash Dashboard Checks
-- Zone performance by day
-- Geographic distribution
-- Device breakdown
-- Traffic quality score
+- Zone performance by day (compare all 3 zones)
+- Geographic distribution per zone
+- Device breakdown per zone
+- Traffic quality score per zone
 
 ---
 
