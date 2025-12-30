@@ -3,6 +3,7 @@ import { Menu, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo.tsx';
 import DonateModal from './DonateModal.tsx';
+import AdSlot from './AdSlot.tsx';
 
 interface NavbarProps {
   onSearch: (term: string) => void;
