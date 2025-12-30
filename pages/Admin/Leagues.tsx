@@ -216,7 +216,7 @@ const Leagues: React.FC = () => {
       }
 
       // Success - clean up
-      setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '' });
+      setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '', categoryId: '' });
       setBgFile(null);
       setLogoFile(null);
       setEditingLeague(null);
