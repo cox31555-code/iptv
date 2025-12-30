@@ -135,8 +135,9 @@ curl https://ajsports.ch/lib-1b_48s7z.js
 ## ✅ Verification Checklist
 
 ### 1. Library File Check
-- [ ] `https://ajsports.ch/lib-1b_48s7z.js` returns JavaScript (not 404)
-- [ ] File size is reasonable (typically 50-200KB)
+- [ ] `https://acscdn.com/script/aclib.js` is requested on every public route (check the Network tab, status 200)
+- [ ] `https://ajsports.ch/lib-1b_48s7z.js` returns JavaScript (fallback stays healthy)
+- [ ] Neither script is blocked by CSP or mixed-content issues
 
 ### 2. Browser Console Check
 
@@ -145,7 +146,8 @@ Open DevTools (F12) → Console:
 **Expected logs:**
 ```
 ✓ window.aclib found
-✓ Adcash initialized successfully
+✓ Adcash initialized successfully with zone ezlzq7hamb
+[AdManager] Running zone ezlzq7hamb for route /...
 ```
 
 **Not expected:**
