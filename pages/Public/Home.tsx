@@ -4,6 +4,7 @@ import { EventCategory, getCategorySlug, EventStatus } from '../../types.ts';
 import { CATEGORY_ORDER } from '../../constants.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
+import AdSlot from '../../components/AdSlot.tsx';
 import { ChevronRight, Search, XCircle, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../../components/Footer.tsx';
