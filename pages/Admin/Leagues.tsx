@@ -27,7 +27,7 @@ const Leagues: React.FC = () => {
   const [leagues, setLeagues] = useState<League[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '', logoUrl: '' });
+  const [newLeague, setNewLeague] = useState({ name: '', backgroundImageUrl: '', logoUrl: '', categoryId: '' });
   const [bgFile, setBgFile] = useState<File | null>(null);
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -127,7 +127,8 @@ const Leagues: React.FC = () => {
     setNewLeague({
       name: league.name,
       backgroundImageUrl: '', // Empty - will show upload button instead
-      logoUrl: '' // Empty - will show upload button instead
+      logoUrl: '', // Empty - will show upload button instead
+      categoryId: league.categoryId || '' // Load existing category
     });
     setBgFile(null); // Clear any previously selected file
     setLogoFile(null); // Clear any previously selected logo file
@@ -144,7 +145,7 @@ const Leagues: React.FC = () => {
     }
     
     setEditingLeague(null);
-    setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '' });
+    setNewLeague({ name: '', backgroundImageUrl: '', logoUrl: '', categoryId: '' });
     setBgFile(null);
     setLogoFile(null);
     setUploadError(null);
@@ -161,9 +162,10 @@ const Leagues: React.FC = () => {
       let leagueId: string;
       
       if (editingLeague) {
-        // Update existing league (name only, no backgroundImageUrl)
+        // Update existing league (name and categoryId)
         await updateLeague(editingLeague.id, {
-          name: newLeague.name.trim()
+          name: newLeague.name.trim(),
+          categoryId: newLeague.categoryId || undefined
         });
         leagueId = editingLeague.id;
       } else {
@@ -172,7 +174,8 @@ const Leagues: React.FC = () => {
           id: crypto.randomUUID(),
           name: newLeague.name.trim(),
           slug: generateSlug(newLeague.name.trim()),
-          backgroundImageUrl: '' // Empty - will be set by file upload
+          backgroundImageUrl: '', // Empty - will be set by file upload
+          categoryId: newLeague.categoryId || undefined
         };
         const created = await createLeague(league);
         leagueId = created.id || league.id;
@@ -351,6 +354,29 @@ const Leagues: React.FC = () => {
                   />
                 </div>
 
+                <div>
+                  <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Category *</label>
+                  <select 
+                    required
+                    value={newLeague.categoryId}
+                    onChange={e => setNewLeague({ ...newLeague, categoryId: e.target.value })}
+                    className={`w-full bg-[#0B0C10] border rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 outline-none transition-all ${
+                      isEditMode 
+                        ? 'border-amber-500/30 focus:ring-amber-500' 
+                        : 'border-white/10 focus:ring-sky-500'
+                    }`}
+                  >
+                    <option value="">Select a category</option>
+                    <option value="Football">Football</option>
+                    <option value="Basketball">Basketball</option>
+                    <option value="NFL">NFL</option>
+                    <option value="UFC">UFC</option>
+                    <option value="Motorsports">Motorsports</option>
+                    <option value="NBA">NBA</option>
+                    <option value="Other Sports">Other Sports</option>
+                  </select>
+                </div>
+
                 <div className="space-y-3">
                   <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Background Image (1440×900)</label>
                   <div className={`relative group aspect-video bg-[#0B0C10] rounded-2xl border border-dashed flex items-center justify-center overflow-hidden transition-all ${
@@ -522,6 +548,11 @@ const Leagues: React.FC = () => {
                     </div>
                     <div className="w-full min-h-[40px]">
                       <h3 className="text-xs font-black uppercase tracking-widest text-white truncate w-full px-2">{league.name}</h3>
+                      {league.categoryId && (
+                        <p className="text-[8px] text-sky-400/80 font-bold uppercase truncate px-2 mt-1">
+                          {league.categoryId}
+                        </p>
+                      )}
                       {league.backgroundImageUrl ? (
                         <p className="text-[8px] text-green-500/80 font-bold uppercase truncate px-2 mt-1 flex items-center justify-center gap-1">
                           <CheckCircle className="w-3 h-3" /> Background ✓
