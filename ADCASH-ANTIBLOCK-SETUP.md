@@ -80,7 +80,13 @@ RUN /opt/adcash/anti-adblock.sh --install /usr/share/nginx/html/lib-1b_48s7z.js 
 <script src="/lib-1b_48s7z.js" defer></script>
 ```
 
-### 3. React App Initialization
+### 3. Reusable `<AdSlot />` Placements
+- `components/AdSlot.tsx` renders a styled container with `data-zone-id` + optional label.
+- On mount it registers with the global ad registry, observes viewability, and immediately calls `aclib.runAutoTag`.
+- Each slot has an optional refresh interval (default 45s) and can be configured through `AD_SLOT_ZONE_MAP`.
+- Pages such as the navbar, home hero, watch player, category header, and footer all drop in `<AdSlot slotKey="..." />` for consistent sizing and analytics.
+
+### 4. React App Initialization
 
 **App.tsx** contains the `AdManager` component that:
 - Waits for `window.aclib` to be available
