@@ -5,6 +5,7 @@ import { ToastProvider } from './admin/components/Toast.tsx';
 import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
 import { initViewabilityTracking } from './utils/adViewability.ts';
 import { AD_RETRY_BACKOFF, AD_MAX_RETRIES, ZONE_MAPPING } from './constants.ts';
+import { refreshRegisteredSlots } from './utils/adSlotRegistry.ts';
 import ProtectedRoute from './admin/components/ProtectedRoute.tsx';
 
 // Lazy load route components for better performance
