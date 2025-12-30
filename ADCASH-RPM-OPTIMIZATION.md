@@ -5,44 +5,46 @@ This document outlines the RPM optimization improvements implemented to increase
 
 ## Changes Implemented
 
-### 1. Zone-Per-Page Configuration (Priority 2)
-**Files:** `constants.ts`, `App.tsx`
+### 1. Slot-Based Multi-Placement Configuration (Priority 1)
+**Files:** `constants.ts`, `components/AdSlot.tsx`, `Navbar.tsx`, `Home.tsx`, `Watch.tsx`, `CategoryPage.tsx`, `Footer.tsx`
 
 **What Changed:**
-- Implemented page-type based zone mapping
-- Each major page type uses a dedicated AdCash zone
-- Route detection automatically selects appropriate zone
+- Introduced a reusable `<AdSlot />` component that renders styled containers with `data-zone-id` + automatic registration.
+- Centralized `AD_SLOT_ZONE_MAP` to define every slot (navbar banner, hero leaderboard, watch sidebar, footer banner, etc.) → all currently point to the high-performing zone `ezlzq7hamb`.
+- Each slot auto-refreshes (default 45s) and hooks into the global `AdManager` so route changes or timers refresh every placement simultaneously.
 
-**Zone Mapping:**
+**Slot Mapping:**
 ```typescript
-export const ZONE_MAPPING = {
-  home: 'v73cub7u8a',        // Home page (/)
-  category: 'tqblxpksrg',    // Category pages (/:categorySlug)
-  watch: '9fxj8efkpr',       // Watch page (/watch/:eventSlug)
-  default: 'tqblxpksrg'      // Fallback for other pages
-};
+export const AD_SLOT_ZONE_MAP = {
+  navbar_banner: PRIMARY_AD_ZONE,
+  home_hero_leaderboard: PRIMARY_AD_ZONE,
+  home_mid_feed: PRIMARY_AD_ZONE,
+  watch_top_leaderboard: PRIMARY_AD_ZONE,
+  watch_sidebar_sticky: PRIMARY_AD_ZONE,
+  watch_below_sources: PRIMARY_AD_ZONE,
+  category_top_banner: PRIMARY_AD_ZONE,
+  footer_banner: PRIMARY_AD_ZONE,
+} as const;
 ```
 
 **How It Works:**
-```typescript
-const getZoneForRoute = (pathname: string): string => {
-  if (pathname === '/') return ZONE_MAPPING.home;
-  if (pathname.startsWith('/watch/')) return ZONE_MAPPING.watch;
-  if (pathname.match(/^\/[^\/]+$/)) return ZONE_MAPPING.category;
-  return ZONE_MAPPING.default;
-};
+```tsx
+<AdSlot slotKey="home_hero_leaderboard" className="min-h-[120px]" />
 ```
+- On mount the slot sets `data-zone-id`, registers with the viewability observer, and immediately calls `window.aclib.runAutoTag`.
+- `App.tsx` keeps a registry of slots; route changes + 45s timer call every slot’s refresh callback.
 
 **Impact:**
-- Dedicated zone per page type for better analytics
-- AdCash optimizes each zone for its specific traffic pattern
-- Can track and optimize performance by page type
-- Expected RPM improvement: $0.50-1.50 → $1.50-3 RPM
+- Multiple, clearly identified placements per page increase total impressions per session.
+- Better viewability + layout stability thanks to consistent containers.
+- Easier to experiment with new zones by editing `AD_SLOT_ZONE_MAP` only.
+- Expected RPM improvement: sustained multi-slot fill vs single placement.
 
 **Pages Affected:**
-- Home page
-- Category pages
-- Watch page
+- Home page hero + mid-feed banner
+- Watch page leaderboard, sticky companion, and bottom banner
+- Category page banner
+- Navbar + Footer banners (site-wide)
 - All public pages (admin pages excluded)
 
 ---
