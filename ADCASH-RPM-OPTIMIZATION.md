@@ -114,14 +114,19 @@ const observer = new IntersectionObserver((entries) => {
 
 ## Implementation Details
 
-### Zone Configuration
-Zone-per-page mapping for optimized analytics and performance:
+### Slot Configuration
+Centralized slot mapping for analytics + experimentation:
 
-| Zone ID | Status | Page Type | Route Pattern |
-|---------|--------|-----------|---------------|
-| v73cub7u8a | Active | Home Page | `/` |
-| tqblxpksrg | Active | Category Pages | `/:categorySlug` |
-| 9fxj8efkpr | Active | Watch Page | `/watch/:eventSlug` |
+| Slot Key | Description | Location | Zone ID |
+|----------|-------------|----------|---------|
+| navbar_banner | Thin banner under navigation | All pages | ezlzq7hamb |
+| home_hero_leaderboard | Hero leaderboard placement | Home hero | ezlzq7hamb |
+| home_mid_feed | Breaker between hero + grid | Home | ezlzq7hamb |
+| watch_top_leaderboard | Above video player | Watch | ezlzq7hamb |
+| watch_sidebar_sticky | Companion card below player | Watch | ezlzq7hamb |
+| watch_below_sources | Banner after server list | Watch | ezlzq7hamb |
+| category_top_banner | Banner below category header | Category pages | ezlzq7hamb |
+| footer_banner | Global footer banner | All pages | ezlzq7hamb |
 
 ### Timing Configuration
 - **Ad Refresh Interval:** 45 seconds
