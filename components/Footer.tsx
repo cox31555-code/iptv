@@ -1,6 +1,6 @@
-
 import React from 'react';
 import FooterLogo from './FooterLogo.tsx';
+import AdSlot from './AdSlot.tsx';
 
 const Footer: React.FC = () => {
   return (
