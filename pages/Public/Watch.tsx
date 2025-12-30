@@ -4,6 +4,7 @@ import { useApp } from '../../AppContext.tsx';
 import { usePageTitle } from '../../utils/usePageTitle.ts';
 import { ChevronLeft, Server, Clock, Lock, MapPin, Loader2 } from 'lucide-react';
 import Navbar from '../../components/Navbar.tsx';
+import AdSlot from '../../components/AdSlot.tsx';
 import { EventCategory, EventStatus, SportEvent } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
 import SportIcon from '../../components/SportIcon.tsx';
