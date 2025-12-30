@@ -267,36 +267,36 @@ Add explicit ad divs with proper sizing for better fill rates:
 
 ## Monitoring & Analytics
 
-### Zone-Specific Analytics Benefits
+### Slot-Specific Analytics Benefits
 
-With the zone-per-page strategy, you can now track performance by page type:
+With the slot strategy, you can now track performance per placement (even if they share the same zone for now):
 
-**Home Page (v73cub7u8a):**
-- High traffic volume, short session duration
-- Focus on: CTR, initial impressions
-- Optimize for: Quick engagement
+**Navbar Banner:**
+- High view frequency, short exposure
+- Focus on: viewability + quick CTR spikes
 
-**Category Pages (tqblxpksrg):**
-- Medium traffic, browsing behavior
-- Focus on: Impressions per session, fill rate
-- Optimize for: Discovery phase engagement
+**Home Hero / Mid-Feed:**
+- Prime real estate for CPM boost
+- Focus on: engagement during discovery phase
 
-**Watch Page (9fxj8efkpr):**
-- Highest engagement, longest sessions
-- Focus on: Viewability, refresh impressions
-- Optimize for: Time-on-page monetization
+**Watch Placements:**
+- Longest session duration + refresh frequency
+- Focus on: impressions per session, viewability %
+
+**Footer Banner:**
+- Catch lingering users before exit
+- Focus on: incremental impressions + fallback fill
 
 ### Key Metrics to Track
-1. **Daily Impressions per Zone:** Compare Home vs Category vs Watch
-2. **CPM Trend per Zone:** Identify highest-performing page type
-3. **Fill Rate per Zone:** Monitor which pages get best ad coverage
-4. **Revenue per Zone:** Direct indicator of page-type value
+1. **Impressions per Slot:** Derived from AdCash (same zone but filter by placement ID if/when new zones assigned).
+2. **CPM Trend per Slot:** Once zones are split, compare leaderboard vs companion.
+3. **Fill Rate per Slot:** Use AdCash diagnostics + in-page console logs to ensure each slot fires.
+4. **Revenue Contribution:** Evaluate whether additional placements cannibalize or expand revenue.
 
 ### AdCash Dashboard Checks
-- Zone performance by day (compare all 3 zones)
-- Geographic distribution per zone
-- Device breakdown per zone
-- Traffic quality score per zone
+- Zone performance by day (until each slot gets its own zone ID).
+- When new zones are issued, map each slot in `AD_SLOT_ZONE_MAP` and compare device + geo split per placement.
+- Monitor traffic quality + invalid rate after adding more placements.
 
 ---
 
