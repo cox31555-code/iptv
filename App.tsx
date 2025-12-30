@@ -50,18 +50,24 @@ const AdManager: React.FC = () => {
     return ZONE_MAPPING.default;
   };
 
-  const runAllZones = () => {
+  const runRouteZone = () => {
     if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
       const currentZone = getZoneForRoute(location.pathname);
       try {
         window.aclib.runAutoTag({ zoneId: currentZone });
-        console.log(`[AdManager] Running zone ${currentZone} for route ${location.pathname}`);
+        console.log(`[AdManager] Route zone ${currentZone} for ${location.pathname}`);
       } catch (e) {
         console.error(`Ad lib execution error for zone ${currentZone}:`, e);
       }
       return true;
     }
     return false;
+  };
+
+  const runAllZones = () => {
+    const slotTriggered = refreshRegisteredSlots();
+    const routeTriggered = runRouteZone();
+    return slotTriggered || routeTriggered;
   };
 
   // Initial load with bounded backoff retry
