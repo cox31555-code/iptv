@@ -366,6 +366,10 @@ const Watch: React.FC = () => {
             </div>
           </div>
         </div>
+
+        <div className="w-full max-w-5xl mx-auto">
+          <AdSlot slotKey="watch_below_sources" label="Watch Bottom Banner" className="min-h-[110px]" />
+        </div>
       </main>
 
       <Footer />
