@@ -144,15 +144,15 @@ Centralized slot mapping for analytics + experimentation:
 ## Expected Results
 
 ### Before Optimization
-- 1 zone per page
+- Single placement per page
 - No ad refresh
 - No viewability tracking
 - **Estimated RPM:** $0.50-1.50
 
 ### After Optimization
-- 1 zone per page (focused)
-- 45-second refresh cycle
-- Viewability tracking enabled
+- Multiple placements per page managed by `<AdSlot />`
+- 45-second refresh cycle touching every slot
+- Viewability tracking enabled for all slots
 - **Estimated RPM:** $1.50-3 (2-3x improvement)
 
 ### Metrics to Monitor
