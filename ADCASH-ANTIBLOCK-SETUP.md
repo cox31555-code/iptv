@@ -169,6 +169,15 @@ Open DevTools (F12) → Console:
 
 ---
 
+## 📈 Ongoing Monitoring
+- **Network watchdog:** Set up an uptime or synthetic monitor that requests both `https://acscdn.com/script/aclib.js` and `https://ajsports.ch/lib-1b_48s7z.js` every few minutes to catch CDN or fallback outages early.
+- **Console sampling:** When deploying, open DevTools and confirm recurring `[AdManager] Running zone ezlzq7hamb...` logs on route changes; lack of logs indicates initialization issues.
+- **Viewability observer:** With `initViewabilityTracking` enabled, keep the DevTools console open for `[AdViewability]` messages to ensure containers are being observed and impressions counted.
+- **Adcash dashboard:** Track RPM and fill for zone `ezlzq7hamb`; correlate drops with deploy timestamps or monitoring alerts.
+- **Adblock regression tests:** Maintain a quick checklist (uBlock Origin, AdGuard, Brave Shields) to verify either the CDN script or fallback still executes at least once per release.
+
+---
+
 ## 🎯 Active Zones
 
 The CDN integration now focuses on a single high-performing zone that must render everywhere:
