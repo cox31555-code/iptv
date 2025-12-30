@@ -12,7 +12,8 @@ This document describes the Adcash Anti-Adblock integration using Dockerfile-bas
 
 1. **Dockerfile** - Added anti-adblock installer steps
 2. **index.html** - Loads the official Adcash CDN snippet early in `<head>` and keeps the self-hosted fallback
-3. **App.tsx** - No changes needed (already has proper initialization logic)
+3. **components/AdSlot.tsx** - Provides reusable slot containers that auto-load and refresh Adcash zones
+4. **App.tsx** - Coordinates retries + refreshes for every registered slot
 
 ---
 
