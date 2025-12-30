@@ -1,4 +1,3 @@
-
 import { EventCategory } from './types';
 
 export const COLORS = {
@@ -26,17 +25,18 @@ export const MOCK_ADMIN: any = {
 };
 
 // Ad Management Constants
-export const AD_ZONES = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr'];
+export const PRIMARY_AD_ZONE = 'ezlzq7hamb';
+export const AD_ZONES = [PRIMARY_AD_ZONE];
 export const AD_RETRY_BACKOFF = [100, 200, 400]; // ms, capped at 400
 export const AD_MAX_RETRIES = 13; // ~5s total with backoff
 export const AD_ZONE_DELAY = 150; // ms between zone refreshes
 
 // Zone Mapping: Different zones for different page types
 export const ZONE_MAPPING = {
-  home: 'v73cub7u8a',        // Home page (/)
-  category: 'tqblxpksrg',    // Category pages (/:categorySlug)
-  watch: '9fxj8efkpr',       // Watch page (/watch/:eventSlug)
-  default: 'tqblxpksrg'      // Fallback for other pages
+  home: PRIMARY_AD_ZONE,        // Home page (/)
+  category: PRIMARY_AD_ZONE,    // Category pages (/:categorySlug)
+  watch: PRIMARY_AD_ZONE,       // Watch page (/watch/:eventSlug)
+  default: PRIMARY_AD_ZONE      // Fallback for other pages
 };
 
 // Polling Constants
