@@ -3,7 +3,6 @@ import { Menu, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo.tsx';
 import DonateModal from './DonateModal.tsx';
-import AdSlot from './AdSlot.tsx';
 
 interface NavbarProps {
   onSearch: (term: string) => void;
@@ -31,15 +30,15 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
   return (
     <>
       {/* Stable Layout Placeholder - Increased height to prevent overlap on initial load */}
-      <div className="w-full h-[180px] md:h-[220px] pointer-events-none" />
+      <div className="w-full h-[173px] pointer-events-none" />
 
-      <nav 
-        role="navigation" 
+      <nav
+        role="navigation"
         aria-label="Main navigation"
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b pt-safe ${
-          isScrolled 
-            ? 'bg-black/95 backdrop-blur-2xl border-zinc-800/40 py-2 shadow-2xl' 
-            : 'bg-black/40 backdrop-blur-sm border-transparent py-4 md:py-8'
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ease-in-out border-b pt-safe pt-3 ${
+          isScrolled
+            ? 'bg-black/95 backdrop-blur-2xl border-zinc-800/40 pb-2 shadow-2xl'
+            : 'bg-black/40 backdrop-blur-sm border-transparent pb-4 md:pb-8'
         }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col items-center gap-0">
@@ -57,7 +56,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
 
             {/* Navigation Tier */}
             <div className={`flex items-center justify-between w-full transition-all duration-500 border-t ${
-              isScrolled ? 'border-transparent pt-0' : 'border-zinc-800/40 pt-3 md:pt-4'
+              isScrolled ? 'border-transparent py-0' : 'border-zinc-800/40 py-4'
             }`}>
               
               <div className="flex-1">
@@ -116,10 +115,6 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             </div>
           </div>
         )}
-
-        <div className="px-4 sm:px-6 lg:px-8 mt-3 pb-3">
-          <AdSlot slotKey="navbar_banner" label="Navigation Banner" className="h-16 md:h-20" />
-        </div>
       </nav>
 
       <DonateModal 
