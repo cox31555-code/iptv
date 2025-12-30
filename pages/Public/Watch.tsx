@@ -246,6 +246,10 @@ const Watch: React.FC = () => {
           </div>
         </div>
 
+        <div className="w-full max-w-5xl mx-auto">
+          <AdSlot slotKey="watch_top_leaderboard" label="Live Leaderboard" className="min-h-[120px]" />
+        </div>
+
         {/* Synchronized container for Player, and Sources */}
         <div className="flex flex-col items-center space-y-4 md:space-y-6 lg:space-y-2 w-full pt-2">
           <div className="bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.9)] border border-white/5 aspect-video w-full max-w-5xl relative group">
