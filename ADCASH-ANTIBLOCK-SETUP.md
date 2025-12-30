@@ -169,13 +169,11 @@ Open DevTools (F12) → Console:
 
 ## 🎯 Active Zones
 
-The implementation initializes **3 AutoTag zones**:
+The CDN integration now focuses on a single high-performing zone that must render everywhere:
 
-1. **v73cub7u8a** - Primary zone (anti-adblock enabled)
-2. **tqblxpksrg** - Secondary zone
-3. **9fxj8efkpr** - Tertiary zone
+1. **ezlzq7hamb** - Primary zone used globally across all public routes
 
-All three zones are initialized via `aclib.runAutoTag()` in index.html.
+`index.html` triggers this zone immediately after the CDN script loads, and `AdManager` in `App.tsx` refreshes the same zone automatically on navigation/intervals.
 
 ---
 
