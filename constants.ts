@@ -26,10 +26,28 @@ export const MOCK_ADMIN: any = {
 
 // Ad Management Constants
 export const PRIMARY_AD_ZONE = 'ezlzq7hamb';
-export const AD_ZONES = [PRIMARY_AD_ZONE];
 export const AD_RETRY_BACKOFF = [100, 200, 400]; // ms, capped at 400
 export const AD_MAX_RETRIES = 13; // ~5s total with backoff
-export const AD_ZONE_DELAY = 150; // ms between zone refreshes
+
+export const AD_SLOT_ZONE_MAP = {
+  navbar_banner: PRIMARY_AD_ZONE,
+  home_hero_leaderboard: PRIMARY_AD_ZONE,
+  home_mid_feed: PRIMARY_AD_ZONE,
+  watch_top_leaderboard: PRIMARY_AD_ZONE,
+  watch_sidebar_sticky: PRIMARY_AD_ZONE,
+  watch_below_sources: PRIMARY_AD_ZONE,
+  category_top_banner: PRIMARY_AD_ZONE,
+  footer_banner: PRIMARY_AD_ZONE,
+} as const;
+
+export type AdSlotKey = keyof typeof AD_SLOT_ZONE_MAP;
+
+export const DEFAULT_SLOT_REFRESH_INTERVAL = 45000; // 45s default
+export const AD_SLOT_REFRESH_MAP: Partial<Record<AdSlotKey, number>> = {
+  home_mid_feed: 60000,
+  watch_sidebar_sticky: 45000,
+  watch_top_leaderboard: 45000,
+};
 
 // Zone Mapping: Different zones for different page types
 export const ZONE_MAPPING = {
