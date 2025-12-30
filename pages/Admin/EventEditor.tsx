@@ -425,7 +425,8 @@ const EventEditor: React.FC = () => {
                               ...formData, 
                               league: league.name, 
                               leagueId: league.id,
-                              leagueLogoUrl: league.logoUrl || formData.leagueLogoUrl // Auto-fill league logo if available
+                              leagueLogoUrl: league.logoUrl || formData.leagueLogoUrl, // Auto-fill league logo if available
+                              category: league.categoryId || formData.category // Auto-populate category from league
                             });
                             setLeagueSearch('');
                             setShowLeagueLookup(false);
