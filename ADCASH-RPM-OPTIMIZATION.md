@@ -231,9 +231,12 @@ const refreshInterval = setInterval(refreshAds, 30000);
 ```
 
 ### Option B: Add More Zones
-Request additional zones from AdCash and add to zones array:
+Request additional zones from AdCash and update `AD_SLOT_ZONE_MAP` so specific placements can point to experimental IDs:
 ```typescript
-const zones = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr', 'NEW_ZONE_ID'];
+export const AD_SLOT_ZONE_MAP = {
+  ...existingSlots,
+  watch_top_leaderboard: 'NEW_ZONE_ID',
+};
 ```
 
 ### Option C: Implement Ad Placement Containers
