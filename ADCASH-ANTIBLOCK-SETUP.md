@@ -191,7 +191,16 @@ The CDN integration now focuses on a single high-performing zone that must rende
 
 1. **ezlzq7hamb** - Primary zone used globally across all public routes
 
-`index.html` triggers this zone immediately after the CDN script loads, and `AdManager` in `App.tsx` refreshes the same zone automatically on navigation/intervals.
+`index.html` triggers this zone immediately after the CDN script loads, and `AdManager` in `App.tsx` refreshes the same zone automatically on navigation/intervals. The following slot keys currently render this zone:
+
+- `navbar_banner`
+- `home_hero_leaderboard`
+- `home_mid_feed`
+- `watch_top_leaderboard`
+- `watch_sidebar_sticky`
+- `watch_below_sources`
+- `category_top_banner`
+- `footer_banner`
 
 ---
 
