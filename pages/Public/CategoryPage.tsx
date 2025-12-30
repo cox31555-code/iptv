@@ -178,6 +178,10 @@ const CategoryPage: React.FC = () => {
           </div>
         </div>
 
+        <div className="max-w-4xl mx-auto w-full">
+          <AdSlot slotKey="category_top_banner" label="Category Banner" className="min-h-[120px]" />
+        </div>
+
         <div className="space-y-16 pb-20">
           {groupedEvents.length > 0 ? (
             <>
