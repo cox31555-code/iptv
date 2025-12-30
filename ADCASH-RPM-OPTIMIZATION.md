@@ -5,44 +5,46 @@ This document outlines the RPM optimization improvements implemented to increase
 
 ## Changes Implemented
 
-### 1. Zone-Per-Page Configuration (Priority 2)
-**Files:** `constants.ts`, `App.tsx`
+### 1. Slot-Based Multi-Placement Configuration (Priority 1)
+**Files:** `constants.ts`, `components/AdSlot.tsx`, `Navbar.tsx`, `Home.tsx`, `Watch.tsx`, `CategoryPage.tsx`, `Footer.tsx`
 
 **What Changed:**
-- Implemented page-type based zone mapping
-- Each major page type uses a dedicated AdCash zone
-- Route detection automatically selects appropriate zone
+- Introduced a reusable `<AdSlot />` component that renders styled containers with `data-zone-id` + automatic registration.
+- Centralized `AD_SLOT_ZONE_MAP` to define every slot (navbar banner, hero leaderboard, watch sidebar, footer banner, etc.) → all currently point to the high-performing zone `ezlzq7hamb`.
+- Each slot auto-refreshes (default 45s) and hooks into the global `AdManager` so route changes or timers refresh every placement simultaneously.
 
-**Zone Mapping:**
+**Slot Mapping:**
 ```typescript
-export const ZONE_MAPPING = {
-  home: 'v73cub7u8a',        // Home page (/)
-  category: 'tqblxpksrg',    // Category pages (/:categorySlug)
-  watch: '9fxj8efkpr',       // Watch page (/watch/:eventSlug)
-  default: 'tqblxpksrg'      // Fallback for other pages
-};
+export const AD_SLOT_ZONE_MAP = {
+  navbar_banner: PRIMARY_AD_ZONE,
+  home_hero_leaderboard: PRIMARY_AD_ZONE,
+  home_mid_feed: PRIMARY_AD_ZONE,
+  watch_top_leaderboard: PRIMARY_AD_ZONE,
+  watch_sidebar_sticky: PRIMARY_AD_ZONE,
+  watch_below_sources: PRIMARY_AD_ZONE,
+  category_top_banner: PRIMARY_AD_ZONE,
+  footer_banner: PRIMARY_AD_ZONE,
+} as const;
 ```
 
 **How It Works:**
-```typescript
-const getZoneForRoute = (pathname: string): string => {
-  if (pathname === '/') return ZONE_MAPPING.home;
-  if (pathname.startsWith('/watch/')) return ZONE_MAPPING.watch;
-  if (pathname.match(/^\/[^\/]+$/)) return ZONE_MAPPING.category;
-  return ZONE_MAPPING.default;
-};
+```tsx
+<AdSlot slotKey="home_hero_leaderboard" className="min-h-[120px]" />
 ```
+- On mount the slot sets `data-zone-id`, registers with the viewability observer, and immediately calls `window.aclib.runAutoTag`.
+- `App.tsx` keeps a registry of slots; route changes + 45s timer call every slot’s refresh callback.
 
 **Impact:**
-- Dedicated zone per page type for better analytics
-- AdCash optimizes each zone for its specific traffic pattern
-- Can track and optimize performance by page type
-- Expected RPM improvement: $0.50-1.50 → $1.50-3 RPM
+- Multiple, clearly identified placements per page increase total impressions per session.
+- Better viewability + layout stability thanks to consistent containers.
+- Easier to experiment with new zones by editing `AD_SLOT_ZONE_MAP` only.
+- Expected RPM improvement: sustained multi-slot fill vs single placement.
 
 **Pages Affected:**
-- Home page
-- Category pages
-- Watch page
+- Home page hero + mid-feed banner
+- Watch page leaderboard, sticky companion, and bottom banner
+- Category page banner
+- Navbar + Footer banners (site-wide)
 - All public pages (admin pages excluded)
 
 ---
@@ -51,24 +53,25 @@ const getZoneForRoute = (pathname: string): string => {
 **File:** `App.tsx`
 
 **What Changed:**
-- Automatic ad refresh every 45 seconds on long-view pages
-- Applies to all public pages
-- Single zone refresh with rAF coalescing
+- Automatic refresh every 45 seconds on long-view pages.
+- Applies to all registered slots + the fallback route-based zone.
+- Uses requestAnimationFrame to coalesce route-change refreshes.
 
 **How It Works:**
 ```typescript
 const refreshInterval = setInterval(runAllZones, 45000); // 45 seconds
+// runAllZones => refreshRegisteredSlots() + route fallback
 ```
 
 **Impact:**
-- Users on pages for extended periods see multiple ad rotations
-- Increases impressions without annoying users
-- Particularly effective on Watch page (streaming duration)
+- Users on pages for extended periods see multiple ad rotations in every placement.
+- Increases impressions without annoying users.
+- Particularly effective on Watch page (stream duration) and sticky sidebar slot.
 
 **Refresh Behavior:**
-- First load: Zone initializes
-- After 45s: Zone refreshes
-- Continues every 45s while user is on page
+- First load: each slot fires once on mount.
+- After 45s: registry refresh triggers for every slot.
+- Continues every 45s while user is on page (paused on admin routes).
 
 ---
 
@@ -111,14 +114,19 @@ const observer = new IntersectionObserver((entries) => {
 
 ## Implementation Details
 
-### Zone Configuration
-Zone-per-page mapping for optimized analytics and performance:
+### Slot Configuration
+Centralized slot mapping for analytics + experimentation:
 
-| Zone ID | Status | Page Type | Route Pattern |
-|---------|--------|-----------|---------------|
-| v73cub7u8a | Active | Home Page | `/` |
-| tqblxpksrg | Active | Category Pages | `/:categorySlug` |
-| 9fxj8efkpr | Active | Watch Page | `/watch/:eventSlug` |
+| Slot Key | Description | Location | Zone ID |
+|----------|-------------|----------|---------|
+| navbar_banner | Thin banner under navigation | All pages | ezlzq7hamb |
+| home_hero_leaderboard | Hero leaderboard placement | Home hero | ezlzq7hamb |
+| home_mid_feed | Breaker between hero + grid | Home | ezlzq7hamb |
+| watch_top_leaderboard | Above video player | Watch | ezlzq7hamb |
+| watch_sidebar_sticky | Companion card below player | Watch | ezlzq7hamb |
+| watch_below_sources | Banner after server list | Watch | ezlzq7hamb |
+| category_top_banner | Banner below category header | Category pages | ezlzq7hamb |
+| footer_banner | Global footer banner | All pages | ezlzq7hamb |
 
 ### Timing Configuration
 - **Ad Refresh Interval:** 45 seconds
@@ -136,15 +144,15 @@ Zone-per-page mapping for optimized analytics and performance:
 ## Expected Results
 
 ### Before Optimization
-- 1 zone per page
+- Single placement per page
 - No ad refresh
 - No viewability tracking
 - **Estimated RPM:** $0.50-1.50
 
 ### After Optimization
-- 1 zone per page (focused)
-- 45-second refresh cycle
-- Viewability tracking enabled
+- Multiple placements per page managed by `<AdSlot />`
+- 45-second refresh cycle touching every slot
+- Viewability tracking enabled for all slots
 - **Estimated RPM:** $1.50-3 (2-3x improvement)
 
 ### Metrics to Monitor
@@ -223,9 +231,12 @@ const refreshInterval = setInterval(refreshAds, 30000);
 ```
 
 ### Option B: Add More Zones
-Request additional zones from AdCash and add to zones array:
+Request additional zones from AdCash and update `AD_SLOT_ZONE_MAP` so specific placements can point to experimental IDs:
 ```typescript
-const zones = ['v73cub7u8a', 'tqblxpksrg', '9fxj8efkpr', 'NEW_ZONE_ID'];
+export const AD_SLOT_ZONE_MAP = {
+  ...existingSlots,
+  watch_top_leaderboard: 'NEW_ZONE_ID',
+};
 ```
 
 ### Option C: Implement Ad Placement Containers
@@ -256,36 +267,36 @@ Add explicit ad divs with proper sizing for better fill rates:
 
 ## Monitoring & Analytics
 
-### Zone-Specific Analytics Benefits
+### Slot-Specific Analytics Benefits
 
-With the zone-per-page strategy, you can now track performance by page type:
+With the slot strategy, you can now track performance per placement (even if they share the same zone for now):
 
-**Home Page (v73cub7u8a):**
-- High traffic volume, short session duration
-- Focus on: CTR, initial impressions
-- Optimize for: Quick engagement
+**Navbar Banner:**
+- High view frequency, short exposure
+- Focus on: viewability + quick CTR spikes
 
-**Category Pages (tqblxpksrg):**
-- Medium traffic, browsing behavior
-- Focus on: Impressions per session, fill rate
-- Optimize for: Discovery phase engagement
+**Home Hero / Mid-Feed:**
+- Prime real estate for CPM boost
+- Focus on: engagement during discovery phase
 
-**Watch Page (9fxj8efkpr):**
-- Highest engagement, longest sessions
-- Focus on: Viewability, refresh impressions
-- Optimize for: Time-on-page monetization
+**Watch Placements:**
+- Longest session duration + refresh frequency
+- Focus on: impressions per session, viewability %
+
+**Footer Banner:**
+- Catch lingering users before exit
+- Focus on: incremental impressions + fallback fill
 
 ### Key Metrics to Track
-1. **Daily Impressions per Zone:** Compare Home vs Category vs Watch
-2. **CPM Trend per Zone:** Identify highest-performing page type
-3. **Fill Rate per Zone:** Monitor which pages get best ad coverage
-4. **Revenue per Zone:** Direct indicator of page-type value
+1. **Impressions per Slot:** Derived from AdCash (same zone but filter by placement ID if/when new zones assigned).
+2. **CPM Trend per Slot:** Once zones are split, compare leaderboard vs companion.
+3. **Fill Rate per Slot:** Use AdCash diagnostics + in-page console logs to ensure each slot fires.
+4. **Revenue Contribution:** Evaluate whether additional placements cannibalize or expand revenue.
 
 ### AdCash Dashboard Checks
-- Zone performance by day (compare all 3 zones)
-- Geographic distribution per zone
-- Device breakdown per zone
-- Traffic quality score per zone
+- Zone performance by day (until each slot gets its own zone ID).
+- When new zones are issued, map each slot in `AD_SLOT_ZONE_MAP` and compare device + geo split per placement.
+- Monitor traffic quality + invalid rate after adding more placements.
 
 ---
 

@@ -11,8 +11,9 @@ This document describes the Adcash Anti-Adblock integration using Dockerfile-bas
 ### Files Modified
 
 1. **Dockerfile** - Added anti-adblock installer steps
-2. **index.html** - Updated to load self-hosted library
-3. **App.tsx** - No changes needed (already has proper initialization logic)
+2. **index.html** - Loads the official Adcash CDN snippet early in `<head>` and keeps the self-hosted fallback
+3. **components/AdSlot.tsx** - Provides reusable slot containers that auto-load and refresh Adcash zones
+4. **App.tsx** - Coordinates retries + refreshes for every registered slot
 
 ---
 
@@ -45,18 +46,47 @@ RUN /opt/adcash/anti-adblock.sh --install /usr/share/nginx/html/lib-1b_48s7z.js 
 
 ### 2. Frontend Integration
 
-**index.html** loads the self-hosted library:
+**index.html** now loads the official CDN script as high as possible in `<head>` and keeps the Dockerfile-delivered file as a fallback:
 ```html
-<!-- Adcash Anti-Adblock Implementation -->
-<script src="/lib-1b_48s7z.js"></script>
+<!-- Adcash CDN AutoTag -->
+<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 <script type="text/javascript">
-  aclib.runAutoTag({ zoneId: 'v73cub7u8a' });
-  aclib.runAutoTag({ zoneId: 'tqblxpksrg' });
-  aclib.runAutoTag({ zoneId: '9fxj8efkpr' });
+  (function () {
+    var PRIMARY_ZONE_ID = 'ezlzq7hamb';
+    var MAX_ATTEMPTS = 40;
+    var INTERVAL = 50;
+
+    function runPrimaryZone() {
+      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+        window.aclib.runAutoTag({ zoneId: PRIMARY_ZONE_ID });
+        return true;
+      }
+      return false;
+    }
+
+    if (!runPrimaryZone()) {
+      var tries = 0;
+      var timer = setInterval(function () {
+        tries += 1;
+        if (runPrimaryZone() || tries >= MAX_ATTEMPTS) {
+          clearInterval(timer);
+        }
+      }, INTERVAL);
+    }
+  })();
 </script>
+
+<!-- Self-hosted Adcash anti-adblock fallback (installed via Dockerfile) -->
+<script src="/lib-1b_48s7z.js" defer></script>
 ```
 
-### 3. React App Initialization
+### 3. Reusable `<AdSlot />` Placements
+- `components/AdSlot.tsx` renders a styled container with `data-zone-id` + optional label.
+- On mount it registers with the global ad registry, observes viewability, and immediately calls `aclib.runAutoTag`.
+- Each slot has an optional refresh interval (default 45s) and can be configured through `AD_SLOT_ZONE_MAP`.
+- Pages such as the navbar, home hero, watch player, category header, and footer all drop in `<AdSlot slotKey="..." />` for consistent sizing and analytics.
+
+### 4. React App Initialization
 
 **App.tsx** contains the `AdManager` component that:
 - Waits for `window.aclib` to be available
@@ -112,8 +142,9 @@ curl https://ajsports.ch/lib-1b_48s7z.js
 ## ✅ Verification Checklist
 
 ### 1. Library File Check
-- [ ] `https://ajsports.ch/lib-1b_48s7z.js` returns JavaScript (not 404)
-- [ ] File size is reasonable (typically 50-200KB)
+- [ ] `https://acscdn.com/script/aclib.js` is requested on every public route (check the Network tab, status 200)
+- [ ] `https://ajsports.ch/lib-1b_48s7z.js` returns JavaScript (fallback stays healthy)
+- [ ] Neither script is blocked by CSP or mixed-content issues
 
 ### 2. Browser Console Check
 
@@ -122,7 +153,8 @@ Open DevTools (F12) → Console:
 **Expected logs:**
 ```
 ✓ window.aclib found
-✓ Adcash initialized successfully
+✓ Adcash initialized successfully with zone ezlzq7hamb
+[AdManager] Running zone ezlzq7hamb for route /...
 ```
 
 **Not expected:**
@@ -144,15 +176,31 @@ Open DevTools (F12) → Console:
 
 ---
 
+## 📈 Ongoing Monitoring
+- **Network watchdog:** Set up an uptime or synthetic monitor that requests both `https://acscdn.com/script/aclib.js` and `https://ajsports.ch/lib-1b_48s7z.js` every few minutes to catch CDN or fallback outages early.
+- **Console sampling:** When deploying, open DevTools and confirm recurring `[AdManager] Running zone ezlzq7hamb...` logs on route changes; lack of logs indicates initialization issues.
+- **Viewability observer:** With `initViewabilityTracking` enabled, keep the DevTools console open for `[AdViewability]` messages to ensure containers are being observed and impressions counted.
+- **Adcash dashboard:** Track RPM and fill for zone `ezlzq7hamb`; correlate drops with deploy timestamps or monitoring alerts.
+- **Adblock regression tests:** Maintain a quick checklist (uBlock Origin, AdGuard, Brave Shields) to verify either the CDN script or fallback still executes at least once per release.
+
+---
+
 ## 🎯 Active Zones
 
-The implementation initializes **3 AutoTag zones**:
+The CDN integration now focuses on a single high-performing zone that must render everywhere:
 
-1. **v73cub7u8a** - Primary zone (anti-adblock enabled)
-2. **tqblxpksrg** - Secondary zone
-3. **9fxj8efkpr** - Tertiary zone
+1. **ezlzq7hamb** - Primary zone used globally across all public routes
 
-All three zones are initialized via `aclib.runAutoTag()` in index.html.
+`index.html` triggers this zone immediately after the CDN script loads, and `AdManager` in `App.tsx` refreshes the same zone automatically on navigation/intervals. The following slot keys currently render this zone:
+
+- `navbar_banner`
+- `home_hero_leaderboard`
+- `home_mid_feed`
+- `watch_top_leaderboard`
+- `watch_sidebar_sticky`
+- `watch_below_sources`
+- `category_top_banner`
+- `footer_banner`
 
 ---
 

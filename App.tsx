@@ -4,7 +4,8 @@ import { AppProvider } from './AppContext.tsx';
 import { ToastProvider } from './admin/components/Toast.tsx';
 import { ConfirmDialogProvider } from './admin/components/ConfirmDialog.tsx';
 import { initViewabilityTracking } from './utils/adViewability.ts';
-import { AD_ZONES, AD_RETRY_BACKOFF, AD_MAX_RETRIES, AD_ZONE_DELAY, ZONE_MAPPING } from './constants.ts';
+import { AD_RETRY_BACKOFF, AD_MAX_RETRIES, ZONE_MAPPING } from './constants.ts';
+import { refreshRegisteredSlots } from './utils/adSlotRegistry.ts';
 import ProtectedRoute from './admin/components/ProtectedRoute.tsx';
 
 // Lazy load route components for better performance
@@ -49,18 +50,24 @@ const AdManager: React.FC = () => {
     return ZONE_MAPPING.default;
   };
 
-  const runAllZones = () => {
+  const runRouteZone = () => {
     if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
       const currentZone = getZoneForRoute(location.pathname);
       try {
         window.aclib.runAutoTag({ zoneId: currentZone });
-        console.log(`[AdManager] Running zone ${currentZone} for route ${location.pathname}`);
+        console.log(`[AdManager] Route zone ${currentZone} for ${location.pathname}`);
       } catch (e) {
         console.error(`Ad lib execution error for zone ${currentZone}:`, e);
       }
       return true;
     }
     return false;
+  };
+
+  const runAllZones = () => {
+    const slotTriggered = refreshRegisteredSlots();
+    const routeTriggered = runRouteZone();
+    return slotTriggered || routeTriggered;
   };
 
   // Initial load with bounded backoff retry

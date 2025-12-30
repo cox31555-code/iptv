@@ -3,6 +3,7 @@ import { Menu, X, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from './Logo.tsx';
 import DonateModal from './DonateModal.tsx';
+import AdSlot from './AdSlot.tsx';
 
 interface NavbarProps {
   onSearch: (term: string) => void;
@@ -102,9 +103,9 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               <Link to="/football" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Football</Link>
               <Link to="/nba" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">NBA</Link>
               <Link to="/other-sports" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Other Sports</Link>
-              
+
               <div className="flex flex-col gap-3 mt-4">
-                <button 
+                <button
                   onClick={() => { setIsDonateOpen(true); setIsOpen(false); }}
                   className="flex items-center justify-center gap-2 py-4 border border-zinc-900 text-zinc-400 rounded-2xl font-black uppercase text-xs tracking-widest hover:text-white hover:bg-white/5 transition-all"
                 >
@@ -115,6 +116,10 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
             </div>
           </div>
         )}
+
+        <div className="px-4 sm:px-6 lg:px-8 mt-3 pb-3">
+          <AdSlot slotKey="navbar_banner" label="Navigation Banner" className="h-16 md:h-20" />
+        </div>
       </nav>
 
       <DonateModal 

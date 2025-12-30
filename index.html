@@ -115,6 +115,36 @@
         padding-right: max(1rem, var(--safe-area-inset-right));
       }
     </style>
+
+    <!-- Adcash CDN AutoTag (runs before any other script) -->
+    <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+    <script type="text/javascript">
+      (function () {
+        var PRIMARY_ZONE_ID = 'ezlzq7hamb';
+        var MAX_ATTEMPTS = 40;
+        var ATTEMPT_INTERVAL = 50;
+
+        function invokePrimaryZone() {
+          if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+            window.__adcashPrimaryZone = PRIMARY_ZONE_ID;
+            window.aclib.runAutoTag({ zoneId: PRIMARY_ZONE_ID });
+            return true;
+          }
+          return false;
+        }
+
+        if (!invokePrimaryZone()) {
+          var attempts = 0;
+          var timer = setInterval(function () {
+            attempts += 1;
+            if (invokePrimaryZone() || attempts >= MAX_ATTEMPTS) {
+              clearInterval(timer);
+            }
+          }, ATTEMPT_INTERVAL);
+        }
+      })();
+    </script>
+
   <script type="importmap">
 {
   "imports": {
@@ -133,7 +163,7 @@
     <script type="module" src="./index.tsx"></script>
     
     <!-- Deferred scripts for better performance -->
-    <!-- Adcash Anti-Adblock Library -->
+    <!-- Self-hosted Adcash anti-adblock fallback (installed via Dockerfile) -->
     <script src="/lib-1b_48s7z.js" defer></script>
     
     <!-- Google Analytics -->

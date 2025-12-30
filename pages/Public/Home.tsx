@@ -4,6 +4,7 @@ import { EventCategory, getCategorySlug, EventStatus } from '../../types.ts';
 import { CATEGORY_ORDER } from '../../constants.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
+import AdSlot from '../../components/AdSlot.tsx';
 import { ChevronRight, Search, XCircle, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../../components/Footer.tsx';
@@ -181,8 +182,15 @@ const Home: React.FC = () => {
               </a>
             </div>
           </div>
+          <div className="mt-8">
+            <AdSlot slotKey="home_hero_leaderboard" label="Hero Leaderboard" className="min-h-[120px]" />
+          </div>
         </div>
       </section>
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 md:-mt-4 pb-6">
+        <AdSlot slotKey="home_mid_feed" label="Featured Placement" className="min-h-[140px]" />
+      </div>
 
       <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-16' : 'space-y-12 md:space-y-16 md:pt-0 pb-16'}`}>
         {loading && events.length === 0 ? (
