@@ -53,24 +53,25 @@ export const AD_SLOT_ZONE_MAP = {
 **File:** `App.tsx`
 
 **What Changed:**
-- Automatic ad refresh every 45 seconds on long-view pages
-- Applies to all public pages
-- Single zone refresh with rAF coalescing
+- Automatic refresh every 45 seconds on long-view pages.
+- Applies to all registered slots + the fallback route-based zone.
+- Uses requestAnimationFrame to coalesce route-change refreshes.
 
 **How It Works:**
 ```typescript
 const refreshInterval = setInterval(runAllZones, 45000); // 45 seconds
+// runAllZones => refreshRegisteredSlots() + route fallback
 ```
 
 **Impact:**
-- Users on pages for extended periods see multiple ad rotations
-- Increases impressions without annoying users
-- Particularly effective on Watch page (streaming duration)
+- Users on pages for extended periods see multiple ad rotations in every placement.
+- Increases impressions without annoying users.
+- Particularly effective on Watch page (stream duration) and sticky sidebar slot.
 
 **Refresh Behavior:**
-- First load: Zone initializes
-- After 45s: Zone refreshes
-- Continues every 45s while user is on page
+- First load: each slot fires once on mount.
+- After 45s: registry refresh triggers for every slot.
+- Continues every 45s while user is on page (paused on admin routes).
 
 ---
 
