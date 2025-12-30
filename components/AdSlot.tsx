@@ -75,7 +75,7 @@ const AdSlot: React.FC<AdSlotProps> = ({
   }, [autoLoad, refreshSlot]);
 
   useEffect(() => {
-    if (!effectiveRefreshInterval) return;
+    if (!effectiveRefreshInterval || typeof window === 'undefined') return;
     const intervalId = window.setInterval(() => {
       refreshSlot();
     }, effectiveRefreshInterval);
