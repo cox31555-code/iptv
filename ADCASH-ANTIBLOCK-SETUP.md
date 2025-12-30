@@ -45,15 +45,38 @@ RUN /opt/adcash/anti-adblock.sh --install /usr/share/nginx/html/lib-1b_48s7z.js 
 
 ### 2. Frontend Integration
 
-**index.html** loads the self-hosted library:
+**index.html** now loads the official CDN script as high as possible in `<head>` and keeps the Dockerfile-delivered file as a fallback:
 ```html
-<!-- Adcash Anti-Adblock Implementation -->
-<script src="/lib-1b_48s7z.js"></script>
+<!-- Adcash CDN AutoTag -->
+<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 <script type="text/javascript">
-  aclib.runAutoTag({ zoneId: 'v73cub7u8a' });
-  aclib.runAutoTag({ zoneId: 'tqblxpksrg' });
-  aclib.runAutoTag({ zoneId: '9fxj8efkpr' });
+  (function () {
+    var PRIMARY_ZONE_ID = 'ezlzq7hamb';
+    var MAX_ATTEMPTS = 40;
+    var INTERVAL = 50;
+
+    function runPrimaryZone() {
+      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+        window.aclib.runAutoTag({ zoneId: PRIMARY_ZONE_ID });
+        return true;
+      }
+      return false;
+    }
+
+    if (!runPrimaryZone()) {
+      var tries = 0;
+      var timer = setInterval(function () {
+        tries += 1;
+        if (runPrimaryZone() || tries >= MAX_ATTEMPTS) {
+          clearInterval(timer);
+        }
+      }, INTERVAL);
+    }
+  })();
 </script>
+
+<!-- Self-hosted Adcash anti-adblock fallback (installed via Dockerfile) -->
+<script src="/lib-1b_48s7z.js" defer></script>
 ```
 
 ### 3. React App Initialization
