@@ -4,7 +4,6 @@ import { useApp } from '../../AppContext.tsx';
 import { usePageTitle } from '../../utils/usePageTitle.ts';
 import { ChevronLeft, Server, Clock, Lock, MapPin, Loader2 } from 'lucide-react';
 import Navbar from '../../components/Navbar.tsx';
-import AdSlot from '../../components/AdSlot.tsx';
 import { EventCategory, EventStatus, SportEvent } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
 import SportIcon from '../../components/SportIcon.tsx';
@@ -272,10 +271,6 @@ const Watch: React.FC = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-5xl mx-auto">
-          <AdSlot slotKey="watch_top_leaderboard" label="Live Leaderboard" className="min-h-[120px]" />
-        </div>
-
         {/* Synchronized container for Player, and Sources */}
         <div className="flex flex-col items-center space-y-4 md:space-y-6 lg:space-y-2 w-full pt-2">
           <div
@@ -359,10 +354,6 @@ const Watch: React.FC = () => {
             )}
           </div>
 
-          <div className="w-full max-w-5xl">
-            <AdSlot slotKey="watch_sidebar_sticky" label="Sticky Companion" className="min-h-[100px] lg:min-h-[160px]" />
-          </div>
-
           <div className="bg-zinc-900/20 backdrop-blur-3xl rounded-[2rem] md:rounded-[2.5rem] lg:rounded-[1.5rem] border border-white/5 overflow-hidden p-4 md:p-8 lg:p-4 w-full max-w-5xl mt-2 lg:mt-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 md:gap-4 lg:gap-2 px-1 mb-4 md:mb-8 lg:mb-4">
               <div className="space-y-1">
@@ -403,10 +394,6 @@ const Watch: React.FC = () => {
               ))}
             </div>
           </div>
-        </div>
-
-        <div className="w-full max-w-5xl mx-auto">
-          <AdSlot slotKey="watch_below_sources" label="Watch Bottom Banner" className="min-h-[110px]" />
         </div>
       </main>
 

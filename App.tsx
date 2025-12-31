@@ -31,6 +31,7 @@ declare global {
   interface Window {
     aclib?: {
       runAutoTag: (options: { zoneId: string }) => void;
+      runBanner: (options: { zoneId: string }) => void;
     };
   }
 }

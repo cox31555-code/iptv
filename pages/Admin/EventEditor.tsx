@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
-import { 
-  ArrowLeft, 
-  Save, 
-  Plus, 
-  Trash2, 
-  GripVertical, 
+import {
+  ArrowLeft,
+  Save,
+  Plus,
+  Trash2,
+  GripVertical,
   ExternalLink,
   Info,
   Clock,
@@ -18,7 +18,9 @@ import {
   MapPin,
   Search,
   Tag,
-  Image
+  Image,
+  Edit2,
+  Check
 } from 'lucide-react';
 import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team, League } from '../../types.ts';
 import { uploadCoverImage, getFullImageUrl, getLeagues } from '../../api.ts';
@@ -71,6 +73,8 @@ const EventEditor: React.FC = () => {
     isDefault: false
   });
 
+  const [editingServerId, setEditingServerId] = useState<string | null>(null);
+  const [editingServer, setEditingServer] = useState<Partial<StreamServer>>({});
   const [previewServer, setPreviewServer] = useState<StreamServer | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -307,6 +311,51 @@ const EventEditor: React.FC = () => {
       }
       return { ...prev, servers: updated };
     });
+  };
+
+  const startEditingServer = (server: StreamServer) => {
+    setEditingServerId(server.id);
+    setEditingServer({
+      name: server.name,
+      embedUrl: server.embedUrl,
+      streamType: server.streamType,
+      isDefault: server.isDefault
+    });
+  };
+
+  const saveEditingServer = () => {
+    if (!editingServerId) return;
+    
+    // Mark as having unsaved changes
+    setHasUnsavedChanges(true);
+    
+    setFormData(prev => {
+      const updatedServers = (prev.servers || []).map(s => {
+        if (s.id === editingServerId) {
+          return {
+            ...s,
+            name: editingServer.name || s.name,
+            embedUrl: editingServer.embedUrl || s.embedUrl,
+            streamType: editingServer.streamType || s.streamType,
+            isDefault: editingServer.isDefault ?? s.isDefault
+          };
+        }
+        // If new server is set as default, unset others
+        if (editingServer.isDefault && s.isDefault) {
+          return { ...s, isDefault: false };
+        }
+        return s;
+      });
+      return { ...prev, servers: updatedServers };
+    });
+    
+    setEditingServerId(null);
+    setEditingServer({});
+  };
+
+  const cancelEditingServer = () => {
+    setEditingServerId(null);
+    setEditingServer({});
   };
 
   return (
@@ -573,10 +622,87 @@ const EventEditor: React.FC = () => {
             <div className="flex items-center gap-2 text-zinc-400 mb-4"><Settings className="w-4 h-4" /><h2 className="font-black uppercase text-[10px] tracking-[0.25em]">Stream Sources</h2></div>
             <div className="space-y-4">
               {formData.servers?.map(server => (
-                <div key={server.id} className={`flex items-center gap-4 bg-[#0B0C10] p-4 rounded-xl border ${previewServer?.id === server.id ? 'border-[#04C4FC]/50' : 'border-white/5'}`}>
-                  <GripVertical className="text-white/10" />
-                  <div className="flex-1 min-w-0"><div className="font-bold text-xs truncate">{server.name}</div><div className="text-[10px] text-white/20 truncate font-mono">{server.embedUrl}</div></div>
-                  <div className="flex gap-1.5"><button onClick={() => setPreviewServer(server)} className={`p-2 rounded-lg ${previewServer?.id === server.id ? 'bg-[#04C4FC] text-black' : 'bg-white/5 text-white/40'}`}><Play className="w-3.5 h-3.5" /></button><button onClick={() => removeServer(server.id)} className="p-2 bg-red-500/10 text-red-500 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button></div>
+                <div key={server.id} className={`bg-[#0B0C10] p-4 rounded-xl border ${previewServer?.id === server.id ? 'border-[#04C4FC]/50' : 'border-white/5'}`}>
+                  {editingServerId === server.id ? (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <input
+                          placeholder="Server Label"
+                          value={editingServer.name || ''}
+                          onChange={e => setEditingServer({ ...editingServer, name: e.target.value })}
+                          className="w-full bg-[#1F2833] border border-white/10 rounded-lg px-3 py-2 text-xs"
+                        />
+                        <select
+                          value={editingServer.streamType || 'embed'}
+                          onChange={e => setEditingServer({ ...editingServer, streamType: e.target.value as 'embed' | 'hls' })}
+                          className="w-full bg-[#1F2833] border border-white/10 rounded-lg px-3 py-2 text-xs appearance-none"
+                        >
+                          <option value="embed">Embed</option>
+                          <option value="hls">HLS</option>
+                        </select>
+                        <label className="flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={editingServer.isDefault ?? false}
+                            onChange={e => setEditingServer({ ...editingServer, isDefault: e.target.checked })}
+                            className="accent-sky-500"
+                          />
+                          Default
+                        </label>
+                      </div>
+                      <input
+                        placeholder={editingServer.streamType === 'hls' ? 'HLS URL' : 'Embed URL'}
+                        value={editingServer.embedUrl || ''}
+                        onChange={e => setEditingServer({ ...editingServer, embedUrl: e.target.value })}
+                        className="w-full bg-[#1F2833] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={cancelEditingServer}
+                          className="px-3 py-1.5 bg-white/5 text-white/60 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-white/10 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={saveEditingServer}
+                          className="flex items-center gap-1.5 px-3 py-1.5 bg-sky-500 text-black rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-sky-400 transition-colors"
+                        >
+                          <Check className="w-3 h-3" /> Save
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-4">
+                      <GripVertical className="text-white/10" />
+                      <div className="flex-1 min-w-0">
+                        <div className="font-bold text-xs truncate">{server.name}</div>
+                        <div className="text-[10px] text-white/20 truncate font-mono">{server.embedUrl}</div>
+                      </div>
+                      <div className="flex gap-1.5">
+                        <button
+                          onClick={() => setPreviewServer(server)}
+                          className={`p-2 rounded-lg ${previewServer?.id === server.id ? 'bg-[#04C4FC] text-black' : 'bg-white/5 text-white/40'} hover:scale-105 transition-transform`}
+                          title="Preview"
+                        >
+                          <Play className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => startEditingServer(server)}
+                          className="p-2 bg-white/5 text-white/40 rounded-lg hover:bg-sky-500/20 hover:text-sky-400 transition-colors"
+                          title="Edit"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => removeServer(server.id)}
+                          className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-colors"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               <div className="bg-[#0B0C10]/40 p-5 rounded-2xl border border-dashed border-white/10 space-y-4">

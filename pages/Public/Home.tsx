@@ -1,10 +1,9 @@
-import React, { useState, useMemo, useRef, useEffect, useDeferredValue } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useDeferredValue, useCallback } from 'react';
 import { useApp } from '../../AppContext.tsx';
 import { EventCategory, getCategorySlug, EventStatus } from '../../types.ts';
 import { CATEGORY_ORDER } from '../../constants.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
-import AdSlot from '../../components/AdSlot.tsx';
 import { ChevronRight, Search, XCircle, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../../components/Footer.tsx';
@@ -30,6 +29,23 @@ const Home: React.FC = () => {
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Load hero banner ad
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (window.aclib && typeof window.aclib.runBanner === 'function') {
+        try {
+          window.aclib.runBanner({
+            zoneId: '10766646',
+          });
+          console.log('[HeroBanner] Loaded zone 10766646');
+        } catch (error) {
+          console.error('[HeroBanner] Failed to load ad:', error);
+        }
+      }
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
 
   const scrollToTop = () => {
@@ -184,14 +200,14 @@ const Home: React.FC = () => {
             </div>
           </div>
           <div className="mt-8">
-            <AdSlot slotKey="home_hero_leaderboard" label="Hero Leaderboard" className="min-h-[120px]" />
+            <div className="max-w-[728px] mx-auto h-[90px] flex items-center justify-center bg-zinc-900/20 rounded-xl border border-white/5">
+              <div id="home-hero-banner-10766646" className="w-full h-full flex items-center justify-center">
+                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Advertisement</span>
+              </div>
+            </div>
           </div>
         </div>
       </section>
-
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 md:-mt-4 pb-6">
-        <AdSlot slotKey="home_mid_feed" label="Featured Placement" className="min-h-[140px]" />
-      </div>
 
       <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 transition-all duration-500 ${isSearching ? 'pb-16' : 'space-y-12 md:space-y-16 md:pt-0 pb-16'}`}>
         {loading && events.length === 0 ? (
