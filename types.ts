@@ -98,6 +98,7 @@ export const categoryFromSlug = (slug: string): string => {
     'special': 'Special',
     'football': EventCategory.FOOTBALL,
     'nba': EventCategory.NBA,
+    'nfl': EventCategory.NFL,
     'other-sports': 'Other Sports'
   };
   return map[slug] || 'Category';

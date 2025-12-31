@@ -14,6 +14,7 @@ export const CATEGORY_ORDER = [
   'Special',
   EventCategory.FOOTBALL,
   EventCategory.NBA,
+  EventCategory.NFL,
   EventCategory.OTHER
 ];
 
@@ -36,9 +37,9 @@ export const PLAYER_AD_ENABLED = true; // Feature flag to enable/disable player 
 
 export const AD_SLOT_ZONE_MAP = {
   navbar_banner: PRIMARY_AD_ZONE,
-  home_hero_leaderboard: PRIMARY_AD_ZONE,
+  home_hero_leaderboard: '10766646', // Precise hero leaderboard - new zone
   home_mid_feed: PRIMARY_AD_ZONE,
-  watch_top_leaderboard: PRIMARY_AD_ZONE,
+  watch_top_leaderboard: '10766646', // Precise hero leaderboard - new zone
   watch_sidebar_sticky: PRIMARY_AD_ZONE,
   watch_below_sources: PRIMARY_AD_ZONE,
   category_top_banner: PRIMARY_AD_ZONE,

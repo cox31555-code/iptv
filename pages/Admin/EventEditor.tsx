@@ -75,7 +75,7 @@ const EventEditor: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [stadiumManuallyEdited, setStadiumManuallyEdited] = useState(false);
-  const [autoPurge, setAutoPurge] = useState(false);
+  const [autoPurge, setAutoPurge] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   // League state
@@ -421,16 +421,16 @@ const EventEditor: React.FC = () => {
                           key={league.id} 
                           type="button" 
                           onMouseDown={() => {
-                            setFormData({ 
-                              ...formData, 
-                              league: league.name, 
+                            setFormData({
+                              ...formData,
+                              league: league.name,
                               leagueId: league.id,
-                              leagueLogoUrl: league.logoUrl || formData.leagueLogoUrl, // Auto-fill league logo if available
+                              leagueLogoUrl: league.logoUrl ? (getFullImageUrl(league.logoUrl) || league.logoUrl) : formData.leagueLogoUrl, // Auto-fill league logo with full URL
                               category: league.categoryId || formData.category // Auto-populate category from league
                             });
                             setLeagueSearch('');
                             setShowLeagueLookup(false);
-                          }} 
+                          }}
                           className="flex items-center gap-3 w-full px-4 py-3 hover:bg-sky-500/10 transition-colors border-b border-white/5 last:border-0 text-left"
                         >
                           {league.backgroundImageUrl && (
@@ -544,7 +544,7 @@ const EventEditor: React.FC = () => {
               <div className="space-y-2">
                 <label className="block text-[9px] font-black text-white/30 uppercase tracking-widest">{!isTeamBased ? 'Event Logo' : 'League Logo'}</label>
                 <div className="relative aspect-square bg-[#0B0C10] rounded-2xl border border-dashed border-white/10 flex items-center justify-center overflow-hidden hover:border-sky-500/30 transition-all">
-                  {formData.leagueLogoUrl ? <><img src={getFullImageUrl(formData.leagueLogoUrl) || formData.leagueLogoUrl} className="w-full h-full object-contain p-4" alt="" /><button onClick={() => removeImage('leagueLogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1.5"><X className="w-3 h-3"/></button></> : <button onClick={() => leagueLogoRef.current?.click()} className="text-zinc-600 hover:text-sky-400"><Upload className="w-8 h-8"/></button>}
+                  {formData.leagueLogoUrl ? <><img src={formData.leagueLogoUrl} className="w-full h-full object-contain p-4" alt="League logo" onError={(e) => { e.currentTarget.style.display = 'none'; }} /><button onClick={() => removeImage('leagueLogoUrl')} className="absolute top-2 right-2 bg-red-500 rounded-full p-1.5"><X className="w-3 h-3"/></button></> : <button onClick={() => leagueLogoRef.current?.click()} className="text-zinc-600 hover:text-sky-400"><Upload className="w-8 h-8"/></button>}
                   <input type="file" ref={leagueLogoRef} className="hidden" accept="image/*" onChange={e => handleImageUpload(e, 'leagueLogoUrl')} />
                 </div>
               </div>

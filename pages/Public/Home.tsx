@@ -61,7 +61,7 @@ const Home: React.FC = () => {
     if (isSearching) return {};
 
     const otherSportsGroup = [
-      EventCategory.NFL, EventCategory.DARTS, EventCategory.MOTORSPORTS,
+      EventCategory.DARTS, EventCategory.MOTORSPORTS,
       EventCategory.BOXING, EventCategory.UFC, EventCategory.CRICKET,
       EventCategory.HOCKEY, EventCategory.OTHER
     ];
@@ -70,6 +70,7 @@ const Home: React.FC = () => {
       'Special': events.filter(e => e.isSpecial),
       [EventCategory.FOOTBALL]: events.filter(e => e.category === EventCategory.FOOTBALL),
       [EventCategory.NBA]: events.filter(e => e.category === EventCategory.NBA),
+      [EventCategory.NFL]: events.filter(e => e.category === EventCategory.NFL),
       [EventCategory.OTHER]: events.filter(e => otherSportsGroup.includes(e.category)),
     };
 

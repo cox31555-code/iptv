@@ -76,6 +76,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
                 <Link to="/special" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Special</Link>
                 <Link to="/football" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Football</Link>
                 <Link to="/nba" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">NBA</Link>
+                <Link to="/nfl" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">NFL</Link>
                 <Link to="/other-sports" className="text-[10px] font-black uppercase tracking-[0.25em] text-zinc-400 hover:text-sky-400 transition-all hover:-translate-y-0.5">Other Sports</Link>
               </div>
 
@@ -101,6 +102,7 @@ const Navbar: React.FC<NavbarProps> = ({ onSearch }) => {
               <Link to="/special" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Special Events</Link>
               <Link to="/football" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Football</Link>
               <Link to="/nba" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">NBA</Link>
+              <Link to="/nfl" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">NFL</Link>
               <Link to="/other-sports" onClick={() => setIsOpen(false)} className="text-sm font-black uppercase tracking-[0.2em] text-zinc-400 hover:text-sky-400">Other Sports</Link>
 
               <div className="flex flex-col gap-3 mt-4">

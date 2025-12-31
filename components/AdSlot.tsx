@@ -1,4 +1,5 @@
-import { useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useEffect, useRef, useCallback, useMemo } from 'react';
+import { useLocation } from 'react-router-dom';
 import {
   AD_SLOT_ZONE_MAP,
   AD_SLOT_REFRESH_MAP,
@@ -27,8 +28,15 @@ const AdSlot: React.FC<AdSlotProps> = ({
   refreshInterval,
   autoLoad = true,
 }) => {
+  const location = useLocation();
   const containerRef = useRef<HTMLDivElement | null>(null);
   const zoneId = AD_SLOT_ZONE_MAP[slotKey] ?? PRIMARY_AD_ZONE;
+
+  // Defensive check: Never render ads on admin pages
+  const isAdminPage = location.pathname.startsWith('/admin');
+  if (isAdminPage) {
+    return null;
+  }
 
   const displayLabel = useMemo(() => {
     if (label) return label;
