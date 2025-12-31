@@ -124,7 +124,20 @@
         var MAX_ATTEMPTS = 40;
         var ATTEMPT_INTERVAL = 50;
 
+        // Check if current path is an admin route
+        function isAdminRoute() {
+          return window.location.pathname.startsWith('/admin');
+        }
+
+        // Set global flag to prevent ads on admin pages
+        window.__disableAds = isAdminRoute();
+
         function invokePrimaryZone() {
+          // Don't run ads on admin pages
+          if (window.__disableAds || isAdminRoute()) {
+            return true; // Return true to stop retry attempts
+          }
+
           if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
             window.__adcashPrimaryZone = PRIMARY_ZONE_ID;
             window.aclib.runAutoTag({ zoneId: PRIMARY_ZONE_ID });
@@ -142,6 +155,28 @@
             }
           }, ATTEMPT_INTERVAL);
         }
+
+        // Listen for route changes in SPA and update ad state
+        var lastPath = window.location.pathname;
+        setInterval(function() {
+          var currentPath = window.location.pathname;
+          if (currentPath !== lastPath) {
+            lastPath = currentPath;
+            var wasDisabled = window.__disableAds;
+            window.__disableAds = isAdminRoute();
+            
+            // If navigating from public to admin, remove any ad elements
+            if (!wasDisabled && window.__disableAds) {
+              // Remove Adcash injected elements
+              var adElements = document.querySelectorAll('[id*="adcash"], [class*="adcash"], [data-aclib]');
+              adElements.forEach(function(el) {
+                if (el && el.parentNode) {
+                  el.parentNode.removeChild(el);
+                }
+              });
+            }
+          }
+        }, 100);
       })();
     </script>
 
