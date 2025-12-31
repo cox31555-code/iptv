@@ -29,6 +29,11 @@ export const PRIMARY_AD_ZONE = 'ezlzq7hamb';
 export const AD_RETRY_BACKOFF = [100, 200, 400]; // ms, capped at 400
 export const AD_MAX_RETRIES = 13; // ~5s total with backoff
 
+// Player Interaction Ad Constants
+export const PLAYER_AD_ZONE = PRIMARY_AD_ZONE; // Zone for player click ads
+export const PLAYER_AD_COOLDOWN = 45000; // 45 seconds between player ad triggers
+export const PLAYER_AD_ENABLED = true; // Feature flag to enable/disable player ads
+
 export const AD_SLOT_ZONE_MAP = {
   navbar_banner: PRIMARY_AD_ZONE,
   home_hero_leaderboard: PRIMARY_AD_ZONE,

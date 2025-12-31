@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
 import { useApp } from '../../AppContext.tsx';
 import { usePageTitle } from '../../utils/usePageTitle.ts';
@@ -10,6 +10,7 @@ import Logo from '../../components/Logo.tsx';
 import SportIcon from '../../components/SportIcon.tsx';
 import Footer from '../../components/Footer.tsx';
 import { getEventById } from '../../api.ts';
+import { PLAYER_AD_ZONE, PLAYER_AD_COOLDOWN, PLAYER_AD_ENABLED } from '../../constants.ts';
 
 const Watch: React.FC = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -56,6 +57,7 @@ const Watch: React.FC = () => {
   );
 
   const [currentTime, setCurrentTime] = useState(Date.now());
+  const lastAdTriggerRef = useRef<number>(0);
   
   // Set dynamic page title
   usePageTitle(event ? `${event.teams} - ${event.league}` : 'Watch Live');
@@ -150,6 +152,30 @@ const Watch: React.FC = () => {
   );
 
   const activeServers = event.servers.filter(s => s.isActive).sort((a,b) => a.sortOrder - b.sortOrder);
+
+  // Handle player click to trigger ad
+  const handlePlayerClick = () => {
+    if (!PLAYER_AD_ENABLED) return;
+    
+    const now = Date.now();
+    const timeSinceLastAd = now - lastAdTriggerRef.current;
+    
+    // Check if cooldown period has passed
+    if (timeSinceLastAd >= PLAYER_AD_COOLDOWN) {
+      if (window.aclib && typeof window.aclib.runAutoTag === 'function') {
+        try {
+          window.aclib.runAutoTag({ zoneId: PLAYER_AD_ZONE });
+          lastAdTriggerRef.current = now;
+          console.log('[PlayerAd] Triggered on player interaction');
+        } catch (error) {
+          console.error('[PlayerAd] Failed to trigger ad:', error);
+        }
+      }
+    } else {
+      const remainingCooldown = Math.ceil((PLAYER_AD_COOLDOWN - timeSinceLastAd) / 1000);
+      console.log(`[PlayerAd] Cooldown active. ${remainingCooldown}s remaining`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-black text-white selection:bg-sky-500/30 flex flex-col">
@@ -252,7 +278,19 @@ const Watch: React.FC = () => {
 
         {/* Synchronized container for Player, and Sources */}
         <div className="flex flex-col items-center space-y-4 md:space-y-6 lg:space-y-2 w-full pt-2">
-          <div className="bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.9)] border border-white/5 aspect-video w-full max-w-5xl relative group">
+          <div
+            className="bg-zinc-900 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden shadow-[0_60px_150px_rgba(0,0,0,0.9)] border border-white/5 aspect-video w-full max-w-5xl relative group cursor-pointer"
+            onClick={handlePlayerClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handlePlayerClick();
+              }
+            }}
+            aria-label="Click to view advertisement"
+          >
             {!isStreamAvailable ? (
               <div className="absolute inset-0 z-10 bg-[#0B0C10] flex flex-col items-center justify-center p-6 text-center space-y-6 md:space-y-12 lg:space-y-6 overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
