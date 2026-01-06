@@ -4,6 +4,7 @@ import { useApp } from '../../AppContext.tsx';
 import { usePageTitle } from '../../utils/usePageTitle.ts';
 import { ChevronLeft, Server, Clock, Lock, MapPin, Loader2 } from 'lucide-react';
 import Navbar from '../../components/Navbar.tsx';
+import AdSlot from '../../components/AdSlot.tsx';
 import { EventCategory, EventStatus, SportEvent } from '../../types.ts';
 import Logo from '../../components/Logo.tsx';
 import SportIcon from '../../components/SportIcon.tsx';
@@ -181,6 +182,10 @@ const Watch: React.FC = () => {
       <Navbar onSearch={() => {}} />
       
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-6 md:pt-10 lg:pt-8 pb-12 md:pb-20 space-y-4 md:space-y-6 lg:space-y-2 flex-1 w-full -mt-[10px]">
+        {/* Top leaderboard ad */}
+        <div className="max-w-5xl mx-auto">
+          <AdSlot slotKey="watch_top_leaderboard" className="min-h-[90px]" />
+        </div>
         <div className="flex flex-col items-center justify-center py-4 md:py-4 lg:py-1 space-y-4 md:space-y-6 lg:space-y-2 text-center">
           <div className="flex flex-col items-center gap-2 lg:gap-1">
             <div className="p-2 md:p-2.5 lg:p-1.5 bg-zinc-900/50 rounded-xl md:rounded-2xl border border-white/5 backdrop-blur-3xl flex items-center justify-center min-w-[56px] min-h-[56px] md:min-w-[48px] md:min-h-[48px] lg:min-w-[32px] lg:min-h-[32px] shadow-[0_15px_40px_rgba(0,0,0,0.5)]">
@@ -393,6 +398,11 @@ const Watch: React.FC = () => {
                 </button>
               ))}
             </div>
+          </div>
+          
+          {/* Ad slot below sources */}
+          <div className="w-full max-w-5xl">
+            <AdSlot slotKey="watch_below_sources" className="min-h-[90px]" />
           </div>
         </div>
       </main>

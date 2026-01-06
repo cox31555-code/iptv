@@ -4,6 +4,7 @@ import { EventCategory, getCategorySlug, EventStatus } from '../../types.ts';
 import { CATEGORY_ORDER } from '../../constants.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
+import AdSlot from '../../components/AdSlot.tsx';
 import { ChevronRight, Search, XCircle, ChevronUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Footer from '../../components/Footer.tsx';
@@ -31,22 +32,7 @@ const Home: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Load hero banner ad
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (window.aclib && typeof window.aclib.runBanner === 'function') {
-        try {
-          window.aclib.runBanner({
-            zoneId: '10766646',
-          });
-          console.log('[HeroBanner] Loaded zone 10766646');
-        } catch (error) {
-          console.error('[HeroBanner] Failed to load ad:', error);
-        }
-      }
-    }, 100);
-    return () => clearTimeout(timer);
-  }, []);
+  // Hero banner ad is now handled by AdSlot component
 
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -199,11 +185,10 @@ const Home: React.FC = () => {
               </a>
             </div>
           </div>
+          {/* Hero Banner Ad - Uses AdSlot for proper ad injection */}
           <div className="mt-8">
-            <div className="max-w-[728px] mx-auto h-[90px] flex items-center justify-center bg-zinc-900/20 rounded-xl border border-white/5">
-              <div id="home-hero-banner-10766646" className="w-full h-full flex items-center justify-center">
-                <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-600">Advertisement</span>
-              </div>
+            <div className="max-w-[728px] mx-auto">
+              <AdSlot slotKey="home_hero_leaderboard" className="min-h-[90px]" />
             </div>
           </div>
         </div>

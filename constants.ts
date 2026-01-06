@@ -35,11 +35,26 @@ export const PLAYER_AD_ZONE = PRIMARY_AD_ZONE; // Zone for player click ads
 export const PLAYER_AD_COOLDOWN = 45000; // 45 seconds between player ad triggers
 export const PLAYER_AD_ENABLED = true; // Feature flag to enable/disable player ads
 
+// Zone Types: 'autotag' uses runAutoTag, 'banner' uses runBanner with container ID
+export type AdZoneType = 'autotag' | 'banner';
+
+export interface AdZoneConfig {
+  zoneId: string;
+  type: AdZoneType;
+  minHeight?: string; // CSS min-height value
+}
+
+// Zone configuration with type information
+export const AD_ZONE_CONFIG: Record<string, AdZoneConfig> = {
+  'ezlzq7hamb': { zoneId: 'ezlzq7hamb', type: 'autotag', minHeight: '90px' },
+  '10766646': { zoneId: '10766646', type: 'banner', minHeight: '90px' },
+};
+
 export const AD_SLOT_ZONE_MAP = {
   navbar_banner: PRIMARY_AD_ZONE,
-  home_hero_leaderboard: '10766646', // Precise hero leaderboard - new zone
+  home_hero_leaderboard: '10766646', // Banner zone - uses runBanner
   home_mid_feed: PRIMARY_AD_ZONE,
-  watch_top_leaderboard: '10766646', // Precise hero leaderboard - new zone
+  watch_top_leaderboard: '10766646', // Banner zone - uses runBanner
   watch_sidebar_sticky: PRIMARY_AD_ZONE,
   watch_below_sources: PRIMARY_AD_ZONE,
   category_top_banner: PRIMARY_AD_ZONE,
@@ -47,6 +62,18 @@ export const AD_SLOT_ZONE_MAP = {
 } as const;
 
 export type AdSlotKey = keyof typeof AD_SLOT_ZONE_MAP;
+
+// Minimum heights for different slot positions to prevent layout shift
+export const AD_SLOT_MIN_HEIGHTS: Record<AdSlotKey, string> = {
+  navbar_banner: '50px',
+  home_hero_leaderboard: '90px',
+  home_mid_feed: '90px',
+  watch_top_leaderboard: '90px',
+  watch_sidebar_sticky: '250px',
+  watch_below_sources: '90px',
+  category_top_banner: '90px',
+  footer_banner: '100px',
+};
 
 export const DEFAULT_SLOT_REFRESH_INTERVAL = 45000; // 45s default
 export const AD_SLOT_REFRESH_MAP: Partial<Record<AdSlotKey, number>> = {

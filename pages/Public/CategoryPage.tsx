@@ -5,6 +5,7 @@ import { EventCategory, categoryFromSlug, SportEvent } from '../../types.ts';
 import { usePageTitle } from '../../utils/usePageTitle.ts';
 import EventCard from '../../components/EventCard.tsx';
 import Navbar from '../../components/Navbar.tsx';
+import AdSlot from '../../components/AdSlot.tsx';
 import NotFound from './NotFound.tsx';
 import { ChevronLeft, Search, XCircle, ChevronDown } from 'lucide-react';
 import Footer from '../../components/Footer.tsx';
@@ -132,6 +133,8 @@ const CategoryPage: React.FC = () => {
       <Navbar onSearch={() => {}} />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 md:pt-12 flex-1 w-full space-y-12 md:space-y-16">
+        {/* Category top banner ad */}
+        <AdSlot slotKey="category_top_banner" className="min-h-[90px]" />
         <div className="space-y-6">
           <Link to="/" className="inline-flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-sky-400 group transition-colors">
             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
