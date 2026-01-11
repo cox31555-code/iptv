@@ -10,9 +10,10 @@ import LiveIndicator from './LiveIndicator.tsx';
 
 interface EventCardProps {
   event: SportEvent;
+  priority?: boolean;
 }
 
-const EventCard: React.FC<EventCardProps> = React.memo(({ event }) => {
+const EventCard: React.FC<EventCardProps> = React.memo(({ event, priority = false }) => {
   const isLive = event.status === EventStatus.LIVE;
   const isUpcoming = event.status === EventStatus.UPCOMING;
 
@@ -26,8 +27,9 @@ const EventCard: React.FC<EventCardProps> = React.memo(({ event }) => {
         <img
           src={displayCoverUrl}
           alt={event.teams}
-          loading="lazy"
-          decoding="async"
+          loading={priority ? "eager" : "lazy"}
+          decoding={priority ? "sync" : "async"}
+          fetchPriority={priority ? "high" : "auto"}
           width={640}
           height={400}
           className="w-full h-full object-cover opacity-60 group-hover:opacity-100 group-hover:scale-110 transition-all duration-700 ease-out"

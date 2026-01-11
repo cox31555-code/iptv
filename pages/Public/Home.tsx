@@ -232,7 +232,7 @@ const Home: React.FC = () => {
           </div>
         ) : (
           <>
-            {CATEGORY_ORDER.map(sectionName => {
+            {CATEGORY_ORDER.map((sectionName, sectionIndex) => {
               const items = categorizedEvents[sectionName];
               
               // Define blocks to render for this iteration
@@ -253,9 +253,9 @@ const Home: React.FC = () => {
                     
                     {/* Horizontal scroll for Live events - using standard sizing to match Discover grids */}
                     <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
-                      {liveEvents.slice(0, 12).map(event => (
+                      {liveEvents.slice(0, 12).map((event, index) => (
                         <div key={event.id} className={standardItemClass}>
-                          <EventCard event={event} />
+                          <EventCard event={event} priority={index < 2} />
                         </div>
                       ))}
                     </div>
@@ -290,17 +290,17 @@ const Home: React.FC = () => {
 
                     {isSpecial ? (
                       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 styled-h-scrollbar pb-4">
-                        {items.slice(0, 12).map(event => (
+                        {items.slice(0, 12).map((event, index) => (
                           <div key={event.id} className={specialItemClass}>
-                            <EventCard event={event} />
+                            <EventCard event={event} priority={sectionIndex === 0 && index < 2} />
                           </div>
                         ))}
                       </div>
                     ) : (
                       <div className="flex overflow-x-auto snap-x snap-mandatory gap-4 md:gap-8 pb-4 styled-h-scrollbar">
-                        {items.slice(0, 12).map(event => (
+                        {items.slice(0, 12).map((event, index) => (
                           <div key={event.id} className={standardItemClass}>
-                            <EventCard event={event} />
+                            <EventCard event={event} priority={sectionIndex === 0 && index < 2} />
                           </div>
                         ))}
                       </div>
