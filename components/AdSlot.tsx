@@ -106,16 +106,33 @@ const AdSlot: React.FC<AdSlotProps> = ({
     return () => unregister();
   }, [slotKey, refreshSlot]);
 
-  // Initial ad load
+  // Initial ad load with Retry Logic (Handles deferred script loading)
   useEffect(() => {
-    if (autoLoad) {
-      // Small delay to ensure container is in DOM
-      const timer = setTimeout(() => {
+    if (!autoLoad) return;
+
+    let attempts = 0;
+    const maxAttempts = 20; // Try for up to 10 seconds
+    let timer: number;
+
+    const tryLoadAd = () => {
+      // If aclib is ready, load the ad
+      if (window.aclib) {
         refreshSlot();
-      }, 100);
-      return () => clearTimeout(timer);
-    }
-  }, [autoLoad, refreshSlot]);
+      }
+      // If not ready and we haven't timed out, try again in 500ms
+      else if (attempts < maxAttempts) {
+        attempts++;
+        timer = window.setTimeout(tryLoadAd, 500);
+      }
+      else {
+        console.warn(`[AdSlot] AdCash script failed to load after 10 seconds for ${slotKey}`);
+      }
+    };
+
+    tryLoadAd();
+
+    return () => clearTimeout(timer);
+  }, [autoLoad, refreshSlot, slotKey]);
 
   // Periodic refresh interval
   useEffect(() => {
