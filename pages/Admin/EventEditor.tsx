@@ -25,6 +25,26 @@ import {
 import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team, League } from '../../types.ts';
 import { uploadCoverImage, getFullImageUrl, getLeagues } from '../../api.ts';
 
+// Helper function to calculate event duration based on category
+const getEventDurationMs = (category: EventCategory): number => {
+  switch (category) {
+    case EventCategory.FOOTBALL:
+      return 105 * 60 * 1000; // 1 hour 45 minutes
+    case EventCategory.NBA:
+      return 180 * 60 * 1000; // 3 hours
+    case EventCategory.NFL:
+      return 210 * 60 * 1000; // 3 hours 30 minutes
+    default:
+      return 120 * 60 * 1000; // 2 hours (default)
+  }
+};
+
+// Helper function to get next sequential source label
+const getNextSourceLabel = (servers: StreamServer[]): string => {
+  if (!servers || servers.length === 0) return '1';
+  return String(servers.length + 1);
+};
+
 const EventEditor: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -79,6 +99,7 @@ const EventEditor: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [stadiumManuallyEdited, setStadiumManuallyEdited] = useState(false);
+  const [endTimeManuallyEdited, setEndTimeManuallyEdited] = useState(false);
   const [autoPurge, setAutoPurge] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
@@ -153,6 +174,24 @@ const EventEditor: React.FC = () => {
       }
     }
   }, [teamA, teamB, isTeamBased]);
+
+  // Auto-update endTime when startTime or category changes (unless manually edited)
+  useEffect(() => {
+    // Only auto-fill if:
+    // 1. We have a start time
+    // 2. End time hasn't been manually edited
+    // 3. Initial load is complete (to avoid overriding existing event data)
+    if (formData.startTime && !endTimeManuallyEdited && initialLoadComplete.current) {
+      const startDate = new Date(formData.startTime);
+      const durationMs = getEventDurationMs(formData.category || EventCategory.FOOTBALL);
+      const endDate = new Date(startDate.getTime() + durationMs);
+      
+      setFormData(prev => ({
+        ...prev,
+        endTime: endDate.toISOString().slice(0, 16)
+      }));
+    }
+  }, [formData.startTime, formData.category, endTimeManuallyEdited]);
 
   // Auto-update deleteAt when endTime changes and autoPurge is enabled
   useEffect(() => {
@@ -260,12 +299,15 @@ const EventEditor: React.FC = () => {
   };
 
   const addServer = () => {
-    if (!newServer.name || !newServer.embedUrl) return;
+    // Auto-fill name with next number if empty
+    const serverName = newServer.name?.trim() || getNextSourceLabel(formData.servers || []);
+    
+    if (!newServer.embedUrl) return;
     
     const serverId = crypto.randomUUID();
     const server: StreamServer = {
       id: serverId,
-      name: newServer.name,
+      name: serverName, // Use auto-generated or user-provided name
       embedUrl: newServer.embedUrl,
       streamType: newServer.streamType as 'embed' | 'hls',
       isActive: newServer.isActive!,
@@ -377,7 +419,10 @@ const EventEditor: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="md:col-span-2">
                 <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Category</label>
-                <select value={formData.category} onChange={e => setFormData({ ...formData, category: e.target.value as EventCategory })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-[#04C4FC] outline-none text-white transition-all appearance-none">
+                <select value={formData.category} onChange={e => {
+                  setEndTimeManuallyEdited(false); // Reset flag to allow auto-fill with new duration
+                  setFormData({ ...formData, category: e.target.value as EventCategory });
+                }} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-[#04C4FC] outline-none text-white transition-all appearance-none">
                   {Object.values(EventCategory).map(c => <option key={c} value={c} className="bg-[#1F2833]">{c}</option>)}
                 </select>
               </div>
@@ -507,7 +552,10 @@ const EventEditor: React.FC = () => {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Start Time</label><input type="datetime-local" value={formData.startTime} onChange={e => setFormData({ ...formData, startTime: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
-              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">End Time</label><input type="datetime-local" value={formData.endTime} onChange={e => setFormData({ ...formData, endTime: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
+              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">End Time</label><input type="datetime-local" value={formData.endTime} onChange={e => {
+                setEndTimeManuallyEdited(true); // Mark as manually edited
+                setFormData({ ...formData, endTime: e.target.value });
+              }} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
             </div>
           </section>
 
@@ -707,7 +755,7 @@ const EventEditor: React.FC = () => {
               ))}
               <div className="bg-[#0B0C10]/40 p-5 rounded-2xl border border-dashed border-white/10 space-y-4">
                 <div className="grid grid-cols-3 gap-4">
-                  <input placeholder="Server Label" value={newServer.name} onChange={e => setNewServer({ ...newServer, name: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs" />
+                  <input placeholder={`Source ${getNextSourceLabel(formData.servers || [])}`} value={newServer.name} onChange={e => setNewServer({ ...newServer, name: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs" />
                   <select value={newServer.streamType || 'embed'} onChange={e => setNewServer({ ...newServer, streamType: e.target.value as 'embed' | 'hls' })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-2 text-xs appearance-none">
                     <option value="embed">Embed</option>
                     <option value="hls">HLS</option>
