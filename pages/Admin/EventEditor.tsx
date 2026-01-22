@@ -421,7 +421,7 @@ const EventEditor: React.FC = () => {
                 <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Category</label>
                 <select value={formData.category} onChange={e => {
                   setEndTimeManuallyEdited(false); // Reset flag to allow auto-fill with new duration
-                  setFormData({ ...formData, category: e.target.value as EventCategory });
+                  setFormData(prev => ({ ...prev, category: e.target.value as EventCategory }));
                 }} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-sm font-bold focus:ring-1 focus:ring-[#04C4FC] outline-none text-white transition-all appearance-none">
                   {Object.values(EventCategory).map(c => <option key={c} value={c} className="bg-[#1F2833]">{c}</option>)}
                 </select>
@@ -551,7 +551,7 @@ const EventEditor: React.FC = () => {
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Venue</label><div className="relative"><MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" /><input value={formData.stadium} onChange={e => { setStadiumManuallyEdited(true); setFormData({ ...formData, stadium: e.target.value }); }} placeholder="e.g. Anfield" className="w-full bg-[#0B0C10] border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none" /></div></div>
             </div>
             <div className="grid grid-cols-2 gap-6">
-              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Start Time</label><input type="datetime-local" value={formData.startTime} onChange={e => setFormData({ ...formData, startTime: e.target.value })} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
+              <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">Start Time</label><input type="datetime-local" value={formData.startTime} onChange={e => setFormData(prev => ({ ...prev, startTime: e.target.value }))} className="w-full bg-[#0B0C10] border border-white/10 rounded-xl px-4 py-3 text-xs outline-none" /></div>
               <div><label className="block text-[10px] font-black text-white/30 uppercase tracking-widest mb-2">End Time</label><input type="datetime-local" value={formData.endTime} onChange={e => {
                 setEndTimeManuallyEdited(true); // Mark as manually edited
                 setFormData({ ...formData, endTime: e.target.value });
