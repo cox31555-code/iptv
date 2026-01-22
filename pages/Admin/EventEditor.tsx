@@ -39,6 +39,13 @@ const getEventDurationMs = (category: EventCategory): number => {
   }
 };
 
+// Helper to format Date to local ISO string (YYYY-MM-DDTHH:mm) for inputs
+const toLocalISOString = (date: Date): string => {
+  const offset = date.getTimezoneOffset() * 60000; // offset in milliseconds
+  const localDate = new Date(date.getTime() - offset);
+  return localDate.toISOString().slice(0, 16);
+};
+
 // Helper function to get next sequential source label
 const getNextSourceLabel = (servers: StreamServer[]): string => {
   if (!servers || servers.length === 0) return '1';
@@ -62,8 +69,8 @@ const EventEditor: React.FC = () => {
     league: '',
     keywords: '',
     category: EventCategory.FOOTBALL,
-    startTime: new Date().toISOString().slice(0, 16),
-    endTime: new Date(Date.now() + 7200000).toISOString().slice(0, 16),
+    startTime: toLocalISOString(new Date()),
+    endTime: toLocalISOString(new Date(Date.now() + 7200000)),
     stadium: '',
     description: '',
     imageUrl: '',
@@ -177,19 +184,19 @@ const EventEditor: React.FC = () => {
 
   // Auto-update endTime when startTime or category changes (unless manually edited)
   useEffect(() => {
-    // Only auto-fill if:
-    // 1. We have a start time
-    // 2. End time hasn't been manually edited
-    // 3. Initial load is complete (to avoid overriding existing event data)
     if (formData.startTime && !endTimeManuallyEdited && initialLoadComplete.current) {
       const startDate = new Date(formData.startTime);
-      const durationMs = getEventDurationMs(formData.category || EventCategory.FOOTBALL);
-      const endDate = new Date(startDate.getTime() + durationMs);
-      
-      setFormData(prev => ({
-        ...prev,
-        endTime: endDate.toISOString().slice(0, 16)
-      }));
+
+      // Safety check: ensure date is valid before calculating
+      if (!isNaN(startDate.getTime())) {
+        const durationMs = getEventDurationMs(formData.category || EventCategory.FOOTBALL);
+        const endDate = new Date(startDate.getTime() + durationMs);
+
+        setFormData(prev => ({
+          ...prev,
+          endTime: toLocalISOString(endDate) // Use helper to prevent timezone jump
+        }));
+      }
     }
   }, [formData.startTime, formData.category, endTimeManuallyEdited]);
 
