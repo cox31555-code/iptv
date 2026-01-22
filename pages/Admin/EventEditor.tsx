@@ -182,23 +182,31 @@ const EventEditor: React.FC = () => {
     }
   }, [teamA, teamB, isTeamBased]);
 
-  // Auto-update endTime when startTime or category changes (unless manually edited)
+  // Auto-update endTime when startTime or category changes
   useEffect(() => {
-    if (formData.startTime && !endTimeManuallyEdited && initialLoadComplete.current) {
-      const startDate = new Date(formData.startTime);
+    // Logic: Auto-fill if not manually edited AND (it's a new event OR the existing event has loaded)
+    const isNewEvent = !id || id === 'new';
+    const canAutofill = formData.startTime && !endTimeManuallyEdited && (initialLoadComplete.current || isNewEvent);
 
-      // Safety check: ensure date is valid before calculating
+    if (canAutofill) {
+      const startDate = new Date(formData.startTime);
+      
+      // Safety check: ensure date is valid
       if (!isNaN(startDate.getTime())) {
         const durationMs = getEventDurationMs(formData.category || EventCategory.FOOTBALL);
         const endDate = new Date(startDate.getTime() + durationMs);
+        
+        // FIX: Use helper to keep local time and prevent timezone jumps
+        const newEndTime = toLocalISOString(endDate);
 
-        setFormData(prev => ({
-          ...prev,
-          endTime: toLocalISOString(endDate) // Use helper to prevent timezone jump
-        }));
+        setFormData(prev => {
+          // Prevent unnecessary re-renders
+          if (prev.endTime === newEndTime) return prev;
+          return { ...prev, endTime: newEndTime };
+        });
       }
     }
-  }, [formData.startTime, formData.category, endTimeManuallyEdited]);
+  }, [formData.startTime, formData.category, endTimeManuallyEdited, id]);
 
   // Auto-update deleteAt when endTime changes and autoPurge is enabled
   useEffect(() => {
