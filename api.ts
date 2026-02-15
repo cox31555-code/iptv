@@ -318,3 +318,35 @@ export const getFullImageUrl = (url: string | null | undefined): string | null =
 export const getEventCoverUrl = (eventId: string): string => {
   return `${API_BASE_URL}/api/events/${eventId}/cover.webp`;
 };
+
+// ============ SCRAPER ============
+
+export interface ScraperStatus {
+  running: boolean;
+  lastScrapeTime: string | null;
+  lastScrapeResult: {
+    success: boolean;
+    matchesFound: number;
+    eventsCreated: number;
+    eventsSkipped: number;
+    duration: number;
+    error?: string;
+  } | null;
+}
+
+export const getScraperStatus = async (): Promise<ScraperStatus> => {
+  const response = await fetch(`${API_BASE_URL}/api/scraper/status`, getFetchOptions());
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to get scraper status');
+  return result.data;
+};
+
+export const triggerScrape = async (): Promise<{ startTime: string; status: string }> => {
+  const response = await fetch(`${API_BASE_URL}/api/scraper/start`, getFetchOptions({
+    method: 'POST',
+    headers: getHeaders(),
+  }));
+  const result = await response.json();
+  if (!result.success) throw new Error(result.error || 'Failed to start scraper');
+  return result.data;
+};

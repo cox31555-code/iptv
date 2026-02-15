@@ -1,16 +1,20 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useApp } from '../../AppContext';
 import { Link } from 'react-router-dom';
-import { 
-  Plus, 
-  Trash2, 
-  Edit3, 
-  Activity, 
+import {
+  Plus,
+  Trash2,
+  Edit3,
+  Activity,
   Clock,
   Star,
   Search,
   Filter,
-  Calendar
+  Calendar,
+  Loader2,
+  Zap,
+  CheckCircle2,
+  XCircle
 } from 'lucide-react';
 import { EventStatus, SportEvent, EventCategory } from '../../types';
 import AdminLayout from '../../admin/layout/AdminLayout';
@@ -18,6 +22,7 @@ import { useToast } from '../../admin/components/Toast';
 import { useConfirm } from '../../admin/components/ConfirmDialog';
 import { useBulkSelection } from '../../admin/hooks/useBulkSelection';
 import BulkActionBar from '../../admin/components/BulkActionBar';
+import { triggerScrape, getScraperStatus, ScraperStatus } from '../../api';
 
 const Dashboard: React.FC = () => {
   const { events, deleteEvent } = useApp();
@@ -26,6 +31,63 @@ const Dashboard: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [scraperStatus, setScraperStatus] = useState<ScraperStatus | null>(null);
+  const [isScraping, setIsScraping] = useState(false);
+
+  const pollScraperStatus = useCallback(async () => {
+    try {
+      const status = await getScraperStatus();
+      setScraperStatus(status);
+      return status;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  // Poll scraper status on mount and while scraping
+  useEffect(() => {
+    pollScraperStatus();
+  }, [pollScraperStatus]);
+
+  useEffect(() => {
+    if (!isScraping) return;
+    const interval = setInterval(async () => {
+      const status = await pollScraperStatus();
+      if (status && !status.running) {
+        setIsScraping(false);
+        if (status.lastScrapeResult?.success) {
+          showToast(`Scrape complete — ${status.lastScrapeResult.eventsCreated} events created`, 'success');
+        } else {
+          showToast(status.lastScrapeResult?.error || 'Scrape finished with errors', 'error');
+        }
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [isScraping, pollScraperStatus, showToast]);
+
+  const handleTriggerScrape = async () => {
+    const confirmed = await confirm({
+      title: 'Run Scraper',
+      message: 'This will scrape today\'s matches from LiveSoccerTV and create events. This may take a few minutes.',
+      confirmText: 'Start Scrape',
+      variant: 'info',
+    });
+    if (!confirmed) return;
+
+    try {
+      await triggerScrape();
+      setIsScraping(true);
+      showToast('Scraper started — this may take a few minutes', 'success');
+      pollScraperStatus();
+    } catch (err: any) {
+      if (err.message?.includes('already running')) {
+        setIsScraping(true);
+        showToast('Scraper is already running', 'info');
+      } else {
+        showToast(err.message || 'Failed to start scraper', 'error');
+      }
+    }
+  };
 
   const stats = useMemo(() => ({
     live: events.filter(e => e.status === EventStatus.LIVE).length,
@@ -125,19 +187,54 @@ const Dashboard: React.FC = () => {
       title="Dashboard"
       description="Manage your active streams and coverage"
       action={
-        <Link 
-          to="/admin/events/new" 
-          className="flex items-center justify-center gap-2 bg-[#04C4FC] text-[#0B0C10] px-6 py-2.5 rounded-xl font-bold hover:scale-105 transition-transform text-xs uppercase tracking-widest shadow-[0_10px_30px_rgba(4,196,252,0.2)] w-full sm:w-auto"
-        >
-          <Plus className="w-4 h-4" /> Create Event
-        </Link>
+        <div className="flex gap-3 w-full sm:w-auto">
+          <button
+            onClick={handleTriggerScrape}
+            disabled={isScraping}
+            className={`flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest transition-all w-full sm:w-auto ${
+              isScraping
+                ? 'bg-amber-500/20 text-amber-400 border border-amber-500/20 cursor-not-allowed'
+                : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/30 hover:scale-105'
+            }`}
+          >
+            {isScraping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            {isScraping ? 'Scraping...' : 'Run Scraper'}
+          </button>
+          <Link
+            to="/admin/events/new"
+            className="flex items-center justify-center gap-2 bg-[#04C4FC] text-[#0B0C10] px-6 py-2.5 rounded-xl font-bold hover:scale-105 transition-transform text-xs uppercase tracking-widest shadow-[0_10px_30px_rgba(4,196,252,0.2)] w-full sm:w-auto"
+          >
+            <Plus className="w-4 h-4" /> Create Event
+          </Link>
+        </div>
       }
     >
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mb-10">
         <StatCard icon={<Activity className="text-green-500" />} label="Live Streams" value={stats.live} />
         <StatCard icon={<Clock className="text-blue-400" />} label="Upcoming" value={stats.upcoming} />
         <StatCard icon={<Trash2 className="text-red-400" />} label="Scheduled Cleanup" value={stats.deletions} />
+        <div className="bg-[#1F2833] p-6 rounded-2xl border border-white/5 flex items-center gap-6 shadow-lg">
+          <div className="p-4 bg-[#0B0C10] rounded-2xl border border-white/5">
+            {isScraping ? (
+              <Loader2 className="w-6 h-6 text-amber-400 animate-spin" />
+            ) : scraperStatus?.lastScrapeResult?.success ? (
+              <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            ) : scraperStatus?.lastScrapeResult && !scraperStatus.lastScrapeResult.success ? (
+              <XCircle className="w-6 h-6 text-red-500" />
+            ) : (
+              <Zap className="w-6 h-6 text-zinc-500" />
+            )}
+          </div>
+          <div>
+            <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] mb-1">Scraper</p>
+            <p className="text-sm font-bold text-white">
+              {isScraping ? 'Running...' : scraperStatus?.lastScrapeTime
+                ? new Date(scraperStatus.lastScrapeTime).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                : 'Never run'}
+            </p>
+          </div>
+        </div>
       </div>
 
       {/* Search and Filters */}
