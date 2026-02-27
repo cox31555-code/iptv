@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { EventCategory, StreamServer, SportEvent, calculateEventStatus, Team, League } from '../../types.ts';
 import { uploadCoverImage, getFullImageUrl, getLeagues } from '../../api.ts';
+import { StreamEmbed } from '../../src/client/components/StreamEmbed.tsx';
 
 // Helper function to calculate event duration based on category
 const getEventDurationMs = (category: EventCategory): number => {
@@ -825,7 +826,11 @@ const EventEditor: React.FC = () => {
               previewServer.streamType === 'hls' ? (
                 <video src={previewServer.embedUrl} className="w-full h-full" controls autoPlay />
               ) : (
-                <iframe src={previewServer.embedUrl} className="w-full h-full border-none" allowFullScreen title="Preview" />
+                <StreamEmbed
+                  url={previewServer.embedUrl}
+                  className="w-full h-full border-none"
+                  title="Preview"
+                />
               )
             ) : (
               <div className="h-full flex items-center justify-center text-[10px] font-black uppercase tracking-widest text-white/10 italic">No Source Selected</div>
