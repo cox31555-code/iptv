@@ -164,6 +164,7 @@ const StreamEmbed: React.FC<StreamEmbedProps> = React.memo(({
         src={proxyUrl}
         title={title}
         className="w-full h-full"
+        sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
         allowFullScreen
         allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
         credentialless
