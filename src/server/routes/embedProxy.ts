@@ -16,7 +16,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import axios, { AxiosError } from 'axios';
 import rateLimit from 'express-rate-limit';
 import NodeCache from 'node-cache';
-import { isAllowedDomain, extractDomain } from '../config/embedAllowlist';
+import { isAllowedUrl, checkDomainRateLimit, extractDomain, UrlRejectionReason } from '../config/embedAllowlist';
 import { sanitizeEmbedHtml, getSanitizationStats } from '../utils/sanitizeEmbed';
 
 // Create Express router
@@ -45,13 +45,26 @@ const embedRateLimiter = rateLimit({
 });
 
 /**
+ * Mapping of rejection reasons to HTTP status codes and log levels
+ */
+const REJECTION_ERROR_MAP: Record<UrlRejectionReason, { status: number; logLevel: 'warn' | 'error' }> = {
+  MALFORMED_URL: { status: 400, logLevel: 'warn' },
+  INVALID_PROTOCOL: { status: 400, logLevel: 'warn' },
+  PRIVATE_NETWORK: { status: 403, logLevel: 'error' },
+  RAW_IP_ADDRESS: { status: 403, logLevel: 'error' },
+  MALICIOUS_TLD: { status: 403, logLevel: 'error' },
+  BLOCKED_PATTERN: { status: 403, logLevel: 'error' },
+};
+
+/**
  * Validates the URL parameter from the request
  */
-function validateUrlParam(urlParam: string | undefined): { valid: boolean; url?: string; error?: string } {
+function validateUrlParam(urlParam: string | undefined): { valid: boolean; url?: string; rejectionReason?: UrlRejectionReason; errorMessage?: string } {
   if (!urlParam) {
     return {
       valid: false,
-      error: 'Missing URL parameter',
+      rejectionReason: 'MALFORMED_URL',
+      errorMessage: 'Missing URL parameter',
     };
   }
   
@@ -59,14 +72,15 @@ function validateUrlParam(urlParam: string | undefined): { valid: boolean; url?:
     // Decode the URL parameter
     const decodedUrl = decodeURIComponent(urlParam);
     
-    // Validate URL format
-    new URL(decodedUrl);
+    // Validate URL format and security rules
+    const validationResult = isAllowedUrl(decodedUrl);
     
-    // Validate domain against allowlist
-    if (!isAllowedDomain(decodedUrl)) {
+    if (!validationResult.allowed) {
+      const rejectedResult = validationResult as { allowed: false; reason: UrlRejectionReason; message: string };
       return {
         valid: false,
-        error: `Domain not allowed: ${extractDomain(decodedUrl)}`,
+        rejectionReason: rejectedResult.reason,
+        errorMessage: rejectedResult.message,
       };
     }
     
@@ -77,7 +91,8 @@ function validateUrlParam(urlParam: string | undefined): { valid: boolean; url?:
   } catch (error) {
     return {
       valid: false,
-      error: 'Invalid URL format',
+      rejectionReason: 'MALFORMED_URL',
+      errorMessage: 'Invalid URL format',
     };
   }
 }
@@ -151,8 +166,8 @@ async function fetchEmbedHtml(url: string): Promise<{ success: boolean; html?: s
  * 
  * Response:
  * - 200: Sanitized HTML with Content-Type: text/html
- * - 400: Bad request (missing or invalid URL)
- * - 403: Forbidden (domain not in allowlist)
+ * - 400: Bad request (missing or malformed URL, invalid protocol)
+ * - 403: Forbidden (private network, raw IP, malicious TLD, blocked pattern)
  * - 429: Too many requests (rate limit exceeded)
  * - 500: Internal server error
  * 
@@ -165,14 +180,33 @@ router.get('/embed', embedRateLimiter, async (req: Request, res: Response, next:
     const validation = validateUrlParam(req.query.url as string);
     
     if (!validation.valid) {
-      res.status(validation.error?.includes('not allowed') ? 403 : 400).json({
-        error: 'Validation failed',
-        message: validation.error,
+      const rejectionReason = validation.rejectionReason!;
+      const errorConfig = REJECTION_ERROR_MAP[rejectionReason];
+      
+      // Log the rejection with appropriate log level
+      const hostname = extractDomain(req.query.url as string) || 'unknown';
+      if (errorConfig.logLevel === 'warn') {
+        console.warn(`[EmbedProxy] URL validation warning: ${rejectionReason} - ${hostname}`);
+      } else {
+        console.error(`[EmbedProxy] URL validation error: ${rejectionReason} - ${hostname}`);
+      }
+      
+      // Send error response with appropriate status code
+      res.status(errorConfig.status).json({
+        error: validation.errorMessage,
+        code: rejectionReason,
       });
       return;
     }
     
     const targetUrl = validation.url!;
+    
+    // Check per-domain rate limit
+    const { hostname } = new URL(targetUrl);
+    if (!checkDomainRateLimit(hostname)) {
+      res.status(429).json({ error: 'Target domain rate limit exceeded' });
+      return;
+    }
     
     // Check cache first
     const cacheKey = generateCacheKey(targetUrl);
