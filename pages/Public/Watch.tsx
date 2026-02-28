@@ -11,7 +11,6 @@ import SportIcon from '../../components/SportIcon.tsx';
 import Footer from '../../components/Footer.tsx';
 import { getEventById } from '../../api.ts';
 import { PLAYER_AD_ZONE, PLAYER_AD_COOLDOWN, PLAYER_AD_ENABLED } from '../../constants.ts';
-import { StreamEmbed } from '../../src/client/components/StreamEmbed.tsx';
 
 const Watch: React.FC = () => {
   const { eventSlug } = useParams<{ eventSlug: string }>();
@@ -342,9 +341,11 @@ const Watch: React.FC = () => {
                   controlsList="nodownload"
                 />
               ) : (
-                <StreamEmbed
-                  url={activeServer.embedUrl}
+                <iframe
+                  src={activeServer.embedUrl}
                   className="w-full h-full border-none"
+                  allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+                  allowFullScreen={true}
                   title={`Live stream: ${event.teams} - ${event.league}`}
                 />
               )
