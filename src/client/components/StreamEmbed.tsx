@@ -166,8 +166,7 @@ const StreamEmbed: React.FC<StreamEmbedProps> = React.memo(({
         className="w-full h-full"
         sandbox="allow-scripts allow-same-origin allow-presentation allow-forms allow-popups"
         allowFullScreen
-        allow="accelerometer; clipboard-write; encrypted-media; picture-in-picture"
-        credentialless
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         onLoad={handleLoad}
         onError={handleError}
         loading="lazy"
